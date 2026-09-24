@@ -2,7 +2,7 @@
 // The code form keeps what was typed in `form`, so a redraw (after a build, say) loses nothing.
 
 import { api, post } from '../api.js';
-import { keyOf, loadOverview, getOverview } from '../store.js';
+import { changed, getOverview, keyOf, loadOverview } from '../store.js';
 import { buildBadge, buildLine, issueList, linkChips, sharedClick } from '../parts.js';
 import { replyText } from '../reply.js';
 import { busy, checkMachineId, copy, esc, fmtWhen, icon, toast } from '../ui.js';
@@ -263,10 +263,8 @@ async function issue(button, main) {
   // The next code starts from a clean form - only the product stays
   Object.assign(form, { result, customerId: '', customerName: '', email: '', machineId: '', price: '', paid: false, note: '' });
   toast('Code erzeugt und im Register gespeichert');
-  const o = await loadOverview();
-  register = await api('/api/register');
-  redrawCode(main, o);
-  main.querySelector('.code-out')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // Draw the whole page again: the new code belongs in "Zuletzt ausgestellt" too
+  changed();
 }
 
 function redrawCode(main, o = getOverview()) {
