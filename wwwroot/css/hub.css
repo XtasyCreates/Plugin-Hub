@@ -145,7 +145,9 @@ a.tile:hover { border-color: var(--line); }
 
 .pcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
 .pcard {
-  display: grid; gap: 14px; align-content: start;
+  display: grid; gap: 14px; align-content: start; min-width: 0;
+  /* minmax(0, …): a long commit message must be cut off, not widen the card */
+  grid-template-columns: minmax(0, 1fr);
   background: var(--surface); border: 1px solid var(--line-soft); border-radius: 12px;
   padding: 16px 18px; box-shadow: var(--shadow); text-decoration: none; color: inherit;
 }
@@ -156,7 +158,7 @@ a.tile:hover { border-color: var(--line); }
   width: 36px; height: 36px; border-radius: 10px; flex: none;
   display: grid; place-items: center; background: var(--accent-fill); color: var(--accent);
 }
-.facts { display: grid; gap: 5px; font-size: 13px; }
+.facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; font-size: 13px; }
 .fact { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; }
 .fact > span:first-child { color: var(--muted); flex: none; }
 .fact > span:last-child { text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
