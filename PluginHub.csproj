@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Plugin Hub - the local control room for the Rhino plug-ins in this folder:
+    activation codes, the customer register, builds, quick access and warnings.
+
+    It runs on this PC only (http://127.0.0.1) and is used in the browser. It holds
+    the private activation keys (encrypted, outside this folder), so it must never
+    be turned into a web service.
+
+    Bauen:  dotnet build .\PluginHub.csproj -c Release   (vorher den Hub beenden, sonst ist die .exe gesperrt)
+    Start:  Desktop-Verknuepfung "Plugin Hub" oder bin\Release\PluginHub.exe
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <!-- .NET 7 is what the SDK here builds; any newer runtime may run it -->
+    <RollForward>Major</RollForward>
+    <AssemblyName>PluginHub</AssemblyName>
+    <RootNamespace>PluginHub</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>11</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ApplicationIcon>hub.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- What an activation code is and how the machine id is made come from RhinoKit,
+       compiled in from the very files the plug-ins use: codes made here are checked
+       by the same lines inside Rhino. -->
+  <ItemGroup>
+    <Compile Include="..\RhinoKit\Licensing\ActivationCode.cs" Link="RhinoKit\ActivationCode.cs" />
+    <Compile Include="..\RhinoKit\Licensing\MachineId.cs" Link="RhinoKit\MachineId.cs" />
+  </ItemGroup>
+
+</Project>
