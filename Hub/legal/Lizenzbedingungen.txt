@@ -1,0 +1,107 @@
+LIZENZBEDINGUNGEN FÜR {product}
+Stand: {date}
+
+Anbieter: {seller}, {sellerAddress}
+Kontakt: {contact}
+
+
+§ 1 Gegenstand
+
+(1) Diese Bedingungen regeln die Nutzung der Software „{product}“, eines Plugins für das
+    CAD-Programm Rhinoceros („Rhino“) von Robert McNeel & Associates, samt Anleitung
+    („Software“).
+(2) Die Software wird als Datei zur Installation auf einem Rechner überlassen. Rhino ist nicht
+    Teil der Software; der Kunde benötigt eine eigene, gültige Rhino-Lizenz.
+(3) Die Bedingungen gelten für Verbraucher und Unternehmer. Wo sie sich unterscheiden, ist das
+    angegeben.
+
+
+§ 2 Nutzungsrecht
+
+(1) Mit der Aktivierung erhält der Kunde das einfache, nicht unterlizenzierbare Recht, die
+    Software auf dem einen Rechner zu nutzen, für den der Aktivierungscode ausgestellt wurde
+    (§ 4). Bei einer gekauften Lizenz ist das Recht zeitlich unbegrenzt; bei einer Testlizenz
+    endet es mit dem Tag, der im Aktivierungscode hinterlegt ist (§ 3).
+(2) Der Kunde darf die Software für private und gewerbliche Zwecke nutzen und die für den
+    Betrieb nötigen Kopien anfertigen, einschließlich einer Sicherungskopie.
+(3) Eine gekaufte Lizenz darf der Kunde nur insgesamt an einen Dritten weitergeben, und nur,
+    wenn er die eigene Nutzung vollständig aufgibt, alle eigenen Kopien löscht und dem Anbieter
+    die Weitergabe mitteilt. Der Dritte erhält auf Anfrage einen Aktivierungscode für seinen
+    Rechner. Testlizenzen sind nicht übertragbar.
+(4) Aktivierungscodes dürfen nicht veröffentlicht oder an Dritte weitergegeben werden.
+
+
+§ 3 Testlizenz
+
+(1) Der Anbieter kann eine kostenlose, befristete Testlizenz gewähren. Sie dient dem
+    Ausprobieren der Software und endet automatisch mit Ablauf des im Aktivierungscode
+    hinterlegten Tages; einer Kündigung bedarf es nicht.
+(2) Die Testlizenz verpflichtet nicht zum Kauf. Möchte der Kunde die Software weiter nutzen,
+    erhält er nach dem Kauf einen neuen Aktivierungscode für denselben Rechner.
+(3) Der Anbieter darf den Kunden gegen Ende der Testlizenz per E-Mail fragen, ob er die Software
+    weiter nutzen möchte. Der Kunde kann dem jederzeit mit einer kurzen Nachricht widersprechen.
+
+
+§ 4 Aktivierung
+
+(1) Die Software ist erst nach Eingabe eines Aktivierungscodes nutzbar. Der Code wird für die
+    Geräte-ID ausgestellt, die die Software im Aktivierungsfenster anzeigt. Die Geräte-ID ist
+    ein aus einer Windows-Kennung abgeleiteter Prüfwert; sie enthält keine Namen und keine
+    Inhalte des Rechners.
+(2) Die Aktivierung funktioniert ohne Internetverbindung. Die Software überträgt keine Daten an
+    den Anbieter oder an Dritte.
+(3) Wechselt der Kunde den Rechner oder installiert er Windows neu, stellt ihm der Anbieter auf
+    Anfrage einen neuen Aktivierungscode aus, wenn die bisherige Nutzung aufgegeben wird.
+(4) Um das Ende einer Testlizenz zu prüfen, vergleicht die Software den Tag mit der Uhr des
+    Rechners. Wird die Uhr zurückgestellt, kann die Software den Code bis zur Korrektur
+    ablehnen.
+
+
+§ 5 Pflichten des Kunden
+
+(1) Der Kunde darf die Aktivierung nicht umgehen oder verändern und keine Aktivierungscodes
+    erzeugen oder verbreiten.
+(2) Der Kunde darf die Software nicht dekompilieren, disassemblieren oder bearbeiten, soweit
+    dies nicht nach §§ 69d, 69e UrhG ausnahmsweise erlaubt ist.
+(3) Die Software erzeugt Daten zur Weiterverarbeitung, etwa Schnittdateien für Lasercutter.
+    Der Kunde prüft diese Ergebnisse vor der Fertigung in angemessenem Umfang – insbesondere
+    Maße, Materialstärken und Schnittkonturen – und sichert seine Rhino-Dateien regelmäßig.
+
+
+§ 6 Gewährleistung
+
+(1) Für gekaufte Lizenzen gelten gegenüber Verbrauchern die gesetzlichen Rechte bei Mängeln
+    digitaler Produkte (§§ 327 ff. BGB). Der Anbieter stellt die Aktualisierungen bereit, die
+    gesetzlich erforderlich sind, damit die Software vertragsgemäß bleibt.
+(2) Gegenüber Unternehmern verjähren Mängelansprüche ein Jahr nach Überlassung der Software;
+    im Übrigen gelten die gesetzlichen Vorschriften.
+(3) Die Software ist für die in der Anleitung genannte Rhino-Version unter Windows bestimmt.
+    Für spätere Rhino-Versionen wird die Funktion nicht zugesichert.
+(4) Die Testlizenz ist unentgeltlich. Für Mängel der Testlizenz haftet der Anbieter nur, wenn
+    er einen Mangel arglistig verschwiegen hat.
+
+
+§ 7 Haftung
+
+(1) Der Anbieter haftet unbeschränkt bei Vorsatz und grober Fahrlässigkeit, bei Verletzung von
+    Leben, Körper oder Gesundheit, nach dem Produkthaftungsgesetz und im Umfang einer
+    übernommenen Garantie.
+(2) Bei leichter Fahrlässigkeit haftet der Anbieter nur bei Verletzung einer wesentlichen
+    Vertragspflicht, deren Erfüllung die ordnungsgemäße Durchführung des Vertrags erst
+    ermöglicht und auf deren Einhaltung der Kunde regelmäßig vertrauen darf. Die Haftung ist
+    dann auf den vertragstypischen, vorhersehbaren Schaden begrenzt.
+(3) Bei der Testlizenz haftet der Anbieter nur für Vorsatz und grobe Fahrlässigkeit;
+    Absatz 1 bleibt unberührt.
+(4) Für den Verlust von Daten haftet der Anbieter nur in dem Umfang, in dem er auch bei
+    regelmäßiger Datensicherung durch den Kunden (§ 5 Abs. 3) eingetreten wäre.
+
+
+§ 8 Schlussbestimmungen
+
+(1) Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts.
+    Gegenüber Verbrauchern gilt diese Rechtswahl nur, soweit ihnen dadurch nicht der Schutz
+    zwingender Vorschriften des Staates ihres gewöhnlichen Aufenthalts entzogen wird.
+(2) Ist der Kunde Kaufmann, eine juristische Person des öffentlichen Rechts oder ein
+    öffentlich-rechtliches Sondervermögen, ist Gerichtsstand der Sitz des Anbieters.
+(3) Hinweise zum Widerrufsrecht erhalten Verbraucher beim Kauf gesondert.
+(4) Ist eine Bestimmung unwirksam, bleiben die übrigen wirksam.

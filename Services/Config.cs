@@ -65,8 +65,6 @@ public sealed class Config
 
 public sealed class HubConfig
 {
-    /// <summary>The name under the customer reply texts.</summary>
-    public string Signature { get; set; } = "";
     public List<ProjectDef> Projects { get; set; } = new();
     public List<LinkDef> Links { get; set; } = new();
     public List<CleanupDef> Cleanup { get; set; } = new();
@@ -88,6 +86,14 @@ public sealed class ProjectDef
     public string? KeyNamespace { get; set; }
     /// <summary>A command that asks for activation - named in the reply to a customer.</summary>
     public string? StartCommand { get; set; }
+    /// <summary>The command that opens the activation window at any time - to enter a new code early.</summary>
+    public string? ActivationCommand { get; set; }
+    /// <summary>Version.props: the version customers see.</summary>
+    public string? VersionFile { get; set; }
+    /// <summary>The built files that go into the customer package - nothing else does.</summary>
+    public List<string> Package { get; set; } = new();
+    /// <summary>How the package ZIP starts: "LaserCreate" gives LaserCreate-1.0.0.zip.</summary>
+    public string? PackageName { get; set; }
     public string? TagPattern { get; set; }
     /// <summary>The .rui Rhino may keep a cached copy of.</summary>
     public string? Toolbar { get; set; }

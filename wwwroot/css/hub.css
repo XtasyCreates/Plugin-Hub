@@ -363,6 +363,49 @@ dialog::backdrop { background: rgba(18, 18, 22, .45); }
 }
 .offline .card { max-width: 440px; display: grid; gap: 12px; justify-items: center; text-align: center; }
 
+dialog.wide { width: min(780px, calc(100vw - 32px)); }
+.form-grid.inner { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+.inline.wrap { flex-wrap: wrap; align-items: center; }
+.btn.on { background: var(--selected); border-color: var(--accent); font-weight: 600; }
+.checks .warn { color: var(--danger); }
+.checks .warn svg.i { color: var(--danger); }
+
+/* ── Tasks ────────────────────────────────────────────────────────────── */
+
+.tasks { display: grid; gap: 8px; }
+.task {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start;
+  padding: 11px 14px; border-radius: 10px; background: var(--surface);
+  border: 1px solid var(--line-soft); border-left: 4px solid var(--line); box-shadow: var(--shadow);
+  text-decoration: none; color: inherit;
+}
+.task .check { padding-top: 2px; }
+.task .t { font-weight: 600; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.task .d { color: var(--muted); font-size: 13px; margin-top: 2px; white-space: pre-line; }
+.task.done .t { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+.task.prio-hoch { border-left-color: var(--danger); }
+.task.prio-mittel { border-left-color: var(--accent); }
+.tasks.compact .task { align-items: center; padding: 8px 12px; box-shadow: none; }
+.tasks.compact .task:hover { border-color: var(--line); }
+.prio-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.prio-hoch .prio-dot { background: var(--danger); }
+.prio-mittel .prio-dot { background: var(--accent); }
+.prio-head { display: flex; align-items: center; gap: 8px; }
+.prio-head::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.prio-head.prio-hoch::before { background: var(--danger); }
+.prio-head.prio-mittel::before { background: var(--accent); }
+h2 a.faint { font-weight: 400; margin-left: 8px; text-decoration: none; }
+h2 a.faint:hover { color: var(--text); }
+
+/* ── Releases and templates ───────────────────────────────────────────── */
+
+.since { margin-top: 14px; font-size: 13px; }
+.since .label { color: var(--muted); margin-bottom: 4px; }
+.since ul { margin: 0; padding-left: 18px; }
+.template + .template { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+.template .label { font-weight: 600; margin-bottom: 8px; }
+.template textarea { font-family: var(--mono); font-size: 12.5px; margin-top: 6px; }
+
 @media (prefers-reduced-motion: reduce) {
   .spinner { animation-duration: 2.4s; }
   .toast { animation: none; }

@@ -1,8 +1,9 @@
-// Pieces several pages share: the list of things to do, links, build state and the build
-// dock that stays in the corner while a build runs.
+// Pieces several pages share: the list of things to do, links, build state, where a code
+// stands, the mail and extend dialogs, and the build dock that stays in the corner while a
+// build or release runs.
 
 import { api, post } from './api.js';
-import { busy, esc, fmtWhen, icon, toast } from './ui.js';
+import { busy, copy, dialog, esc, fmtWhen, icon, toast } from './ui.js';
 import { changed, getOverview } from './store.js';
 
 // ── Things to do ───────────────────────────────────────────────────────────
@@ -41,10 +42,19 @@ export async function sharedClick(e) {
   else if (el.dataset.act === 'route') location.hash = el.dataset.target;
   else if (el.dataset.act === 'open') await openLink(el.dataset.target, el);
   else if (el.dataset.act === 'build') await startBuild([el.dataset.target], el);
+  else if (el.dataset.act === 'commit-hub') await commitHub(el);
   return true;
 }
 
 export const openLink = (id, button) => busy(button, () => post('/api/open', { linkId: id }));
+
+export async function commitHub(button) {
+  const result = await busy(button, () => post('/api/git/commit-hub'));
+  if (result) {
+    toast(result.files ? `${result.files} Hub-Dateien committed` : 'Nichts zu committen');
+    changed();
+  }
+}
 
 // ── Links ──────────────────────────────────────────────────────────────────
 
@@ -67,6 +77,7 @@ export function buildBadge(build) {
 export function buildLine(build) {
   if (!build?.exists) return 'Noch keine .rhp im Release-Ordner.';
   let text = `Gebaut ${fmtWhen(build.rhpTime)}`;
+  if (build.productVersion) text += ` · Version ${build.productVersion}`;
   if (build.outdated) text += ` · geändert ${fmtWhen(build.newestSource)}: ${build.newestFile}`;
   if (build.locked) text += ' · Rhino hält die .rhp fest';
   return esc(text);
@@ -83,6 +94,132 @@ export function rhinoBadges(registrations) {
     .join(' ');
 }
 
+// ── Where a code stands ────────────────────────────────────────────────────
+
+const STATE_CLASS = { unlimited: 'ok', valid: 'ok', ending: 'accent', expired: 'bad', oldkey: 'bad', replaced: '' };
+const STATE_ORDER = ['ending', 'valid', 'unlimited', 'expired', 'replaced', 'oldkey'];
+
+export const statusBadge = (status) =>
+  `<span class="badge ${STATE_CLASS[status.state] ?? ''}">${esc(status.label)}</span>`;
+
+/** The status that matters most for a customer: running out first, dead ones last. */
+export function leadingStatus(views) {
+  const live = views.filter((v) => v.status.state !== 'replaced');
+  const pool = live.length ? live : views;
+  return pool.sort((a, b) => STATE_ORDER.indexOf(a.status.state) - STATE_ORDER.indexOf(b.status.state))[0]?.status ?? null;
+}
+
+// ── Mails ──────────────────────────────────────────────────────────────────
+
+const MAIL_TITLE = { code: 'Code per Mail senden', followup: 'Nachfrage senden', extension: 'Neuen Code per Mail senden' };
+
+/**
+ * Shows a mail as it would go out - subject and text editable - and sends it on request.
+ * Resolves true when it was sent.
+ */
+export async function mailDialog(kind, licenseId, language = null) {
+  let draft;
+  try {
+    draft = await post('/api/mails/preview', { kind, licenseId, language });
+  } catch (e) {
+    toast(e.message, 'bad');
+    return false;
+  }
+
+  const hasTo = Boolean(draft.to);
+  const sent = await dialog({
+    title: MAIL_TITLE[kind] ?? 'Mail senden',
+    wide: true,
+    confirm: hasTo ? 'Senden' : 'Text kopieren',
+    body: `
+      <div class="field"><span>An</span><input type="text" value="${esc(draft.to || 'keine Adresse beim Kunden')}" readonly></div>
+      <label class="field"><span>Betreff</span><input type="text" name="subject" value="${esc(draft.subject)}"></label>
+      <label class="field"><span>Text</span><textarea name="body" rows="14">${esc(draft.body)}</textarea></label>
+      ${hasTo ? '<p class="faint">Die Mail geht über dein Konto aus den Einstellungen raus und wird beim Kunden vermerkt.</p>'
+              : '<p class="faint">Beim Kunden steht keine E-Mail-Adresse – du kannst den Text kopieren und selbst verschicken.</p>'}`,
+    submit: async (v) => {
+      if (!hasTo) {
+        await copy(`${v.subject}\n\n${v.body}`, 'Text');
+        return 'copied';
+      }
+      await post('/api/mails/send', { kind, licenseId, subject: v.subject, body: v.body });
+      return 'sent';
+    },
+  });
+  if (sent === 'sent') {
+    toast(`Mail an ${draft.to} gesendet`);
+    changed();
+  }
+  return sent === 'sent';
+}
+
+// ── Extend ─────────────────────────────────────────────────────────────────
+
+/**
+ * A new code for the same product and device: a longer trial, or the bought licence.
+ * Resolves with the issue result, or null.
+ */
+export async function extendDialog(view, trialDays) {
+  const l = view.license;
+  const base = new Date(Math.max(Date.now(), l.end ? new Date(l.end).getTime() : 0));
+  const inDays = (n) => isoDate(new Date(base.getTime() + n * 86_400_000));
+
+  const result = await dialog({
+    title: 'Code verlängern',
+    confirm: 'Neuen Code erzeugen',
+    body: `
+      <p>Gleiches Produkt, gleiche Geräte-ID <span class="mono">${esc(l.machineId)}</span>. Der alte Code bleibt bis zu seinem Ende gültig.</p>
+      <div class="field">
+        <span>Art</span>
+        <div class="seg" data-kind-seg>
+          <button type="button" class="on" data-kind="full">Kauf – unbegrenzt</button>
+          <button type="button" data-kind="trial">Test verlängern</button>
+        </div>
+        <input type="hidden" name="kind" value="full">
+      </div>
+      <div class="field" data-trial-only hidden>
+        <span>Gültig bis</span>
+        <div class="inline">
+          <input type="date" name="end" value="${inDays(trialDays)}" min="${isoDate(new Date())}">
+          <button type="button" class="btn small" data-days="14">+14 Tage</button>
+          <button type="button" class="btn small" data-days="30">+30 Tage</button>
+        </div>
+      </div>
+      <div class="form-grid">
+        <label class="field"><span>Preis <em>optional</em></span><input type="text" name="price" inputmode="decimal" placeholder="49,00 €"></label>
+        <label class="field"><span>Notiz <em>optional</em></span><input type="text" name="note"></label>
+      </div>
+      <label class="check"><input type="checkbox" name="paid"> Ist bezahlt</label>`,
+    submit: (v) => post(`/api/licenses/${l.id}/extend`, {
+      trial: v.kind === 'trial',
+      end: v.kind === 'trial' ? v.end : null,
+      price: v.price || null,
+      paid: v.paid,
+      note: v.note || null,
+    }),
+    onOpen: (form) => {
+      form.addEventListener('click', (e) => {
+        const kind = e.target.closest('[data-kind]');
+        if (kind) {
+          form.querySelectorAll('[data-kind]').forEach((b) => b.classList.toggle('on', b === kind));
+          form.elements.kind.value = kind.dataset.kind;
+          form.querySelector('[data-trial-only]').hidden = kind.dataset.kind !== 'trial';
+        }
+        const days = e.target.closest('[data-days]');
+        if (days) form.elements.end.value = inDays(Number(days.dataset.days));
+      });
+    },
+  });
+  if (!result) return null;
+  toast('Neuer Code erzeugt');
+  changed();
+  if (result.customer?.email) await mailDialog('extension', result.license.id);
+  return result;
+}
+
+export const isoDate = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
 // ── Build dock ─────────────────────────────────────────────────────────────
 
 let job = null;
@@ -92,7 +229,11 @@ let expanded = false;
 
 export async function startBuild(projects, button) {
   const view = await busy(button, () => post('/api/builds', { projects }));
-  if (!view) return;
+  if (view) follow(view);
+}
+
+/** Shows a job the server already started - a release, for instance. */
+export function follow(view) {
   job = view;
   lines = view.lines;
   expanded = true;
@@ -131,7 +272,7 @@ function poll() {
 function finished() {
   if (job.status === 'ok') {
     // Success needs no reading: fold the output away and leave after a while
-    toast(`${names()} gebaut`);
+    toast(`${title()} – fertig`);
     expanded = false;
     renderDock();
     const done = job;
@@ -144,12 +285,13 @@ function finished() {
   } else {
     expanded = true;
     renderDock();
-    toast('Der Build ist fehlgeschlagen – die Ausgabe steht unten rechts.', 'bad');
+    toast('Das hat nicht geklappt – die Ausgabe steht unten rechts.', 'bad');
   }
   changed();
 }
 
-function names() {
+function title() {
+  if (job.title) return job.title;
   const projects = getOverview()?.projects ?? [];
   return job.projects.map((id) => projects.find((p) => p.id === id)?.name ?? id).join(' und ');
 }
@@ -178,13 +320,13 @@ function renderDock() {
   const mark = running
     ? '<span class="spinner"></span>'
     : job.status === 'ok' ? `<span class="ok">${icon('checkCircle')}</span>` : `<span class="bad">${icon('alert')}</span>`;
-  const title = running ? `Baue ${names()} …` : `${names()}: ${job.status === 'ok' ? 'gebaut' : 'fehlgeschlagen'}`;
+  const heading = running ? `${title()} …` : `${title()}: ${job.status === 'ok' ? 'fertig' : 'fehlgeschlagen'}`;
   const results = running ? '' : job.results.map((r) => `${r.name}: ${r.ok ? 'ok' : r.message}`).join(' · ');
 
   dock.innerHTML = `
     <div class="buildbar-head">
       ${mark}
-      <div class="title">${esc(title)}${results ? `<div class="faint">${esc(results)}</div>` : ''}</div>
+      <div class="title">${esc(heading)}${results ? `<div class="faint">${esc(results)}</div>` : ''}</div>
       <button class="btn ghost small" data-dock="toggle">${expanded ? 'Ausgabe ausblenden' : 'Ausgabe zeigen'}</button>
       ${running ? '' : `<button class="btn ghost small icon-only" data-dock="close" aria-label="Schließen">${icon('x')}</button>`}
     </div>

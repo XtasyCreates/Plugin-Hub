@@ -22,23 +22,34 @@ public sealed class Status
         "BEGIN EC " + "PRIVATE KEY"
     };
 
+    private static readonly Dictionary<string, int> PriorityRank = new() { ["hoch"] = 0, ["mittel"] = 1, ["niedrig"] = 2 };
+
     private readonly HubPaths _paths;
     private readonly Config _config;
     private readonly KeyStore _keys;
     private readonly Register _register;
     private readonly HubState _state;
+    private readonly Settings _settings;
+    private readonly Tasks _tasks;
+    private readonly Mailer _mailer;
+    private readonly Releases _releases;
 
     private readonly object _gate = new();
     private OverviewView? _cached;
     private DateTime _cachedAt;
 
-    public Status(HubPaths paths, Config config, KeyStore keys, Register register, HubState state)
+    public Status(HubPaths paths, Config config, KeyStore keys, Register register, HubState state,
+        Settings settings, Tasks tasks, Mailer mailer, Releases releases)
     {
         _paths    = paths;
         _config   = config;
         _keys     = keys;
         _register = register;
         _state    = state;
+        _settings = settings;
+        _tasks    = tasks;
+        _mailer   = mailer;
+        _releases = releases;
     }
 
     public void Invalidate()
@@ -68,6 +79,18 @@ public sealed class Status
         return new ProjectDetailView(status, log, overview.Health.Where(h => h.Project == project.Id).ToList());
     }
 
+    /// <summary>The register with where each code stands today.</summary>
+    public RegisterView RegisterView()
+    {
+        var data = _register.Snapshot();
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        int soon = _settings.Shared.EndingSoonDays;
+        var fingerprints = _config.Current.Projects.ToDictionary(p => p.Id, p => _keys.Info(p.Id)?.Fingerprint);
+        return new RegisterView(data.Customers,
+            data.Licenses.Select(l => new LicenseView(l, LicenseStatus.Of(l, fingerprints.GetValueOrDefault(l.Product), today, soon))).ToList(),
+            data.Mails);
+    }
+
     private OverviewView Build()
     {
         var config  = _config.Current;
@@ -78,39 +101,55 @@ public sealed class Status
         var keys     = config.Projects.Where(p => p.IsPlugin && p.KeyFile != null).Select(KeyStatus).ToList();
         var backup   = BackupStatus();
         var projects = config.Projects.Select(p => ProjectStatus(p, git, changes)).ToList();
-        var register = _register.Snapshot();
+        var register = RegisterView();
+        var due      = SafeDue();
+        var tasks    = _tasks.All();
 
-        var health = Health(config, projects, rhino, keys, backup, git, changes)
+        var health = Health(config, projects, rhino, keys, backup, git, changes, register, due.Count)
             .OrderBy(h => h.Level == "problem" ? 0 : 1)
             .ToList();
 
+        var openTasks = tasks.Where(t => !t.Done)
+            .OrderBy(t => PriorityRank.GetValueOrDefault(t.Priority, 3)).ThenBy(t => t.Created).ToList();
+
         return new OverviewView(
-            _paths.Root, _paths.PrivateDir, DateTimeOffset.Now, config.Signature,
+            _paths.Root, _paths.PrivateDir, DateTimeOffset.Now, _settings.Shared.Signature,
             rhino, projects, health, keys, backup,
             new RegisterSummary(register.Customers.Count, register.Licenses.Count,
-                register.Licenses.Count(l => !l.Paid && l.Price is > 0)),
+                register.Licenses.Count(l => !l.License.Paid && l.License.Price is > 0),
+                register.Licenses.Count(l => l.License.Trial && l.Status.State is "valid" or "ending")),
+            new MailSummary(_settings.MailReady, due.Count),
+            new TaskSummary(openTasks.Count, openTasks.Count(t => t.Priority == "hoch"), openTasks.Take(5).ToList()),
             config.Links.Select(l => new LinkView(l.Id, l.Label, l.Kind)).ToList());
+    }
+
+    private List<DueMail> SafeDue()
+    {
+        try { return _mailer.Due(); }
+        catch (HubError) { return new(); }   // a missing template must not take the overview down
     }
 
     private ProjectStatus ProjectStatus(ProjectDef p, bool git, List<GitChange> changes)
     {
         string prefix = p.Folder.Replace('\\', '/').TrimEnd('/') + "/";
-        int changed = changes.Count(c => c.Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+        int changed = changes.Count(c => c.Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && !_releases.IsHubFile(c.Path));
 
         string? version = git && p.TagPattern != null ? Git.LatestTag(_paths.Root, p.TagPattern) : null;
         Commit? last    = git ? Git.Log(_paths.Root, p.Folder, 1).FirstOrDefault() : null;
 
         BuildInfo? build = null;
         var registrations = new List<Registration>();
+        string? released = null;
         if (p.IsPlugin && p.Output != null)
         {
             string rhp = _paths.Resolve(p.Output);
             build = BuildInfo(p, rhp);
             registrations = RhinoInfo.Registrations(p, rhp);
+            released = _releases.History(p).FirstOrDefault()?.Version;
         }
 
-        return new ProjectStatus(p.Id, p.Name, p.Kind, p.Icon, p.Folder, p.Note, p.StartCommand,
-            version, changed, last, build, registrations, RhinoInfo.ToolbarCache(p),
+        return new ProjectStatus(p.Id, p.Name, p.Kind, p.Icon, p.Folder, p.Note, p.StartCommand, p.ActivationCommand,
+            version, released, changed, last, build, registrations, RhinoInfo.ToolbarCache(p),
             p.Links.Select(l => new LinkView(l.Id, l.Label, l.Kind)).ToList());
     }
 
@@ -134,19 +173,19 @@ public sealed class Status
 
         // A second of slack: the build's copy and the file system round times differently
         bool outdated = exists && newest != null && newest.Value > rhpTime!.Value.AddSeconds(1);
-        string? fileVersion = exists ? FileVersionInfo.GetVersionInfo(rhp).FileVersion : null;
-        return new BuildInfo(_paths.Relative(rhp), exists, rhpTime, newest, newestFile, outdated, fileVersion,
+        string? productVersion = exists ? FileVersionInfo.GetVersionInfo(rhp).ProductVersion : null;
+        return new BuildInfo(_paths.Relative(rhp), exists, rhpTime, newest, newestFile, outdated, productVersion,
             exists && Files.IsLocked(rhp));
     }
 
     private KeyStatus KeyStatus(ProjectDef p)
     {
         var info = _keys.Info(p.Id);
-        string? inSource = PluginKeyFile.Read(_paths, p);
+        string? inSource = PluginActivationFile.ReadKey(_paths, p);
         return new KeyStatus(p.Id, p.Name, info != null, info?.Fingerprint, info?.Created, p.KeyFile,
             inSource != null, inSource != null ? KeyStore.Fingerprint(inSource) : null,
             info != null && inSource == info.PublicKey,
-            info != null && PluginKeyFile.InBuild(_paths, p, info.PublicKey));
+            info != null && PluginActivationFile.InBuild(_paths, p, info.PublicKey));
     }
 
     private BackupView BackupStatus()
@@ -158,7 +197,7 @@ public sealed class Status
     }
 
     private List<HealthItem> Health(HubConfig config, List<ProjectStatus> projects, List<RhinoProcess> rhino,
-        List<KeyStatus> keys, BackupView backup, bool git, List<GitChange> changes)
+        List<KeyStatus> keys, BackupView backup, bool git, List<GitChange> changes, RegisterView register, int dueMails)
     {
         var items = new List<HealthItem>();
         var toKeys = new HealthAction("route", "#/schluessel", "Zu den Schlüsseln");
@@ -205,6 +244,18 @@ public sealed class Status
                     "Die Schlüssel sind gesichert, die neuesten Einträge im Register noch nicht.", null, toBackup));
         }
 
+        // Customers: follow-ups and trials running out
+        if (dueMails > 0)
+            items.Add(new(_settings.MailReady ? "hint" : "problem", "mail",
+                dueMails == 1 ? "1 Nachfrage-Mail ist fällig" : $"{dueMails} Nachfrage-Mails sind fällig",
+                _settings.MailReady ? "Testphasen enden bald – der Hub hat die Mails vorbereitet."
+                                    : "Der Mailversand ist noch nicht eingerichtet (Einstellungen → E-Mail).",
+                null, new("route", "#/mails", "Zu den Mails")));
+        int ending = register.Licenses.Count(l => l.Status.State == "ending");
+        if (ending > 0)
+            items.Add(new("hint", "customers", ending == 1 ? "1 Code läuft bald ab" : $"{ending} Codes laufen bald ab",
+                "Siehe Kunden – dort kannst du verlängern.", null, new("route", "#/kunden", "Zu den Kunden")));
+
         // Builds
         foreach (var p in projects.Where(p => p.Build != null))
         {
@@ -222,10 +273,6 @@ public sealed class Status
                 items.Add(new("hint", "rhino", $"{holder} hält {p.Name} fest",
                     "Bauen geht erst, wenn Rhino geschlossen ist.", p.Id, null));
             }
-
-            if (b.Exists && b.FileVersion == "1.0.0.0")
-                items.Add(new("hint", "version", $"{p.Name}: Die .rhp trägt keine Versionsnummer",
-                    "Rhino zeigt 1.0.0.0 an. Echte Versionsnummern kommen mit Stufe 2 (Release).", p.Id, null));
         }
 
         // Which file each Rhino loads
@@ -249,12 +296,19 @@ public sealed class Status
         }
         else
         {
+            var hubFiles = changes.Where(c => _releases.IsHubFile(c.Path)).ToList();
+            if (hubFiles.Count > 0)
+                items.Add(new("hint", "git", "Änderungen des Hubs nicht committed",
+                    string.Join(", ", hubFiles.Select(c => c.Path.TrimEnd('/')).Take(4)) + (hubFiles.Count > 4 ? " …" : ""),
+                    null, new("commit-hub", "", "Jetzt committen")));
+
             foreach (var p in projects.Where(p => p.Changes > 0))
                 items.Add(new("hint", "git", $"{p.Name}: {Count(p.Changes, "Änderung", "Änderungen")} nicht committed",
                     null, p.Id, null));
 
             var known = projects.Select(p => p.Folder.Replace('\\', '/').TrimEnd('/') + "/").ToList();
-            foreach (var c in changes.Where(c => c.State == "??" && !known.Any(k => c.Path.StartsWith(k, StringComparison.OrdinalIgnoreCase))))
+            foreach (var c in changes.Where(c => c.State == "??" && !_releases.IsHubFile(c.Path)
+                                                 && !known.Any(k => c.Path.StartsWith(k, StringComparison.OrdinalIgnoreCase))))
                 items.Add(new("hint", "git", $"Nicht in Git: {c.Path.TrimEnd('/')}", null, null,
                     new("open", "path:" + c.Path.TrimEnd('/'), "Im Explorer zeigen")));
         }
@@ -290,28 +344,36 @@ public sealed record OverviewView(
     List<KeyStatus> Keys,
     BackupView Backup,
     RegisterSummary Register,
+    MailSummary Mail,
+    TaskSummary Tasks,
     List<LinkView> Links);
 
 public sealed record ProjectStatus(
     string Id, string Name, string Kind, string Icon, string Folder, string? Note, string? StartCommand,
-    string? Version, int Changes, Commit? LastCommit,
+    string? ActivationCommand, string? Version, string? Released, int Changes, Commit? LastCommit,
     BuildInfo? Build, List<Registration> Rhino, List<string> ToolbarCache, List<LinkView> Links);
 
 public sealed record ProjectDetailView(ProjectStatus Project, List<Commit> Log, List<HealthItem> Health);
 
 public sealed record BuildInfo(string Rhp, bool Exists, DateTime? RhpTime, DateTime? NewestSource, string? NewestFile,
-    bool Outdated, string? FileVersion, bool Locked);
+    bool Outdated, string? ProductVersion, bool Locked);
 
 public sealed record KeyStatus(string Product, string Name, bool InHub, string? Fingerprint, DateTimeOffset? Created,
     string? KeyFile, bool InSource, string? SourceFingerprint, bool SourceMatches, bool InBuild);
 
 public sealed record BackupView(BackupRecord? Last, bool KeysChanged, bool RegisterChanged);
 
-public sealed record RegisterSummary(int Customers, int Licenses, int Unpaid);
+public sealed record RegisterSummary(int Customers, int Licenses, int Unpaid, int Trials);
+
+public sealed record MailSummary(bool Ready, int Due);
+
+public sealed record TaskSummary(int Open, int High, List<TaskItem> Top);
+
+public sealed record RegisterView(List<Customer> Customers, List<LicenseView> Licenses, List<MailRecord> Mails);
 
 public sealed record LinkView(string Id, string Label, string Kind);
 
-/// <summary>Level: "problem" or "hint". Action kinds: route (a page), open (a link id), build (a project).</summary>
+/// <summary>Level: "problem" or "hint". Action kinds: route (a page), open (a link id), build (a project), commit-hub.</summary>
 public sealed record HealthItem(string Level, string Area, string Title, string? Detail, string? Project, HealthAction? Action);
 
 public sealed record HealthAction(string Kind, string Target, string Label);

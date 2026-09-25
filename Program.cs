@@ -45,12 +45,16 @@ builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = true)
 
 builder.Services.AddSingleton(paths);
 builder.Services.AddSingleton<Config>();
+builder.Services.AddSingleton<Settings>();
 builder.Services.AddSingleton<KeyStore>();
 builder.Services.AddSingleton<Register>();
 builder.Services.AddSingleton<HubState>();
 builder.Services.AddSingleton<Backup>();
 builder.Services.AddSingleton<Licenses>();
+builder.Services.AddSingleton<Mailer>();
+builder.Services.AddSingleton<Tasks>();
 builder.Services.AddSingleton<Builds>();
+builder.Services.AddSingleton<Releases>();
 builder.Services.AddSingleton<Status>();
 builder.Services.AddSingleton<IdleWatch>();
 

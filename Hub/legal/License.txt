@@ -1,0 +1,108 @@
+LICENSE TERMS FOR {product}
+As of: {date}
+
+Provider: {seller}, {sellerAddress}
+Contact: {contact}
+
+This is a translation. In case of doubt, the German version (Lizenzbedingungen.txt) applies.
+
+
+1. Subject
+
+(1) These terms govern the use of the software "{product}", a plug-in for the CAD program
+    Rhinoceros ("Rhino") by Robert McNeel & Associates, including its guide ("Software").
+(2) The Software is provided as a file for installation on one computer. Rhino is not part of
+    the Software; the customer needs their own valid Rhino license.
+(3) These terms apply to consumers and businesses. Where they differ, this is stated.
+
+
+2. Right of use
+
+(1) On activation the customer receives the simple, non-sublicensable right to use the
+    Software on the one computer for which the activation code was issued (section 4). For a
+    purchased license the right has no time limit; for a trial license it ends on the day
+    stored in the activation code (section 3).
+(2) The customer may use the Software for private and commercial purposes and make the copies
+    needed to run it, including one backup copy.
+(3) The customer may pass on a purchased license to a third party only as a whole, and only
+    if they give up their own use entirely, delete all of their copies and notify the provider.
+    The third party receives an activation code for their computer on request. Trial licenses
+    cannot be transferred.
+(4) Activation codes must not be published or passed on to third parties.
+
+
+3. Trial license
+
+(1) The provider may grant a free, time-limited trial license. It is meant for trying out the
+    Software and ends automatically at the end of the day stored in the activation code; no
+    notice of termination is needed.
+(2) The trial license does not oblige the customer to buy. If the customer wants to keep using
+    the Software, they receive a new activation code for the same computer after buying.
+(3) Towards the end of the trial, the provider may ask the customer by e-mail whether they want
+    to keep using the Software. The customer can object at any time with a short message.
+
+
+4. Activation
+
+(1) The Software can only be used after an activation code has been entered. The code is issued
+    for the device ID the Software shows in its activation window. The device ID is a check
+    value derived from a Windows identifier; it contains no names and no contents of the
+    computer.
+(2) Activation works without an internet connection. The Software sends no data to the provider
+    or to third parties.
+(3) If the customer changes computers or reinstalls Windows, the provider issues a new
+    activation code on request, provided the previous use is given up.
+(4) To check the end of a trial license, the Software compares the day with the computer's
+    clock. If the clock is set back, the Software may refuse the code until it is corrected.
+
+
+5. Customer obligations
+
+(1) The customer must not bypass or alter the activation, nor create or distribute activation
+    codes.
+(2) The customer must not decompile, disassemble or modify the Software, except where
+    sections 69d and 69e of the German Copyright Act (UrhG) allow it.
+(3) The Software produces data for further processing, such as cutting files for laser
+    cutters. Before production, the customer checks these results to a reasonable extent –
+    in particular dimensions, material thicknesses and cutting contours – and backs up their
+    Rhino files regularly.
+
+
+6. Warranty
+
+(1) For purchased licenses, consumers have the statutory rights for defects in digital products
+    (sections 327 et seq. of the German Civil Code, BGB). The provider supplies the updates
+    required by law to keep the Software in conformity with the contract.
+(2) For businesses, claims for defects become time-barred one year after the Software was
+    provided; otherwise the statutory provisions apply.
+(3) The Software is intended for the Rhino version on Windows named in the guide. Its function
+    is not guaranteed for later Rhino versions.
+(4) The trial license is free of charge. For defects of the trial license, the provider is
+    liable only if they fraudulently concealed a defect.
+
+
+7. Liability
+
+(1) The provider is liable without limitation for intent and gross negligence, for injury to
+    life, body or health, under the German Product Liability Act and to the extent of any
+    guarantee given.
+(2) In cases of slight negligence, the provider is liable only for breach of an essential
+    contractual obligation – one whose fulfilment makes the proper performance of the contract
+    possible in the first place and on whose observance the customer may regularly rely. The
+    liability is then limited to the foreseeable damage typical for the contract.
+(3) For the trial license, the provider is liable only for intent and gross negligence;
+    paragraph (1) remains unaffected.
+(4) For loss of data, the provider is liable only to the extent that it would also have
+    occurred had the customer backed up their data regularly (section 5 (3)).
+
+
+8. Final provisions
+
+(1) The law of the Federal Republic of Germany applies, excluding the UN Convention on
+    Contracts for the International Sale of Goods. For consumers, this choice of law applies
+    only insofar as it does not deprive them of the protection of mandatory provisions of the
+    country of their habitual residence.
+(2) If the customer is a merchant, a legal entity under public law or a special fund under
+    public law, the place of jurisdiction is the provider's registered place of business.
+(3) Consumers receive information on their right of withdrawal separately when buying.
+(4) If a provision is invalid, the remaining provisions stay in effect.

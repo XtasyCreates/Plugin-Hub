@@ -6,18 +6,26 @@ import { confirmDialog, esc, icon } from './ui.js';
 import { getOverview, loadOverview } from './store.js';
 import { resumeBuild } from './parts.js';
 import * as overview from './pages/overview.js';
+import * as tasks from './pages/tasks.js';
 import * as sales from './pages/sales.js';
 import * as customers from './pages/customers.js';
 import * as customer from './pages/customer.js';
+import * as mails from './pages/mails.js';
+import * as releases from './pages/releases.js';
 import * as keys from './pages/keys.js';
+import * as settings from './pages/settings.js';
 import * as project from './pages/project.js';
 
 const ROUTES = [
   { path: /^#?\/?$/, page: overview, nav: '#/' },
+  { path: /^#\/aufgaben$/, page: tasks, nav: '#/aufgaben' },
   { path: /^#\/verkauf$/, page: sales, nav: '#/verkauf' },
   { path: /^#\/kunden$/, page: customers, nav: '#/kunden' },
   { path: /^#\/kunden\/([\w-]+)$/, page: customer, nav: '#/kunden' },
+  { path: /^#\/mails$/, page: mails, nav: '#/mails' },
+  { path: /^#\/releases$/, page: releases, nav: '#/releases' },
   { path: /^#\/schluessel$/, page: keys, nav: '#/schluessel' },
+  { path: /^#\/einstellungen$/, page: settings, nav: '#/einstellungen' },
   { path: /^#\/projekt\/([\w-]+)$/, page: project, nav: null },
 ];
 
@@ -50,7 +58,7 @@ function drawSide(path, route) {
   const link = (href, iconName, label, { alarm = false, count = null } = {}) => `
     <a href="${href}" class="${current === href ? 'on' : ''}" ${current === href ? 'aria-current="page"' : ''}>
       ${icon(iconName)}<span>${esc(label)}</span>
-      ${alarm ? '<span class="dot" title="Braucht Aufmerksamkeit"></span>' : count != null ? `<span class="count">${count}</span>` : ''}
+      ${alarm ? '<span class="dot" title="Braucht Aufmerksamkeit"></span>' : count ? `<span class="count">${count}</span>` : ''}
     </a>`;
 
   const rhino = o.rhino.length
@@ -61,9 +69,13 @@ function drawSide(path, route) {
     <div class="brand"><img src="favicon.svg" alt=""><span>Plugin Hub</span></div>
     <nav class="nav">
       ${link('#/', 'grid', 'Übersicht', { alarm: problem(() => true) })}
+      ${link('#/aufgaben', 'list', 'Aufgaben', { count: o.tasks.open })}
       ${link('#/verkauf', 'package', 'Verkauf und Export')}
       ${link('#/kunden', 'users', 'Kunden', { count: o.register.customers })}
+      ${link('#/mails', 'mail', 'Mails', { alarm: problem((h) => h.area === 'mail'), count: o.mail.due })}
+      ${link('#/releases', 'tag', 'Releases')}
       ${link('#/schluessel', 'shield', 'Schlüssel und Backup', { alarm: problem((h) => ['keys', 'backup', 'secrets'].includes(h.area)) })}
+      ${link('#/einstellungen', 'sliders', 'Einstellungen')}
       <div class="nav-label">Projekte</div>
       ${o.projects.map((p) => link(`#/projekt/${p.id}`, p.icon, p.name, { alarm: problem((h) => h.project === p.id) })).join('')}
     </nav>
@@ -111,7 +123,8 @@ document.getElementById('offline-retry').addEventListener('click', async () => {
 
 setInterval(() => { if (!quitting) post('/api/heartbeat').catch(() => {}); }, 30_000);
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && !quitting) show({ keepScroll: true });
+  // Coming back to the tab redraws the page - unless a dialog is open, which would lose its input
+  if (document.visibilityState === 'visible' && !quitting && !document.querySelector('dialog[open]')) show({ keepScroll: true });
 });
 
 window.addEventListener('hashchange', () => show());

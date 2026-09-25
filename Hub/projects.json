@@ -1,5 +1,4 @@
 {
-  "signature": "Gustav",
   "projects": [
     {
       "id": "laser",
@@ -10,9 +9,16 @@
       "project": "LaserExportPlugin/LaserExportPlugin.csproj",
       "output": "LaserExportPlugin/bin/Release/LaserExportPlugin.rhp",
       "pluginGuid": "2E3A5B8F-1C4D-4E9A-B6F2-7D0A3C8E5B91",
-      "keyFile": "LaserExportPlugin/ActivationKey.cs",
+      "keyFile": "LaserExportPlugin/Activation.cs",
       "keyNamespace": "LaserExport",
       "startCommand": "LaserCreate",
+      "activationCommand": "LaserActivation",
+      "versionFile": "LaserExportPlugin/Version.props",
+      "packageName": "LaserCreate",
+      "package": [
+        "LaserExportPlugin/bin/Release/LaserExportPlugin.rhp",
+        "LaserExportPlugin/bin/Release/LaserExportPlugin.rui"
+      ],
       "tagPattern": "v[0-9]*",
       "toolbar": "LaserExportPlugin.rui",
       "sources": ["LaserExportPlugin", "RhinoKit"],
@@ -20,6 +26,7 @@
         { "id": "laser-folder",   "label": "Quellordner",       "kind": "folder", "path": "LaserExportPlugin" },
         { "id": "laser-rhp",      "label": "Release-Ordner",    "kind": "select", "path": "LaserExportPlugin/bin/Release/LaserExportPlugin.rhp" },
         { "id": "laser-code",     "label": "In VS Code",        "kind": "vscode", "path": "LaserExportPlugin" },
+        { "id": "laser-releases", "label": "Kundenpakete",      "kind": "folder", "path": "Releases/Laser Create" },
         { "id": "laser-progress", "label": "Progress-Dokument", "kind": "file",   "path": "Progress Rhino Plugin 18_08_26.md" },
         { "id": "laser-review",   "label": "Code Review",       "kind": "file",   "path": "Code Review 24_08_26.md" },
         { "id": "laser-icons",    "label": "Icons",             "kind": "folder", "path": "LaserExportPlugin/icons" }
@@ -34,16 +41,23 @@
       "project": "SwToLaserPlugin/SwToLaserPlugin.csproj",
       "output": "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp",
       "pluginGuid": "FDDB7238-BC44-4F6C-9ABA-2D2F1FB5AE25",
-      "keyFile": "SwToLaserPlugin/ActivationKey.cs",
+      "keyFile": "SwToLaserPlugin/Activation.cs",
       "keyNamespace": "SwToLaser",
       "startCommand": "SiteLaser",
+      "activationCommand": "SiteActivation",
+      "versionFile": "SwToLaserPlugin/Version.props",
+      "packageName": "SWtoLaser",
+      "package": [
+        "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp"
+      ],
       "tagPattern": "swl-v[0-9]*",
       "sources": ["SwToLaserPlugin", "RhinoKit"],
       "links": [
-        { "id": "swl-folder",  "label": "Quellordner",    "kind": "folder", "path": "SwToLaserPlugin" },
-        { "id": "swl-rhp",     "label": "Release-Ordner", "kind": "select", "path": "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp" },
-        { "id": "swl-code",    "label": "In VS Code",     "kind": "vscode", "path": "SwToLaserPlugin" },
-        { "id": "swl-concept", "label": "Konzept",        "kind": "file",   "path": "Schwarzplan Plugin Konzept 22_09_26.md" }
+        { "id": "swl-folder",   "label": "Quellordner",    "kind": "folder", "path": "SwToLaserPlugin" },
+        { "id": "swl-rhp",      "label": "Release-Ordner", "kind": "select", "path": "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp" },
+        { "id": "swl-code",     "label": "In VS Code",     "kind": "vscode", "path": "SwToLaserPlugin" },
+        { "id": "swl-releases", "label": "Kundenpakete",   "kind": "folder", "path": "Releases/SW to Laser" },
+        { "id": "swl-concept",  "label": "Konzept",        "kind": "file",   "path": "Schwarzplan Plugin Konzept 22_09_26.md" }
       ]
     },
     {
@@ -61,12 +75,14 @@
     }
   ],
   "links": [
-    { "id": "root",          "label": "Plugins Rhino",       "kind": "folder", "path": "." },
-    { "id": "root-code",     "label": "Alles in VS Code",    "kind": "vscode", "path": "." },
-    { "id": "hub-code",      "label": "Hub-Quellcode",       "kind": "folder", "path": "PluginHub" },
-    { "id": "private",       "label": "Privater Hub-Ordner", "kind": "folder", "path": "{private}" },
-    { "id": "backups",       "label": "Backups",             "kind": "folder", "path": "{private}/Backups" },
-    { "id": "rhino-appdata", "label": "Rhino-Einstellungen", "kind": "folder", "path": "%APPDATA%/McNeel/Rhinoceros" }
+    { "id": "root",          "label": "Plugins Rhino",        "kind": "folder", "path": "." },
+    { "id": "root-code",     "label": "Alles in VS Code",     "kind": "vscode", "path": "." },
+    { "id": "releases",      "label": "Kundenpakete",         "kind": "folder", "path": "Releases" },
+    { "id": "legal",         "label": "Lizenzbedingungen",    "kind": "folder", "path": "Hub/legal" },
+    { "id": "hub-code",      "label": "Hub-Quellcode",        "kind": "folder", "path": "PluginHub" },
+    { "id": "private",       "label": "Privater Hub-Ordner",  "kind": "folder", "path": "{private}" },
+    { "id": "backups",       "label": "Backups",              "kind": "folder", "path": "{private}/Backups" },
+    { "id": "rhino-appdata", "label": "Rhino-Einstellungen",  "kind": "folder", "path": "%APPDATA%/McNeel/Rhinoceros" }
   ],
   "cleanup": [
     { "path": "LaserExportPlugin_BACKUP_2026-06-25", "note": "Voll-Backup vom 25.06.2026 – Git ersetzt es, der Ordner kann weg." }

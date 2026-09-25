@@ -5,8 +5,9 @@ namespace PluginHub.Services;
 
 /// <summary>
 /// Builds plug-ins the way Rhino needs them - dotnet build -c Release, one after the other -
-/// and keeps the output for the page. Refuses while Rhino holds a .rhp: the compile would
-/// run, and then the copy onto the .rhp would fail.
+/// and keeps the output for the page. A release runs through here too, as a job with more
+/// steps. Refuses while Rhino holds a .rhp: the compile would run, and then the copy onto the
+/// .rhp would fail.
 /// </summary>
 public sealed class Builds
 {
@@ -31,6 +32,7 @@ public sealed class Builds
         get { lock (_gate) return _current is { IsFinished: false }; }
     }
 
+    /// <summary>Test builds: the version from Version.props with "-test".</summary>
     public BuildJob Start(IReadOnlyList<string>? ids)
     {
         var projects = (ids ?? Array.Empty<string>()).Distinct().Select(_config.Project).ToList();
@@ -38,46 +40,74 @@ public sealed class Builds
         var other = projects.FirstOrDefault(p => !p.IsPlugin || p.Project == null || p.Output == null);
         if (other != null) throw new HubError($"{other.Name} lässt sich nicht bauen – es ist kein Plugin.");
 
+        return StartJob(projects, null, job =>
+        {
+            foreach (var p in projects) Build(job, p, release: false);
+        });
+    }
+
+    /// <summary>
+    /// Runs <paramref name="work"/> as a job whose lines the page follows. An exception ends
+    /// the job as failed, with its message as the last line.
+    /// </summary>
+    public BuildJob StartJob(List<ProjectDef> projects, string? title, Action<BuildJob> work)
+    {
         BuildJob job;
         lock (_gate)
         {
             if (_current is { IsFinished: false }) throw new HubError("Es läuft schon ein Build.");
 
-            var locked = projects.Where(p => Files.IsLocked(_paths.Resolve(p.Output!))).Select(p => p.Name).ToList();
+            var locked = projects.Where(p => p.Output != null && Files.IsLocked(_paths.Resolve(p.Output))).Select(p => p.Name).ToList();
             if (locked.Count > 0)
                 throw new HubError($"Rhino hat {string.Join(" und ", locked)} geladen und hält die .rhp fest. " +
                                    "Schließ Rhino, dann klappt der Build.");
 
-            job = _current = new BuildJob(projects.Select(p => p.Id).ToList());
+            job = _current = new BuildJob(projects.Select(p => p.Id).ToList(), title);
         }
 
-        _ = Task.Run(() => Run(job, projects));
-        return job;
-    }
-
-    private void Run(BuildJob job, List<ProjectDef> projects)
-    {
-        foreach (var p in projects)
+        _ = Task.Run(() =>
         {
-            job.Add($"── {p.Name} ──");
-            int code;
-            try { code = Dotnet(job, _paths.Resolve(p.Project!)); }
+            try
+            {
+                work(job);
+            }
             catch (Exception ex)
             {
                 job.Add("Fehler: " + ex.Message);
-                code = -1;
+                job.Fail();
+                if (ex is not HubError) Log.Error($"Job {title}: {ex}");
             }
-
-            string rhp = _paths.Resolve(p.Output!);
-            DateTime? time = File.Exists(rhp) ? File.GetLastWriteTime(rhp) : null;
-            job.AddResult(new BuildResult(p.Id, p.Name, code == 0,
-                code == 0 ? "Gebaut" : $"Fehlgeschlagen (Code {code})", time));
-        }
-        job.Finish();
-        Log.Info($"Build {string.Join(", ", job.Projects)}: {job.Status}");
+            finally
+            {
+                job.Finish();
+                Log.Info($"{title ?? "Build " + string.Join(", ", job.Projects)}: {job.Status}");
+            }
+        });
+        return job;
     }
 
-    private static int Dotnet(BuildJob job, string csproj)
+    /// <summary>
+    /// One dotnet build; a release build passes HubRelease=true, so Version.props leaves out "-test".
+    /// </summary>
+    public bool Build(BuildJob job, ProjectDef p, bool release)
+    {
+        job.Add($"── {p.Name}{(release ? " (Release)" : "")} ──");
+        int code;
+        try { code = Dotnet(job, _paths.Resolve(p.Project!), release); }
+        catch (Exception ex)
+        {
+            job.Add("Fehler: " + ex.Message);
+            code = -1;
+        }
+
+        string rhp = _paths.Resolve(p.Output!);
+        DateTime? time = File.Exists(rhp) ? File.GetLastWriteTime(rhp) : null;
+        job.AddResult(new BuildResult(p.Id, p.Name, code == 0,
+            code == 0 ? "Gebaut" : $"Fehlgeschlagen (Code {code})", time));
+        return code == 0;
+    }
+
+    private static int Dotnet(BuildJob job, string csproj, bool release)
     {
         var psi = new ProcessStartInfo("dotnet")
         {
@@ -92,6 +122,7 @@ public sealed class Builds
         // -nodeReuse:false: no MSBuild helpers left running after the build
         foreach (string a in new[] { "build", csproj, "-c", "Release", "-nologo", "-v:minimal", "-nodeReuse:false" })
             psi.ArgumentList.Add(a);
+        if (release) psi.ArgumentList.Add("-p:HubRelease=true");
         psi.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         psi.Environment["DOTNET_NOLOGO"] = "1";
 
@@ -121,14 +152,18 @@ public sealed class BuildJob
     private readonly List<string> _lines = new();
     private readonly List<BuildResult> _results = new();
     private DateTimeOffset? _finished;
+    private bool _failed;
 
-    public BuildJob(List<string> projects)
+    public BuildJob(List<string> projects, string? title)
     {
         Projects = projects;
+        Title    = title;
     }
 
     public string Id { get; } = Guid.NewGuid().ToString("N")[..8];
     public List<string> Projects { get; }
+    /// <summary>What the dock shows while it runs - "Release Laser Create 1.0.0"; null for plain builds.</summary>
+    public string? Title { get; }
     public DateTimeOffset Started { get; } = DateTimeOffset.Now;
 
     public bool IsFinished
@@ -152,6 +187,11 @@ public sealed class BuildJob
         lock (_gate) _results.Add(result);
     }
 
+    public void Fail()
+    {
+        lock (_gate) _failed = true;
+    }
+
     public void Finish()
     {
         lock (_gate) _finished = DateTimeOffset.Now;
@@ -161,15 +201,15 @@ public sealed class BuildJob
     public BuildView View(int from)
     {
         lock (_gate)
-            return new BuildView(Id, Projects, StatusUnlocked(), Started, _finished,
+            return new BuildView(Id, Projects, Title, StatusUnlocked(), Started, _finished,
                 from, _lines.Skip(Math.Max(0, from)).ToList(), _lines.Count, _results.ToList());
     }
 
     private string StatusUnlocked() =>
-        _finished == null ? "running" : _results.All(r => r.Ok) ? "ok" : "failed";
+        _finished == null ? "running" : !_failed && _results.All(r => r.Ok) ? "ok" : "failed";
 }
 
 public sealed record BuildResult(string Project, string Name, bool Ok, string Message, DateTime? RhpTime);
 
-public sealed record BuildView(string Id, List<string> Projects, string Status, DateTimeOffset Started,
+public sealed record BuildView(string Id, List<string> Projects, string? Title, string Status, DateTimeOffset Started,
     DateTimeOffset? Finished, int From, List<string> Lines, int Total, List<BuildResult> Results);

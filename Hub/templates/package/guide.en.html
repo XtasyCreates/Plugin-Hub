@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{product} {version} – Guide</title>
+<style>
+  body { font: 15px/1.6 "Segoe UI", system-ui, sans-serif; color: #1a1a1e; background: #fff; max-width: 720px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  .sub { color: #5a5a64; margin: 0; }
+  h2 { font-size: 18px; margin: 34px 0 10px; padding-bottom: 4px; border-bottom: 2px solid #e08020; }
+  li { margin-bottom: 8px; }
+  code { background: #f1f1f4; padding: 1px 6px; border-radius: 4px; font-family: Consolas, "Cascadia Mono", monospace; }
+  .note { background: #fdf4e7; border-left: 4px solid #e08020; padding: 10px 14px; margin: 14px 0; }
+  footer { margin-top: 44px; padding-top: 12px; border-top: 1px solid #e3e3e8; color: #7a7a86; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>{product}</h1>
+<p class="sub">Version {version} · {date} · Plug-in for Rhino 8 on Windows</p>
+
+<h2>Install</h2>
+<ol>
+  <li><strong>Unblock the ZIP before you extract it:</strong> right-click the ZIP file → <em>Properties</em> → tick <em>Unblock</em> at the bottom → <em>OK</em>. Otherwise Windows blocks the plug-in.</li>
+  <li>Extract the folder to a permanent place, for example <code>Documents\Rhino Plug-ins\{product}</code>. Rhino loads the plug-in from there – do not move the folder afterwards.</li>
+  <li>Start Rhino and drag the file <code>{rhp}</code> into the Rhino window. Rhino installs the plug-in and loads it every time it starts.</li>
+</ol>
+
+<h2>Activate</h2>
+<ol>
+  <li>Run the command <code>{command}</code> in Rhino. The activation window opens and shows your <em>device ID</em>.</li>
+  <li>Send the device ID to {contact} – the easiest way is the <em>Request a code</em> button, which prepares the mail for you.</li>
+  <li>You receive an activation code. Paste it under "2)" and click <em>Activate</em>.</li>
+</ol>
+<p class="note">A trial code works until a set day. From seven days before, Rhino reminds you in its command line. You can enter a new code at any time with the command <code>{activationCommand}</code>.</p>
+
+<h2>Update</h2>
+<ol>
+  <li>Close Rhino.</li>
+  <li>Replace the files in the plug-in folder with the new ones (unblock the new ZIP first, too).</li>
+  <li>Start Rhino – the activation stays in place.</li>
+</ol>
+
+<h2>New computer</h2>
+<p>An activation code belongs to one computer. On a new computer, or after reinstalling Windows, the activation window shows a new device ID. Send it to {contact} and you will get a new code.</p>
+
+<footer>{product} {version} · © {year} {seller} · Contact: {contact}<br>The license terms in <code>License.txt</code> apply.</footer>
+</body>
+</html>

@@ -1,8 +1,9 @@
-// Kunden: everyone who got a code, searchable, with a way to add someone by hand.
+// Kunden: everyone who got a code, where their codes stand, searchable, and a way to add
+// someone by hand.
 
 import { api, post } from '../api.js';
 import { loadOverview } from '../store.js';
-import { sharedClick } from '../parts.js';
+import { leadingStatus, sharedClick, statusBadge } from '../parts.js';
 import { dialog, esc, fmtDate, icon, toast } from '../ui.js';
 
 let query = '';
@@ -12,12 +13,12 @@ export async function render(main) {
   const productName = (id) => o.projects.find((p) => p.id === id)?.name ?? id;
 
   const rows = reg.customers.map((c) => {
-    const licenses = reg.licenses.filter((l) => l.customerId === c.id);
-    const last = licenses.map((l) => l.issued).sort().at(-1) ?? c.created;
-    return { c, licenses, last };
+    const views = reg.licenses.filter((v) => v.license.customerId === c.id);
+    const last = views.map((v) => v.license.issued).sort().at(-1) ?? c.created;
+    return { c, views, last };
   }).sort((a, b) => b.last.localeCompare(a.last));
 
-  const loose = reg.licenses.filter((l) => !l.customerId);
+  const loose = reg.licenses.filter((v) => !v.license.customerId);
 
   main.innerHTML = `
     <div class="page">
@@ -38,24 +39,13 @@ export async function render(main) {
             <input type="search" name="q" placeholder="Suchen: Name, E-Mail, Geräte-ID, Code …" value="${esc(query)}" aria-label="Kunden durchsuchen">
           </div>
           <div class="table-wrap"><table class="table">
-            <thead><tr><th>Name</th><th>E-Mail</th><th>Codes</th><th>Zuletzt</th><th class="num">Offen</th></tr></thead>
+            <thead><tr><th>Name</th><th>E-Mail</th><th>Codes</th><th>Stand</th><th>Zuletzt</th><th class="num">Offen</th></tr></thead>
             <tbody>
-              ${rows.map(({ c, licenses, last }) => `
-                <tr class="link" data-href="#/kunden/${esc(c.id)}" data-search="${esc(searchText(c, licenses))}">
-                  <td><strong>${esc(c.name)}</strong></td>
-                  <td class="muted">${esc(c.email || '–')}</td>
-                  <td>${summary(licenses, productName)}</td>
-                  <td>${esc(fmtDate(last))}</td>
-                  <td class="num">${unpaid(licenses)}</td>
-                </tr>`).join('')}
-              ${loose.length ? `
-                <tr class="link" data-href="#/kunden/ohne" data-search="${esc(loose.map((l) => `${l.machineId} ${l.code} ${l.note}`).join(' ').toLowerCase())}">
-                  <td><span class="muted">Ohne Kunde</span></td>
-                  <td class="muted">–</td>
-                  <td>${summary(loose, productName)}</td>
-                  <td>${esc(fmtDate(loose.map((l) => l.issued).sort().at(-1)))}</td>
-                  <td class="num">${unpaid(loose)}</td>
-                </tr>` : ''}
+              ${rows.map(({ c, views, last }) => row(`#/kunden/${c.id}`, `<strong>${esc(c.name)}</strong>`, c.email, views, last, productName,
+                searchText(c, views))).join('')}
+              ${loose.length ? row('#/kunden/ohne', '<span class="muted">Ohne Kunde</span>', '', loose,
+                loose.map((v) => v.license.issued).sort().at(-1), productName,
+                loose.map((v) => `${v.license.machineId} ${v.license.code} ${v.license.note}`).join(' ').toLowerCase()) : ''}
             </tbody>
           </table></div>
           <p class="empty" id="no-hits" hidden>Nichts gefunden.</p>
@@ -73,37 +63,50 @@ export async function render(main) {
   main.onclick = async (e) => {
     if (await sharedClick(e)) return;
     if (e.target.closest('[data-new]')) return newCustomer();
-    const row = e.target.closest('tr[data-href]');
-    if (row && !e.target.closest('a,button')) location.hash = row.dataset.href;
+    const tr = e.target.closest('tr[data-href]');
+    if (tr && !e.target.closest('a,button')) location.hash = tr.dataset.href;
   };
+}
+
+function row(href, name, email, views, last, productName, search) {
+  const lead = leadingStatus([...views]);
+  return `
+    <tr class="link" data-href="${esc(href)}" data-search="${esc(search)}">
+      <td>${name}</td>
+      <td class="muted">${esc(email || '–')}</td>
+      <td>${summary(views, productName)}</td>
+      <td class="nowrap">${lead ? statusBadge(lead) : '<span class="muted">–</span>'}</td>
+      <td class="nowrap">${esc(fmtDate(last))}</td>
+      <td class="num">${unpaid(views)}</td>
+    </tr>`;
 }
 
 function filter(main) {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   let shown = 0;
-  main.querySelectorAll('tr[data-search]').forEach((row) => {
-    const hit = words.every((w) => row.dataset.search.includes(w));
-    row.hidden = !hit;
+  main.querySelectorAll('tr[data-search]').forEach((tr) => {
+    const hit = words.every((w) => tr.dataset.search.includes(w));
+    tr.hidden = !hit;
     if (hit) shown++;
   });
   const none = main.querySelector('#no-hits');
   if (none) none.hidden = shown > 0;
 }
 
-const searchText = (c, licenses) =>
-  [c.name, c.email, c.note, ...licenses.flatMap((l) => [l.machineId, l.code, l.note])].join(' ').toLowerCase();
+const searchText = (c, views) =>
+  [c.name, c.email, c.note, ...views.flatMap((v) => [v.license.machineId, v.license.code, v.license.note])].join(' ').toLowerCase();
 
-function summary(licenses, productName) {
-  if (!licenses.length) return '<span class="muted">–</span>';
+function summary(views, productName) {
+  if (!views.length) return '<span class="muted">–</span>';
   const counts = {};
-  licenses.forEach((l) => { counts[l.product] = (counts[l.product] ?? 0) + 1; });
+  views.forEach((v) => { counts[v.license.product] = (counts[v.license.product] ?? 0) + 1; });
   return Object.entries(counts)
     .map(([product, n]) => `<span class="badge accent">${esc(productName(product))}${n > 1 ? ` × ${n}` : ''}</span>`)
     .join(' ');
 }
 
-function unpaid(licenses) {
-  const n = licenses.filter((l) => !l.paid && l.price > 0).length;
+function unpaid(views) {
+  const n = views.filter((v) => !v.license.paid && v.license.price > 0).length;
   return n ? `<span class="badge bad">${n}</span>` : '<span class="muted">–</span>';
 }
 
@@ -111,13 +114,26 @@ async function newCustomer() {
   const customer = await dialog({
     title: 'Kunde anlegen',
     confirm: 'Anlegen',
-    body: `
-      <label class="field"><span>Name</span><input type="text" name="name" required></label>
-      <label class="field"><span>E-Mail <em>optional</em></span><input type="email" name="email"></label>
-      <label class="field"><span>Notiz <em>optional</em></span><textarea name="note" rows="2"></textarea></label>`,
-    submit: (v) => post('/api/customers', v),
+    body: customerFields({ name: '', email: '', note: '', language: 'de', mailConsent: true }),
+    submit: (v) => post('/api/customers', { ...v, mailConsent: v.mailConsent }),
   });
   if (!customer) return;
   toast(`${customer.name} angelegt`);
   location.hash = `#/kunden/${customer.id}`;
+}
+
+/** The fields of a customer, for the new and the edit dialog. */
+export function customerFields(c) {
+  return `
+    <label class="field"><span>Name</span><input type="text" name="name" value="${esc(c.name)}"></label>
+    <label class="field"><span>E-Mail <em>optional</em></span><input type="email" name="email" value="${esc(c.email)}"></label>
+    <div class="field">
+      <span>Sprache der Mails</span>
+      <select name="language">
+        <option value="de" ${c.language === 'de' ? 'selected' : ''}>Deutsch</option>
+        <option value="en" ${c.language === 'en' ? 'selected' : ''}>English</option>
+      </select>
+    </div>
+    <label class="check"><input type="checkbox" name="mailConsent" ${c.mailConsent ? 'checked' : ''}> Darf vor dem Ende einer Testphase nachgefragt werden</label>
+    <label class="field"><span>Notiz <em>optional</em></span><textarea name="note" rows="2">${esc(c.note)}</textarea></label>`;
 }

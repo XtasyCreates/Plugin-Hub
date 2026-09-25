@@ -1,0 +1,32 @@
+{
+  "code": {
+    "de": {
+      "subject": "Dein Aktivierungscode für {product}",
+      "body": "Hallo {name},\n\nhier ist dein Aktivierungscode für {product}:\n\n{code}\n\n{validity}\n\nSo aktivierst du das Plugin:\n1. Starte Rhino und gib den Befehl {command} ein.\n2. Das Aktivierungsfenster öffnet sich. Füge den Code unter „2)“ ein und klicke auf „Activate“.\n\nDer Code gehört zu deiner Geräte-ID ({deviceId}). Bekommst du einen neuen Rechner oder installierst Windows neu, schick mir einfach die neue Geräte-ID – dann bekommst du einen neuen Code.\n\nViele Grüße\n{signature}"
+    },
+    "en": {
+      "subject": "Your activation code for {product}",
+      "body": "Hi {name},\n\nhere is your activation code for {product}:\n\n{code}\n\n{validity}\n\nTo activate the plug-in:\n1. Start Rhino and run the command {command}.\n2. The activation window opens. Paste the code under \"2)\" and click \"Activate\".\n\nThe code belongs to your device ID ({deviceId}). If you move to a new computer or reinstall Windows, just send me the new device ID and you will get a new code.\n\nBest regards,\n{signature}"
+    }
+  },
+  "followup": {
+    "de": {
+      "subject": "Deine Testphase von {product} endet am {end}",
+      "body": "Hallo {name},\n\ndeine Testphase von {product} endet am {end}. Hat dir das Plugin gefallen?\n\nWenn du es weiter nutzen möchtest, antworte einfach auf diese Mail – dann bekommst du einen neuen Code für denselben Rechner. Und wenn dir etwas gefehlt hat oder nicht funktioniert hat, freue ich mich auch über eine kurze Rückmeldung.\n\nViele Grüße\n{signature}\n\nDu möchtest solche Nachfragen nicht mehr bekommen? Eine kurze Antwort genügt."
+    },
+    "en": {
+      "subject": "Your trial of {product} ends on {end}",
+      "body": "Hi {name},\n\nyour trial of {product} ends on {end}. Did you like the plug-in?\n\nIf you would like to keep using it, just reply to this mail and you will get a new code for the same computer. And if something was missing or did not work, I would be glad to hear about that too.\n\nBest regards,\n{signature}\n\nRather not get mails like this? A short reply is enough."
+    }
+  },
+  "extension": {
+    "de": {
+      "subject": "Dein neuer Code für {product}",
+      "body": "Hallo {name},\n\nhier ist dein neuer Aktivierungscode für {product}:\n\n{code}\n\n{validity}\n\nSo gibst du ihn ein: Gib in Rhino den Befehl {activationCommand} ein, füge den Code unter „2)“ ein und klicke auf „Activate“. Ist dein alter Code schon abgelaufen, öffnet sich das Fenster auch von selbst, sobald du {command} aufrufst.\n\nViele Grüße\n{signature}"
+    },
+    "en": {
+      "subject": "Your new code for {product}",
+      "body": "Hi {name},\n\nhere is your new activation code for {product}:\n\n{code}\n\n{validity}\n\nTo enter it, run the command {activationCommand} in Rhino, paste the code under \"2)\" and click \"Activate\". If your old code has already run out, the window also opens by itself when you run {command}.\n\nBest regards,\n{signature}"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{product} {version} – Anleitung</title>
+<style>
+  body { font: 15px/1.6 "Segoe UI", system-ui, sans-serif; color: #1a1a1e; background: #fff; max-width: 720px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  .sub { color: #5a5a64; margin: 0; }
+  h2 { font-size: 18px; margin: 34px 0 10px; padding-bottom: 4px; border-bottom: 2px solid #e08020; }
+  li { margin-bottom: 8px; }
+  code { background: #f1f1f4; padding: 1px 6px; border-radius: 4px; font-family: Consolas, "Cascadia Mono", monospace; }
+  .note { background: #fdf4e7; border-left: 4px solid #e08020; padding: 10px 14px; margin: 14px 0; }
+  footer { margin-top: 44px; padding-top: 12px; border-top: 1px solid #e3e3e8; color: #7a7a86; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>{product}</h1>
+<p class="sub">Version {version} · {date} · Plugin für Rhino 8 unter Windows</p>
+
+<h2>Installieren</h2>
+<ol>
+  <li><strong>ZIP entsperren, bevor du es entpackst:</strong> Rechtsklick auf die ZIP-Datei → <em>Eigenschaften</em> → unten <em>Zulassen</em> anhaken → <em>OK</em>. Sonst blockiert Windows das Plugin.</li>
+  <li>Entpacke den Ordner an einen festen Platz, zum Beispiel <code>Dokumente\Rhino Plug-ins\{product}</code>. Rhino lädt das Plugin von dort – verschiebe den Ordner danach nicht mehr.</li>
+  <li>Starte Rhino und ziehe die Datei <code>{rhp}</code> in das Rhino-Fenster. Rhino installiert das Plugin und lädt es künftig bei jedem Start.</li>
+</ol>
+
+<h2>Aktivieren</h2>
+<ol>
+  <li>Gib in Rhino den Befehl <code>{command}</code> ein. Das Aktivierungsfenster öffnet sich und zeigt deine <em>Geräte-ID</em>.</li>
+  <li>Schick die Geräte-ID an {contact} – am einfachsten mit dem Knopf <em>Request a code</em>, der die Mail für dich vorbereitet.</li>
+  <li>Du bekommst einen Aktivierungscode. Füge ihn unter „2)“ ein und klicke auf <em>Activate</em>.</li>
+</ol>
+<p class="note">Ein Testcode gilt bis zu einem festen Tag. Ab sieben Tagen vorher erinnert dich Rhino in der Befehlszeile daran. Einen neuen Code gibst du jederzeit mit dem Befehl <code>{activationCommand}</code> ein.</p>
+
+<h2>Aktualisieren</h2>
+<ol>
+  <li>Schließe Rhino.</li>
+  <li>Ersetze die Dateien im Plugin-Ordner durch die neuen (die neue ZIP-Datei vorher wieder entsperren).</li>
+  <li>Starte Rhino – die Aktivierung bleibt erhalten.</li>
+</ol>
+
+<h2>Neuer Rechner</h2>
+<p>Ein Aktivierungscode gehört zu einem Rechner. Auf einem neuen Rechner oder nach einer Neuinstallation von Windows zeigt das Aktivierungsfenster eine neue Geräte-ID. Schick sie an {contact}, dann bekommst du einen neuen Code.</p>
+
+<footer>{product} {version} · © {year} {seller} · Kontakt: {contact}<br>Es gelten die Lizenzbedingungen in <code>Lizenzbedingungen.txt</code>.</footer>
+</body>
+</html>

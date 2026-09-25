@@ -42,6 +42,12 @@ const ICONS = {
   chevron: '<path d="M9 6l6 6-6 6"/>',
   euro: '<path d="M17 6.5A6.5 6.5 0 1 0 17 17.5"/><path d="M4 10.5h9"/><path d="M4 13.5h9"/>',
   rhino: '<path d="M4 17c0-5 3-9 8-9 3 0 5 1.5 6 3l2-3 .5 5c.2 2-.8 4-3.5 4H4z"/><path d="M8 17v3"/><path d="M15 17v3"/>',
+  list: '<path d="M10 6h10"/><path d="M10 12h10"/><path d="M10 18h10"/><path d="M4 6l1.5 1.5L8 5"/><path d="M4 12l1.5 1.5L8 11"/><path d="M4 18l1.5 1.5L8 17"/>',
+  tag: '<path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8a1.4 1.4 0 0 1 0 2l-7 7a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.5"/>',
+  sliders: '<path d="M4 6h9"/><path d="M17 6h3"/><circle cx="15" cy="6" r="2"/><path d="M4 12h3"/><path d="M11 12h9"/><circle cx="9" cy="12" r="2"/><path d="M4 18h11"/><circle cx="17" cy="18" r="2"/>',
+  send: '<path d="M21 3L3 10.5l7.5 3L14 21z"/><path d="M21 3L10.5 13.5"/>',
+  calendar: '<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M9 3v4"/><path d="M15 3v4"/>',
+  hourglass: '<path d="M6 3h12"/><path d="M6 21h12"/><path d="M7.5 3v2.5a4.5 4.5 0 0 0 2 3.7L12 11l2.5-1.8a4.5 4.5 0 0 0 2-3.7V3"/><path d="M7.5 21v-2.5a4.5 4.5 0 0 1 2-3.7L12 13l2.5 1.8a4.5 4.5 0 0 1 2 3.7V21"/>',
   dot: '<circle cx="12" cy="12" r="3"/>',
 };
 
@@ -120,10 +126,12 @@ export async function busy(button, action) {
 /**
  * A modal form. Resolves with what `submit(values)` returns (or the values), null when
  * cancelled. When `submit` throws, its message stays in the dialog and the dialog stays open.
+ * `onOpen(form)` wires up anything inside it; `wide` makes room for longer texts.
  */
-export function dialog({ title, body = '', confirm = 'OK', danger = false, cancel = 'Abbrechen', submit }) {
+export function dialog({ title, body = '', confirm = 'OK', danger = false, cancel = 'Abbrechen', submit, onOpen, wide = false }) {
   return new Promise((resolve) => {
     const dlg = document.createElement('dialog');
+    if (wide) dlg.classList.add('wide');
     dlg.innerHTML = `
       <form novalidate>
         <div class="dlg-body">
@@ -167,7 +175,8 @@ export function dialog({ title, body = '', confirm = 'OK', danger = false, cance
     });
 
     dlg.showModal();
-    dlg.querySelector('input:not([type=hidden]),textarea,select')?.focus();
+    onOpen?.(form);
+    dlg.querySelector('input:not([type=hidden]):not([readonly]),textarea,select')?.focus();
   });
 }
 

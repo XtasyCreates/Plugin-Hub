@@ -4,9 +4,36 @@ using System.Text;
 
 namespace PluginHub.Services;
 
-/// <summary>Asks git about the root folder. Read-only: the hub never commits for you.</summary>
+/// <summary>
+/// Asks git about the root folder. The only writes are a release's commits and its tag, through
+/// <see cref="Exec"/> - the hub never commits anything else for you.
+/// </summary>
 public static class Git
 {
+    /// <summary>A git command that must succeed; its error text becomes the message.</summary>
+    public static string Exec(string root, params string[] args)
+    {
+        var (code, output, error) = RunAll(root, args);
+        if (code != 0)
+            throw new HubError($"git {args.FirstOrDefault()} ist fehlgeschlagen: {(error.Trim().Length > 0 ? error.Trim() : output.Trim())}");
+        return output;
+    }
+
+    public static bool TagExists(string root, string tag) =>
+        Run(root, "rev-parse", "-q", "--verify", "refs/tags/" + tag).Code == 0;
+
+    public static string Head(string root) => Run(root, "rev-parse", "--short", "HEAD").Output.Trim();
+
+    /// <summary>Commit subjects between a tag and HEAD that touch these folders, oldest first.</summary>
+    public static List<string> SubjectsSince(string root, string? tag, IEnumerable<string> folders)
+    {
+        var args = new List<string> { "log", "--reverse", "--format=%s" };
+        if (tag != null) args.Add(tag + "..HEAD");
+        args.Add("--");
+        args.AddRange(folders);
+        var (code, output) = Run(root, args.ToArray());
+        return code == 0 ? output.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(s => s.TrimEnd('\r')).ToList() : new();
+    }
     public static bool IsRepo(string root) =>
         Run(root, "rev-parse", "--is-inside-work-tree").Output.Trim() == "true";
 
@@ -53,6 +80,12 @@ public static class Git
 
     private static (int Code, string Output) Run(string root, params string[] args)
     {
+        var (code, output, _) = RunAll(root, args);
+        return (code, output);
+    }
+
+    private static (int Code, string Output, string Error) RunAll(string root, params string[] args)
+    {
         try
         {
             var psi = new ProcessStartInfo("git")
@@ -61,7 +94,8 @@ public static class Git
                 RedirectStandardOutput = true,
                 RedirectStandardError  = true,
                 CreateNoWindow         = true,
-                StandardOutputEncoding = Encoding.UTF8
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding  = Encoding.UTF8
             };
             foreach (string a in new[] { "-c", "core.quotepath=off", "-C", root }.Concat(args))
                 psi.ArgumentList.Add(a);
@@ -70,17 +104,17 @@ public static class Git
 
             using var p = Process.Start(psi)!;
             var output = p.StandardOutput.ReadToEndAsync();
-            _ = p.StandardError.ReadToEndAsync();
-            if (!p.WaitForExit(15_000))
+            var error  = p.StandardError.ReadToEndAsync();
+            if (!p.WaitForExit(30_000))
             {
                 try { p.Kill(true); } catch { }
-                return (-1, "");
+                return (-1, "", "git hat nicht geantwortet.");
             }
-            return (p.ExitCode, output.Result);
+            return (p.ExitCode, output.Result, error.Result);
         }
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
         {
-            return (-1, "");   // git is not installed
+            return (-1, "", "git ist nicht installiert.");
         }
     }
 }

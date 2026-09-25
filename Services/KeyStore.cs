@@ -41,15 +41,20 @@ public sealed class KeyStore
         finally { CryptographicOperations.ZeroMemory(pkcs8); }
     }
 
-    /// <summary>The activation code for this machine id - see <see cref="ActivationCode"/>.</summary>
-    public string Sign(string product, string machineId)
+    /// <summary>
+    /// The activation code for this machine id, working until <paramref name="end"/> (that day
+    /// included) or for good - see <see cref="ActivationCode"/>.
+    /// </summary>
+    public string Sign(string product, string machineId, DateOnly? end)
     {
         byte[] pkcs8 = PrivateKey(product);
         try
         {
             using var ec = ECDsa.Create();
             ec.ImportPkcs8PrivateKey(pkcs8, out _);
-            return Convert.ToBase64String(ec.SignData(ActivationCode.Message(machineId), HashAlgorithmName.SHA256));
+            DateTime? endDay = end?.ToDateTime(TimeOnly.MinValue);
+            byte[] signature = ec.SignData(ActivationCode.Message(machineId, endDay), HashAlgorithmName.SHA256);
+            return ActivationCode.Compose(endDay, signature);
         }
         finally { CryptographicOperations.ZeroMemory(pkcs8); }
     }

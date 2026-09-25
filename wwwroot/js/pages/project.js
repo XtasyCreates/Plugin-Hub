@@ -18,7 +18,7 @@ export async function render(main, { args }) {
           <div class="picon" style="width:44px;height:44px">${icon(p.icon)}</div>
           <div>
             <h1>${esc(p.name)}</h1>
-            <p class="sub">${esc(isPlugin ? p.version ?? 'ohne Version' : 'Bibliothek')} · Ordner ${esc(p.folder)}</p>
+            <p class="sub">${esc(isPlugin ? (p.released ? `Release ${p.released}` : 'noch kein Release') : 'Bibliothek')}${p.version ? ` · intern ${esc(p.version)}` : ''} · Ordner ${esc(p.folder)}</p>
           </div>
         </div>
         ${isPlugin ? `<button class="btn primary" data-build="${esc(p.id)}">${icon('hammer')} Bauen</button>` : ''}
@@ -33,9 +33,9 @@ export async function render(main, { args }) {
         <div class="facts">
           ${isPlugin ? `
             <div class="fact"><span>Build</span><span>${buildLine(p.build)} ${buildBadge(p.build)}</span></div>
-            <div class="fact"><span>Datei</span><span class="mono">${esc(p.build.rhp)}${p.build.fileVersion ? ` · Version ${esc(p.build.fileVersion)}` : ''}</span></div>
+            <div class="fact"><span>Datei</span><span class="mono">${esc(p.build.rhp)}${p.build.productVersion ? ` · Version ${esc(p.build.productVersion)}` : ''}</span></div>
             <div class="fact"><span>Rhino lädt</span><span>${rhinoBadges(p.rhino)}</span></div>
-            <div class="fact"><span>Aktivierung</span><span>Befehl <span class="mono">${esc(p.startCommand ?? '–')}</span></span></div>` : ''}
+            <div class="fact"><span>Aktivierung</span><span>Befehle <span class="mono">${esc(p.startCommand ?? '–')}</span>, <span class="mono">${esc(p.activationCommand ?? '–')}</span></span></div>` : ''}
           <div class="fact"><span>Git</span><span>${p.changes ? `${plural(p.changes, 'Änderung', 'Änderungen')} nicht committed` : 'alles committed'}</span></div>
         </div>
         ${p.toolbarCache.length ? `

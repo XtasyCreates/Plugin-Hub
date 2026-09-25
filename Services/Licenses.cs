@@ -4,8 +4,9 @@ using RhinoKit.Licensing;
 namespace PluginHub.Services;
 
 /// <summary>
-/// Makes an activation code and puts it in the register. Every code is checked before it is
-/// handed out - against the hub's key, and against the key the plug-in actually carries.
+/// Makes activation codes and puts them in the register - new ones, and extensions of existing
+/// ones for the same device. Every code is checked before it is handed out: against the hub's
+/// key, and against the key the plug-in actually carries.
 /// </summary>
 public sealed class Licenses
 {
@@ -13,60 +14,145 @@ public sealed class Licenses
     private readonly Config _config;
     private readonly KeyStore _keys;
     private readonly Register _register;
+    private readonly Settings _settings;
 
-    public Licenses(HubPaths paths, Config config, KeyStore keys, Register register)
+    public Licenses(HubPaths paths, Config config, KeyStore keys, Register register, Settings settings)
     {
         _paths    = paths;
         _config   = config;
         _keys     = keys;
         _register = register;
+        _settings = settings;
     }
 
     public IssueResult Issue(LicenseRequest request)
     {
-        var project = _config.Project(request.Product);
-        if (!project.IsPlugin) throw new HubError($"{project.Name} ist kein Plugin.");
-
+        var project = Plugin(request.Product);
         string machineId = MachineIds.Normalize(request.MachineId);
-        decimal? price   = Prices.Parse(request.Price);
-        var key = _keys.Info(project.Id)
-            ?? throw new HubError($"Für {project.Name} gibt es noch keinen Schlüssel. Leg ihn unter „Schlüssel und Backup“ an.");
-
-        string code = _keys.Sign(project.Id, machineId);
-        if (!ActivationCode.Verify(key.PublicKey, machineId, code))
-            throw new HubError("Der eben erzeugte Code ließ sich nicht bestätigen. Bitte melde das.");
-
-        string? pluginKey = PluginKeyFile.Read(_paths, project);
-        bool matchesPlugin = pluginKey != null && ActivationCode.Verify(pluginKey, machineId, code);
-        bool inBuild = PluginKeyFile.InBuild(_paths, project, key.PublicKey);
+        DateOnly? end = Ends.Parse(request.End);
+        decimal? price = Prices.Parse(request.Price);
 
         Customer? customer = null;
         if (!string.IsNullOrWhiteSpace(request.CustomerId))
             customer = _register.FindCustomer(request.CustomerId) ?? throw new HubError("Diesen Kunden gibt es nicht mehr.");
         else if (!string.IsNullOrWhiteSpace(request.CustomerName))
-            customer = _register.FindOrAddCustomer(request.CustomerName, request.CustomerEmail);
+            customer = _register.FindOrAddCustomer(request.CustomerName, request.CustomerEmail,
+                request.Language ?? _settings.Shared.DefaultLanguage);
 
-        var license = _register.AddLicense(new License
+        var (license, fit) = Make(project, machineId, end);
+        license.CustomerId = customer?.Id;
+        license.Trial      = request.Trial && end != null;
+        license.Price      = price;
+        license.Paid       = request.Paid;
+        license.Note       = request.Note?.Trim() ?? "";
+        license = _register.AddLicense(license);
+
+        Log.Info($"Code issued: {project.Id} for {machineId}, end {end?.ToString("yyyy-MM-dd") ?? "none"}");
+        return new IssueResult(license, customer, fit.MatchesPlugin, fit.InBuild);
+    }
+
+    /// <summary>A new code for the same product and device - a longer trial, or the bought licence.</summary>
+    public IssueResult Extend(string licenseId, ExtendRequest request)
+    {
+        var old = _register.FindLicense(licenseId) ?? throw new HubError("Diese Lizenz gibt es nicht mehr.");
+        if (old.ReplacedBy != null) throw new HubError("Dieser Code wurde schon verlängert – verlängere den neuen.");
+        var project = Plugin(old.Product);
+        DateOnly? end = Ends.Parse(request.End);
+
+        var (license, fit) = Make(project, old.MachineId, end);
+        license.CustomerId = old.CustomerId;
+        license.Trial      = request.Trial && end != null;
+        license.Price      = Prices.Parse(request.Price);
+        license.Paid       = request.Paid;
+        license.Note       = request.Note?.Trim() ?? "";
+        license = _register.AddExtension(old.Id, license);
+
+        var customer = old.CustomerId == null ? null : _register.FindCustomer(old.CustomerId);
+        Log.Info($"Code extended: {project.Id} for {old.MachineId}, end {end?.ToString("yyyy-MM-dd") ?? "none"}");
+        return new IssueResult(license, customer, fit.MatchesPlugin, fit.InBuild);
+    }
+
+    private (License License, (bool MatchesPlugin, bool InBuild) Fit) Make(ProjectDef project, string machineId, DateOnly? end)
+    {
+        var key = _keys.Info(project.Id)
+            ?? throw new HubError($"Für {project.Name} gibt es noch keinen Schlüssel. Leg ihn unter „Schlüssel und Backup“ an.");
+
+        string code = _keys.Sign(project.Id, machineId, end);
+        DateTime? endDay = end?.ToDateTime(TimeOnly.MinValue);
+        var grant = ActivationCode.Read(key.PublicKey, machineId, code);
+        if (grant == null || grant.End != endDay)
+            throw new HubError("Der eben erzeugte Code ließ sich nicht bestätigen. Bitte melde das.");
+
+        string? pluginKey = PluginActivationFile.ReadKey(_paths, project);
+        bool matchesPlugin = pluginKey != null && ActivationCode.Read(pluginKey, machineId, code) != null;
+        bool inBuild = PluginActivationFile.InBuild(_paths, project, key.PublicKey);
+
+        var license = new License
         {
-            CustomerId     = customer?.Id,
             Product        = project.Id,
             MachineId      = machineId,
             Code           = code,
             KeyFingerprint = key.Fingerprint,
             Issued         = DateTimeOffset.Now,
-            Price          = price,
-            Paid           = request.Paid,
-            Note           = request.Note?.Trim() ?? ""
-        });
-        Log.Info($"Code issued: {project.Id} for {machineId}");
-        return new IssueResult(license, customer, matchesPlugin, inBuild);
+            End            = end
+        };
+        return (license, (matchesPlugin, inBuild));
+    }
+
+    private ProjectDef Plugin(string id)
+    {
+        var project = _config.Project(id);
+        if (!project.IsPlugin) throw new HubError($"{project.Name} ist kein Plugin.");
+        return project;
     }
 }
 
 public sealed record LicenseRequest(string Product, string MachineId, string? CustomerId, string? CustomerName,
-    string? CustomerEmail, string? Price, bool Paid, string? Note);
+    string? CustomerEmail, string? Language, bool Trial, string? End, string? Price, bool Paid, string? Note);
+
+public sealed record ExtendRequest(bool Trial, string? End, string? Price, bool Paid, string? Note);
 
 public sealed record IssueResult(License License, Customer? Customer, bool MatchesPlugin, bool InBuild);
+
+/// <summary>
+/// Where a code stands today. State: unlimited | valid | ending | expired | oldkey | replaced.
+/// A code that was extended counts as replaced; one signed with a key the hub no longer holds is
+/// dead whatever its date says.
+/// </summary>
+public sealed record LicenseStatus(string State, string Label, int? DaysLeft)
+{
+    public static LicenseStatus Of(License license, string? currentFingerprint, DateOnly today, int endingSoonDays)
+    {
+        if (license.ReplacedBy != null) return new("replaced", "verlängert", null);
+        if (currentFingerprint == null || license.KeyFingerprint != currentFingerprint)
+            return new("oldkey", "alter Schlüssel – ungültig", null);
+        if (license.End is not DateOnly end) return new("unlimited", "unbegrenzt", null);
+
+        int left = end.DayNumber - today.DayNumber;
+        string date = end.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
+        if (left < 0) return new("expired", $"abgelaufen am {date}", left);
+        if (left <= endingSoonDays)
+            return new("ending", left switch { 0 => "läuft heute ab", 1 => "läuft morgen ab", _ => $"läuft in {left} Tagen ab" }, left);
+        return new("valid", $"gültig bis {date}", left);
+    }
+}
+
+/// <summary>A licence as the page sees it: the stored fields and where it stands.</summary>
+public sealed record LicenseView(License License, LicenseStatus Status);
+
+/// <summary>End dates as the page sends them ("2027-01-31"), empty for no end.</summary>
+public static class Ends
+{
+    public static DateOnly? Parse(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        if (!DateOnly.TryParseExact(text.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var end))
+            throw new HubError($"„{text}“ ist kein Datum.");
+        if (end < DateOnly.FromDateTime(DateTime.Today))
+            throw new HubError("Das Enddatum liegt in der Vergangenheit – der Code wäre sofort ungültig.");
+        return end;
+    }
+}
 
 /// <summary>The machine id as MachineId.ForUser shows it: 24 hex digits in six groups of four.</summary>
 public static class MachineIds
