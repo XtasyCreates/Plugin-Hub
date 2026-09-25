@@ -12,7 +12,8 @@ namespace PluginHub.Services;
 /// Releases. The version customers see lives in each plug-in's Version.props; a release builds
 /// with it (no "-test"), packs the customer package - the built files from projects.json plus
 /// guide, licence terms and changes, nothing else - into Releases\&lt;plug-in&gt;\&lt;version&gt;\, commits
-/// that with a tag "&lt;id&gt;-&lt;version&gt;", and moves Version.props on to the next version.
+/// that with a tag "&lt;id&gt;-&lt;version&gt;", and moves Version.props on to the next version. The roadmap
+/// cards that were tested go along: they move to "veröffentlicht" in the same commit.
 /// </summary>
 public sealed class Releases
 {
@@ -30,9 +31,11 @@ public sealed class Releases
     private readonly Tasks _tasks;
     private readonly KeyStore _keys;
     private readonly Builds _builds;
+    private readonly Plan _plan;
 
-    public Releases(HubPaths paths, Config config, Settings settings, Tasks tasks, KeyStore keys, Builds builds)
+    public Releases(HubPaths paths, Config config, Settings settings, Tasks tasks, KeyStore keys, Builds builds, Plan plan)
     {
+        _plan     = plan;
         _paths    = paths;
         _config   = config;
         _settings = settings;
@@ -77,9 +80,10 @@ public sealed class Releases
     {
         var state = State(p);
         string version = state.Version ?? "1.0.0";
-        string changes = state.Last == null
-            ? "Erste Version."
-            : string.Join("\n", state.Since.Select(s => "- " + s));
+        // What was tested reads better for customers than commit messages - those only fill in
+        var tested = _plan.Roadmap().Where(x => x.Project == p.Id && x.Stage == "getestet").Select(x => x.Title).ToList();
+        string changes = state.Last == null ? "Erste Version."
+            : string.Join("\n", (tested.Count > 0 ? tested : state.Since).Select(s => "- " + s));
         return new ReleasePlan(p.Id, p.Name, version, state.Last?.Version, changes, Checks(p, version, state.Last));
     }
 
@@ -106,6 +110,9 @@ public sealed class Releases
         string folder      = Path.Combine(_paths.Root, "Releases", p.Name, version);
         string tag         = Tag(p, version);
         string baseCommit  = Git.Head(_paths.Root);
+        string roadmapFile = _plan.RoadmapFile;
+        string? roadmap    = File.Exists(roadmapFile) ? File.ReadAllText(roadmapFile) : null;
+        int published      = 0;
         bool committed     = false;
 
         try
@@ -123,12 +130,20 @@ public sealed class Releases
             var record = Package(p, version, changes, folder, baseCommit, confirmed);
             job.Add($"{record.Zip}: {record.ZipSize / 1024} KB, {record.Files.Count} Dateien");
 
+            // What was tested went out with this version
+            published = _plan.Publish(p.Id, version);
+            if (published > 0)
+                job.Add(published == 1 ? "Roadmap: 1 getesteter Punkt steht jetzt auf „Veröffentlicht“"
+                                       : $"Roadmap: {published} getestete Punkte stehen jetzt auf „Veröffentlicht“");
+
             job.Add($"Git: Commit und Tag {tag}");
             string relFolder = _paths.Relative(folder).Replace('\\', '/');
             string relVersion = p.VersionFile!.Replace('\\', '/');
-            Git.Exec(_paths.Root, "add", "--", relVersion, relFolder);
-            Git.Exec(_paths.Root, "commit", "-q", "-m", $"{p.Name} {version}", "-m",
-                "Released with the Plugin Hub:\n\n" + changes, "--", relVersion, relFolder);
+            var files = new List<string> { relVersion, relFolder };
+            if (published > 0) files.Add(_paths.Relative(roadmapFile).Replace('\\', '/'));
+            Git.Exec(_paths.Root, new[] { "add", "--" }.Concat(files).ToArray());
+            Git.Exec(_paths.Root, new[] { "commit", "-q", "-m", $"{p.Name} {version}", "-m",
+                "Released with the Plugin Hub:\n\n" + changes, "--" }.Concat(files).ToArray());
             Git.Exec(_paths.Root, "tag", tag);
             committed = true;
 
@@ -146,7 +161,8 @@ public sealed class Releases
             {
                 File.WriteAllText(versionFile, previous);
                 if (Directory.Exists(folder)) Directory.Delete(folder, recursive: true);
-                job.Add("Zurückgesetzt: Version.props und Release-Ordner wie vorher.");
+                if (published > 0 && roadmap != null) File.WriteAllText(roadmapFile, roadmap);
+                job.Add("Zurückgesetzt: Version.props, Release-Ordner und Roadmap wie vorher.");
             }
             throw;
         }
@@ -154,7 +170,7 @@ public sealed class Releases
 
     /// <summary>
     /// Files the hub itself writes - settings, tasks and templates under Hub\, and each plug-in's
-    /// Activation.cs - that are not committed yet.
+    /// Activation.cs, and the documents at the top of the folder it edits - that are not committed yet.
     /// </summary>
     public List<string> DirtyHubFiles() =>
         Git.Changes(_paths.Root).Select(c => c.Path).Where(IsHubFile).ToList();
@@ -165,7 +181,7 @@ public sealed class Releases
         var files = DirtyHubFiles();
         if (files.Count == 0) return 0;
         Git.Exec(_paths.Root, new[] { "add", "--" }.Concat(files).ToArray());
-        Git.Exec(_paths.Root, new[] { "commit", "-q", "-m", "Plugin Hub: Einstellungen, Aufgaben und Vorlagen", "--" }
+        Git.Exec(_paths.Root, new[] { "commit", "-q", "-m", "Plugin Hub: Einstellungen, Aufgaben und Planung", "--" }
             .Concat(files).ToArray());
         Log.Info($"Committed hub files: {string.Join(", ", files)}");
         return files.Count;
@@ -175,6 +191,7 @@ public sealed class Releases
     {
         string p = path.Replace('\\', '/');
         return p.StartsWith("Hub/", StringComparison.OrdinalIgnoreCase)
+            || (!p.Contains('/') && p.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
             || _config.Current.Projects.Any(x => x.KeyFile != null && string.Equals(x.KeyFile.Replace('\\', '/'), p, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -191,7 +208,7 @@ public sealed class Releases
         checks.Add(new("clean", "Alles committed", work.Count == 0 && !hubDirty, false, true,
             work.Count > 0
                 ? $"Nicht committete Arbeit am Plugin: {string.Join(", ", work.Take(3))}{(work.Count > 3 ? " …" : "")}. Lass sie committen, bevor du veröffentlichst."
-                : hubDirty ? "Geänderte Hub-Dateien (Einstellungen, Aufgaben, Vorlagen) – „Hub-Änderungen committen“ erledigt das." : null));
+                : hubDirty ? "Geänderte Hub-Dateien (Einstellungen, Aufgaben, Planung) – „Hub-Änderungen committen“ erledigt das." : null));
 
         string? versionProblem = !VersionShape.IsMatch(version) ? $"„{version}“ ist keine Version wie 1.2.0."
             : Git.TagExists(_paths.Root, Tag(p, version)) ? $"Version {version} gibt es schon."
@@ -215,6 +232,11 @@ public sealed class Releases
         bool contact = shared.Contact.Length > 0;
         checks.Add(new("contact", "Kontakt-Adresse eingetragen", contact, false, false,
             contact ? null : "Ohne Kontakt-Adresse fehlt im Plugin „Request a code“ und in der Anleitung die Adresse."));
+
+        var untested = _plan.Roadmap().Where(x => x.Project == p.Id && x.Stage == "gebaut").Select(x => x.Title).ToList();
+        checks.Add(new("roadmap", "Alles Gebaute ist getestet", untested.Count == 0, false, false,
+            untested.Count == 0 ? null
+                : $"Noch nicht getestet: {string.Join(", ", untested.Take(3))}{(untested.Count > 3 ? $" und {untested.Count - 3} weitere" : "")} (Planung → Gebaut)."));
 
         checks.Add(new("rhino8", "In Rhino 8 getestet", false, true, false, null));
         checks.Add(new("rhino9", "In Rhino 9 getestet", false, true, false, null));

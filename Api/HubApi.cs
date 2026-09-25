@@ -211,6 +211,82 @@ public static class HubApi
             return Results.NoContent();
         });
 
+        // ── Planning: roadmap, decisions, versions, documents ─────────────────
+        app.MapGet("/api/plan", (Plan plan) => new { roadmap = plan.Roadmap(), decisions = plan.Decisions() });
+        app.MapPost("/api/roadmap", (RoadmapRequest request, Plan plan, Status status) =>
+        {
+            var item = plan.AddItem(request);
+            status.Invalidate();
+            return item;
+        });
+        app.MapPut("/api/roadmap/{id}", (string id, RoadmapRequest request, Plan plan, Status status) =>
+        {
+            var item = plan.UpdateItem(id, request);
+            status.Invalidate();
+            return item;
+        });
+        app.MapPost("/api/roadmap/{id}/move", (string id, MoveRequest request, Plan plan, Status status) =>
+        {
+            var item = plan.Move(id, request.Stage, request.Before, request.Reason);
+            status.Invalidate();
+            return item;
+        });
+        app.MapPost("/api/roadmap/{id}/tests/{index:int}", (string id, int index, DoneRequest request, Plan plan, Status status) =>
+        {
+            var item = plan.SetTest(id, index, request.Done);
+            status.Invalidate();
+            return item;
+        });
+        app.MapDelete("/api/roadmap/{id}", (string id, Plan plan, Status status) =>
+        {
+            plan.DeleteItem(id);
+            status.Invalidate();
+            return Results.NoContent();
+        });
+        app.MapPost("/api/decisions", (DecisionRequest request, Plan plan, Status status) =>
+        {
+            var item = plan.AddDecision(request);
+            status.Invalidate();
+            return item;
+        });
+        app.MapPut("/api/decisions/{id}", (string id, DecisionRequest request, Plan plan, Status status) =>
+        {
+            var item = plan.UpdateDecision(id, request);
+            status.Invalidate();
+            return item;
+        });
+        app.MapDelete("/api/decisions/{id}", (string id, Plan plan, Status status) =>
+        {
+            plan.DeleteDecision(id);
+            status.Invalidate();
+            return Results.NoContent();
+        });
+        app.MapGet("/api/versions", (Versions versions) => versions.All());
+        app.MapGet("/api/docs", (Documents docs) => docs.List());
+        app.MapGet("/api/docs/content", (string path, Documents docs) => docs.Read(path));
+        app.MapPut("/api/docs/content", (DocSaveRequest request, Documents docs, Status status) =>
+        {
+            var saved = docs.Write(request.Path, request.Text, request.Stamp);
+            status.Invalidate();
+            return saved;
+        });
+        app.MapGet("/api/places", (Places places) => places.All());
+
+        // ── The copy of the repository outside this PC ────────────────────────
+        app.MapGet("/api/git/remote", (RepoBackup repo) => repo.State());
+        app.MapPut("/api/git/remote", (RemoteRequest request, RepoBackup repo, Status status) =>
+        {
+            var state = repo.Connect(request.Url);
+            status.Invalidate();
+            return state;
+        });
+        app.MapPost("/api/git/push", (RepoBackup repo, Status status) =>
+        {
+            var job = repo.Push();
+            status.Invalidate();
+            return job.View(0);
+        });
+
         // ── Backup ────────────────────────────────────────────────────────────
         app.MapPost("/api/backup", (BackupRequest request, Backup backup, Status status) =>
         {

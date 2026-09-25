@@ -1,12 +1,14 @@
-// The frame: side bar, routing between pages, the heartbeat that keeps the hub running,
-// and the notice when it stops answering.
+// The frame: side bar, routing between pages, the spot a link points at ("?feld=") and the
+// task it came from ("?aufgabe="), the heartbeat that keeps the hub running, and the notice
+// when it stops answering.
 
-import { onOffline, post } from './api.js';
-import { confirmDialog, esc, icon } from './ui.js';
-import { getOverview, loadOverview } from './store.js';
-import { resumeBuild } from './parts.js';
+import { api, onOffline, post } from './api.js';
+import { confirmDialog, esc, icon, toast } from './ui.js';
+import { changed, getOverview, loadOverview } from './store.js';
+import { dropParam, flash, resumeBuild } from './parts.js';
 import * as overview from './pages/overview.js';
 import * as tasks from './pages/tasks.js';
+import * as plan from './pages/plan.js';
 import * as sales from './pages/sales.js';
 import * as customers from './pages/customers.js';
 import * as customer from './pages/customer.js';
@@ -19,6 +21,7 @@ import * as project from './pages/project.js';
 const ROUTES = [
   { path: /^#?\/?$/, page: overview, nav: '#/' },
   { path: /^#\/aufgaben$/, page: tasks, nav: '#/aufgaben' },
+  { path: /^#\/planung(?:\/(entscheidungen|versionen|dokumente))?$/, page: plan, nav: '#/planung' },
   { path: /^#\/verkauf$/, page: sales, nav: '#/verkauf' },
   { path: /^#\/kunden$/, page: customers, nav: '#/kunden' },
   { path: /^#\/kunden\/([\w-]+)$/, page: customer, nav: '#/kunden' },
@@ -47,6 +50,65 @@ async function show({ keepScroll = false } = {}) {
   }
   drawSide(path, route);
   if (keepScroll) window.scrollTo(0, scroll);
+  if (params.feld) {
+    markPlace(params.feld);
+    dropParam('feld');   // once - a redraw after a save must not jump back there
+  }
+  if (params.aufgabe) await taskBar(params.aufgabe);
+}
+
+/**
+ * Scrolls to the spot a link names - a field by its name, a card by its id or data-place - and
+ * lights it up; a field also gets the cursor.
+ */
+function markPlace(name) {
+  const key = CSS.escape(name);
+  const el = main.querySelector(`[data-place="${key}"]`) ?? main.querySelector(`#${key}`) ?? main.querySelector(`[name="${key}"]`);
+  if (!el) return;
+  const field = el.closest('.field');
+  const box = field ?? el;
+  box.scrollIntoView({ block: 'center' });
+  flash(box);
+  const control = el.matches('input,select,textarea') ? el : field?.querySelector('input:not([type=hidden]),select,textarea');
+  control?.focus({ preventScroll: true });
+}
+
+/** Came here from a task: it stays in view on top, and "Erledigt" ticks it off right here. */
+async function taskBar(id) {
+  let task;
+  try {
+    task = (await api('/api/tasks')).find((t) => t.id === id);
+  } catch {
+    return;
+  }
+  if (!task || main.querySelector('.taskbar')) return;
+
+  const bar = document.createElement('div');
+  bar.className = 'taskbar';
+  bar.innerHTML = `
+    ${icon('list')}
+    <div class="t"><span class="label">Aufgabe</span> ${esc(task.title)}</div>
+    ${task.done
+      ? `<span class="badge ok">${icon('check')} erledigt</span>`
+      : `<button class="btn small primary" data-task-done>${icon('check')} Erledigt</button>`}
+    <a class="btn small ghost" href="#/aufgaben">Alle Aufgaben</a>
+    <button class="btn small ghost icon-only" data-task-close aria-label="Leiste schließen">${icon('x')}</button>`;
+  bar.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-task-done]')) {
+      try {
+        await post(`/api/tasks/${id}/done`, { done: true });
+        toast('Aufgabe erledigt');
+        changed();
+      } catch (ex) {
+        toast(ex.message, 'bad');
+      }
+    }
+    if (e.target.closest('[data-task-close]')) {
+      dropParam('aufgabe');
+      bar.remove();
+    }
+  });
+  main.prepend(bar);
 }
 
 function drawSide(path, route) {
@@ -70,6 +132,7 @@ function drawSide(path, route) {
     <nav class="nav">
       ${link('#/', 'grid', 'Übersicht', { alarm: problem(() => true) })}
       ${link('#/aufgaben', 'list', 'Aufgaben', { count: o.tasks.open })}
+      ${link('#/planung', 'board', 'Planung', { count: o.plan.toTest })}
       ${link('#/verkauf', 'package', 'Verkauf und Export')}
       ${link('#/kunden', 'users', 'Kunden', { count: o.register.customers })}
       ${link('#/mails', 'mail', 'Mails', { alarm: problem((h) => h.area === 'mail'), count: o.mail.due })}

@@ -1,0 +1,736 @@
+[
+  {
+    "id": "r0cd26a2c",
+    "project": "laser",
+    "title": "Rest-Pfeil folgt den Platten live",
+    "note": "Der Pfeil von einer Platte zu ihrer Restplatte wird live gezeichnet statt als Objekt im Modell. Alte Pfeil-Objekte aus v43 werden beim Öffnen einmal gelöscht.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v44",
+    "tests": [
+      {
+        "text": "Eine geschnittene Platte mit „Use rest“ weiterverwenden – der Pfeil zeigt von der Platte zur Restplatte",
+        "done": false
+      },
+      {
+        "text": "Eine Platte am Griff verschieben – der Pfeil folgt sofort",
+        "done": false
+      },
+      {
+        "text": "Eine Datei aus v43 öffnen – die alten Pfeil-Objekte sind weg, der neue Pfeil ist da",
+        "done": false
+      }
+    ],
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r972c00bf",
+    "project": "laser",
+    "title": "Randabstand zur Plattenkante einstellbar",
+    "note": "Einstellung im Create-Tab; leer heißt: so groß wie der Teileabstand. Auf Restplatten gilt er nur an der äußeren Blattkante, an Ausschnitten bleibt der Teileabstand.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v44",
+    "tests": [
+      {
+        "text": "Im Create-Tab einen Randabstand von z. B. 10 mm eintragen und erzeugen – die Teile halten 10 mm Abstand zur Kante",
+        "done": false
+      },
+      {
+        "text": "Das Feld leeren – der Rand ist so groß wie der Teileabstand",
+        "done": false
+      },
+      {
+        "text": "Auf einer Restplatte: an der Blattkante gilt der Randabstand, an der Schnittkante der Teileabstand",
+        "done": false
+      }
+    ],
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "re43ec283",
+    "project": "laser",
+    "title": "Nummerierung „None“",
+    "note": "Keine Nummern auf den Platten, im Modell und im DXF. Die Nummern bleiben als User-Text an den Teilen.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v44",
+    "tests": [
+      {
+        "text": "Nummerierung auf „None“ stellen und erzeugen – auf den Platten stehen keine Nummern",
+        "done": false
+      },
+      {
+        "text": "DXF exportieren – auch dort keine Nummern",
+        "done": false
+      },
+      {
+        "text": "Ein Teil anklicken – die Nummer steht noch im User-Text",
+        "done": false
+      }
+    ],
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "rf108fe69",
+    "project": "laser",
+    "title": "Restplatten robuster",
+    "note": "Eine Familie von Platten pro Blatt, die Blattecke relativ gespeichert, ein Update lässt eine Restplatte eine Restplatte, Umbenennen nimmt den Lauf mit.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v44",
+    "tests": [
+      {
+        "text": "Eine Restplatte erzeugen, dann den Satz aktualisieren (Kreispfeil) – sie bleibt eine Restplatte mit orangem Rand",
+        "done": false
+      },
+      {
+        "text": "Den Satz umbenennen – die Restplatte gehört weiter zum selben Lauf",
+        "done": false
+      },
+      {
+        "text": "Speichern, schließen, wieder öffnen – Restplatten und Pfeil sind unverändert",
+        "done": false
+      }
+    ],
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r22317c91",
+    "project": "laser",
+    "title": "Plattenrahmen im Modell anklicken markiert die Platte im Panel",
+    "note": "Rahmen, Kantenschleifen oder Beschriftung auswählen: Das Panel wechselt zu „Plates“, klappt auf und scrollt zur Karte. Teile bleiben Sache von LaserInspect.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v45",
+    "tests": [
+      {
+        "text": "Im Viewport den Rahmen einer Platte anklicken – das Panel wechselt zu Plates und markiert die Karte",
+        "done": false
+      },
+      {
+        "text": "Die Beschriftung einer Platte anklicken – dasselbe",
+        "done": false
+      },
+      {
+        "text": "Ein Teil anklicken – das Panel reagiert nicht (das bleibt LaserInspect)",
+        "done": false
+      }
+    ],
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r31b6f817",
+    "project": "laser",
+    "title": "Aktivierung mit Testphasen und „Request a code“",
+    "note": "Eigener Schlüssel pro Plugin (v46), Codes mit Enddatum (v47): ab 7 Tagen vor dem Ende einmal täglich eine Zeile in der Befehlszeile, danach das Aktivierungsfenster. Neuer Befehl LaserActivation. „Request a code“ erscheint, sobald eine Kontakt-Adresse eingetragen und das Plugin neu gebaut ist. Wird die Uhr um mehr als einen Tag zurückgestellt, sperrt das Plugin.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v47",
+    "tests": [
+      {
+        "text": "Im Hub unter Verkauf und Export für „Dieser PC“ einen Testcode für Laser Create erzeugen, der in 2 Tagen endet",
+        "done": false
+      },
+      {
+        "text": "In Rhino LaserActivation ausführen und den Code eingeben – das Fenster nimmt ihn an",
+        "done": false
+      },
+      {
+        "text": "Rhino neu starten und LaserCreate ausführen – in der Befehlszeile steht, dass der Code in 2 Tagen endet",
+        "done": false
+      },
+      {
+        "text": "LaserActivation → „Request a code“ – dein Mailprogramm öffnet eine Mail mit Produkt, Version und Geräte-ID (erst nach Kontakt-Adresse und neuem Build)",
+        "done": false
+      },
+      {
+        "text": "Zum Schluss einen unbegrenzten Code für „Dieser PC“ erzeugen und mit LaserActivation eingeben",
+        "done": false
+      }
+    ],
+    "source": "Plugin Hub, Stufe 2",
+    "created": "2026-09-25T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-25T12:00:00+02:00"
+  },
+  {
+    "id": "r7b0b4d3c",
+    "project": "swtolaser",
+    "title": "Gebäude und Regionen mit Live-Vorschau",
+    "note": "Import-Seite: Gebäude nach Layer, Gruppe oder Farbe auswählen, Regionen mit Mindestfläche, Innenhöfen und „Merge touching“. Die Vorschau im Viewport zeigt orange, was bleibt, und rot gepunktet, was wegfällt.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v46",
+    "tests": [
+      {
+        "text": "SiteLaser öffnen und eine Datei importieren, z. B. den Meran-DXF",
+        "done": false
+      },
+      {
+        "text": "Unter Buildings die Klasse wählen (Layer, Gruppe oder Farbe) – die Vorbelegung trifft die Gebäude",
+        "done": false
+      },
+      {
+        "text": "Unter Regions Mindestfläche und „Merge touching“ ändern – die Vorschau folgt sofort",
+        "done": false
+      },
+      {
+        "text": "Einmal in Rhino 8 wiederholen – bisher nur in Rhino 9 geprüft",
+        "done": false
+      }
+    ],
+    "source": "Schwarzplan-Konzept und Claudes Notizen",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "rd6ac15b2",
+    "project": "swtolaser",
+    "title": "Bauen: Konturen als Plan im Modell",
+    "note": "Flache Konturen 1:1 in Metern auf „SW to Laser::<Plan>“, ein Undo-Schritt; ein neuer Bau mit gleichem Namen ersetzt den alten.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v46",
+    "tests": [
+      {
+        "text": "Build klicken – die Konturen liegen auf der Ebene „SW to Laser::<Plan>“",
+        "done": false
+      },
+      {
+        "text": "Strg+Z – der ganze Bau verschwindet in einem Schritt",
+        "done": false
+      },
+      {
+        "text": "Mit gleichem Namen noch einmal bauen – der alte Plan wird ersetzt, nicht verdoppelt",
+        "done": false
+      }
+    ],
+    "source": "Schwarzplan-Konzept und Claudes Notizen",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "rb7c2e57e",
+    "project": "swtolaser",
+    "title": "Pläne-Reiter",
+    "note": "Die gebauten Pläne leben im Dokument und stehen im Reiter „Plans“.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v46",
+    "tests": [
+      {
+        "text": "Im Reiter Plans steht der gebaute Plan",
+        "done": false
+      },
+      {
+        "text": "Datei speichern und wieder öffnen – der Plan ist noch da",
+        "done": false
+      }
+    ],
+    "source": "Schwarzplan-Konzept und Claudes Notizen",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "rba2dec81",
+    "project": "swtolaser",
+    "title": "Übergabe an Laser Create (Floors und Contour)",
+    "note": "Über den versteckten Befehl LaserAddLayer: Floors als flache Flächen, Contour als Extrusion der eingetippten Höhe. Der Planname wird zum Plattennamen, „Model 1 : N“ setzt den Modellmaßstab. Das Dokument muss in Millimetern sein.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v46",
+    "tests": [
+      {
+        "text": "Im Reiter Plans die Übergabe als Floors starten – Laser Create zeigt die Ebene mit dem Plannamen",
+        "done": false
+      },
+      {
+        "text": "Dasselbe als Contour mit einer Höhe – ohne Höhe verweigert die Übergabe",
+        "done": false
+      },
+      {
+        "text": "Im Laser-Panel steht der Modellmaßstab aus „Model 1 : N“",
+        "done": false
+      },
+      {
+        "text": "Ein Dokument in Metern – die Übergabe lehnt ab und sagt warum",
+        "done": false
+      }
+    ],
+    "source": "Schwarzplan-Konzept und Claudes Notizen",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r7c91c68c",
+    "project": "swtolaser",
+    "title": "Aktivierung mit Testphasen und „Request a code“",
+    "note": "Eigener Schlüssel pro Plugin (v46), Codes mit Enddatum (v47): ab 7 Tagen vor dem Ende einmal täglich eine Zeile in der Befehlszeile, danach das Aktivierungsfenster. Neuer Befehl SiteActivation. „Request a code“ erscheint, sobald eine Kontakt-Adresse eingetragen und das Plugin neu gebaut ist. Wird die Uhr um mehr als einen Tag zurückgestellt, sperrt das Plugin.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v47",
+    "tests": [
+      {
+        "text": "Im Hub unter Verkauf und Export für „Dieser PC“ einen Testcode für SW to Laser erzeugen, der in 2 Tagen endet",
+        "done": false
+      },
+      {
+        "text": "In Rhino SiteActivation ausführen und den Code eingeben – das Fenster nimmt ihn an",
+        "done": false
+      },
+      {
+        "text": "Rhino neu starten und SiteLaser ausführen – in der Befehlszeile steht, dass der Code in 2 Tagen endet",
+        "done": false
+      },
+      {
+        "text": "SiteActivation → „Request a code“ – dein Mailprogramm öffnet eine Mail mit Produkt, Version und Geräte-ID (erst nach Kontakt-Adresse und neuem Build)",
+        "done": false
+      },
+      {
+        "text": "Zum Schluss einen unbegrenzten Code für „Dieser PC“ erzeugen und mit SiteActivation eingeben",
+        "done": false
+      }
+    ],
+    "source": "Plugin Hub, Stufe 2",
+    "created": "2026-09-25T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-25T12:00:00+02:00"
+  },
+  {
+    "id": "r68162435",
+    "project": "rhinokit",
+    "title": "RhinoKit als Quellcode in beiden Plugins",
+    "note": "Früher eine gemeinsame DLL – dabei überschrieb die Lizenzprüfung des einen Plugins die des anderen. Jetzt kompiliert jedes Plugin seine eigene Kopie.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v46",
+    "tests": [
+      {
+        "text": "Beide Plugins in einer Rhino-Sitzung laden – beide Panels öffnen sich",
+        "done": false
+      },
+      {
+        "text": "Jedes Plugin verlangt seinen eigenen Code – einer für Laser Create schaltet SW to Laser nicht frei",
+        "done": false
+      }
+    ],
+    "source": "Schwarzplan-Konzept und Claudes Notizen",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r748a541d",
+    "project": "hub",
+    "title": "Planung: Roadmap, Entscheidungen, Versionen, Dokumente",
+    "note": "Neuer Tab „Planung“. Die Karten und Entscheidungen liegen in Hub\\roadmap.json und Hub\\decisions.json, in Git – Claude liest und schreibt dieselben Listen.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "tests": [
+      {
+        "text": "Eine Karte von „Idee“ nach „Entschieden“ ziehen und wieder zurück",
+        "done": false
+      },
+      {
+        "text": "An einer Karte in „Gebaut“ einen Test-Schritt abhaken – das Häkchen bleibt nach F5",
+        "done": false
+      },
+      {
+        "text": "Eine offene Frage beantworten – sie steht danach unter Entscheidungen",
+        "done": false
+      },
+      {
+        "text": "Ein Dokument öffnen, bearbeiten und speichern",
+        "done": false
+      }
+    ],
+    "source": "Plugin Hub, Stufe 3",
+    "created": "2026-09-25T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-25T12:00:00+02:00"
+  },
+  {
+    "id": "rceaf10cf",
+    "project": "hub",
+    "title": "Aufgaben mit Knopf „Hingehen“",
+    "note": "Jede Aufgabe kann ein Ziel haben: eine Stelle im Hub, eine Datei, einen Build oder eine Webseite. Kommst du so auf eine Hub-Seite, steht die Aufgabe oben mit „Erledigt“.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "tests": [
+      {
+        "text": "Bei „Eigene Kontakt-Adresse für Kunden festlegen“ auf „Zur Kontakt-Adresse“ klicken – das Feld leuchtet auf und hat den Cursor",
+        "done": false
+      },
+      {
+        "text": "Oben in der Leiste „Erledigt“ klicken – die Aufgabe ist abgehakt",
+        "done": false
+      },
+      {
+        "text": "Eine eigene Aufgabe anlegen und unter „Wo erledigst du das?“ ein Ziel wählen",
+        "done": false
+      }
+    ],
+    "source": "Plugin Hub, Stufe 3",
+    "created": "2026-09-25T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-25T12:00:00+02:00"
+  },
+  {
+    "id": "rf1f02bd5",
+    "project": "hub",
+    "title": "Repository auf GitHub sichern",
+    "note": "Schlüssel und Backup → Repository sichern: Adresse eines privaten GitHub-Repositorys eintragen, „Hochladen“. Danach zeigt die Übersicht, wenn Commits noch nicht oben sind.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "tests": [
+      {
+        "text": "Die Adresse eintragen und „Verbinden“",
+        "done": false
+      },
+      {
+        "text": "„Hochladen“ – beim ersten Mal öffnet Git ein Fenster zum Anmelden bei GitHub",
+        "done": false
+      },
+      {
+        "text": "Auf GitHub nachsehen: die Commits und die Versionen v1 bis v47 sind da",
+        "done": false
+      }
+    ],
+    "source": "Plugin Hub, Stufe 3",
+    "created": "2026-09-25T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-25T12:00:00+02:00"
+  },
+  {
+    "id": "r8149dfba",
+    "project": "laser",
+    "title": "Gravur-Ebenen",
+    "note": "Linien, die nur graviert statt geschnitten werden – mit eigener Farbe bzw. Ebene im DXF.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Claudes Vorschläge, Stand v44",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r37da5870",
+    "project": "laser",
+    "title": "Steckverbindungen (Schlitze)",
+    "note": "Schlitze, mit denen Wände ineinandergesteckt werden.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Claudes Vorschläge, Stand v44",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r533d8d3c",
+    "project": "laser",
+    "title": "Teileliste als CSV",
+    "note": "Alle Teile mit Nummer, Platte, Maßen und Dicke als Tabelle.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Claudes Vorschläge, Stand v44",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r4fa5c49c",
+    "project": "laser",
+    "title": "Druckbares Montageblatt",
+    "note": "Ein Blatt, das zeigt, welches Teil wohin gehört.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Claudes Vorschläge, Stand v44",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r9c234dd5",
+    "project": "laser",
+    "title": "Kerf-Testdatei",
+    "note": "Eine kleine Test-DXF, um die Schnittfuge des eigenen Lasers zu messen – schon im Progress-Dokument als „Kerf-Mess-Hilfe“ angeboten.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Claudes Vorschläge, Stand v44",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "re47e5cc8",
+    "project": "laser",
+    "title": "Schriftfeld auf den Platten",
+    "note": "Projekt, Material und Datum auf jeder Platte.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Claudes Vorschläge, Stand v44",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r34777fd4",
+    "project": "laser",
+    "title": "Export als SVG oder PDF",
+    "note": "Neben dem DXF.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Claudes Vorschläge, Stand v44",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "reebd8582",
+    "project": "laser",
+    "title": "Lagerliste der Plattenformate",
+    "note": "Die Plattengrößen, die du vorrätig hast, zur Auswahl beim Erzeugen.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Claudes Vorschläge, Stand v44",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r5c6d6a37",
+    "project": "laser",
+    "title": "Gekrümmte Wände abwickeln",
+    "note": "Gekrümmte Flächen werden projiziert, nicht abgewickelt – das Panel weist darauf hin. Echtes Abwickeln (Rhinos Unroller) wäre der nächste Schritt.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Progress-Dokument §7 und Code Review Punkt 12",
+    "created": "2026-08-18T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-08-18T12:00:00+02:00"
+  },
+  {
+    "id": "r099a980a",
+    "project": "laser",
+    "title": "Schnittreihenfolge: Löcher vor der Außenkontur",
+    "note": "Sonst kann das Teil verrutschen, bevor seine Löcher geschnitten sind.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Code Review 24.08.2026",
+    "created": "2026-08-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-08-24T12:00:00+02:00"
+  },
+  {
+    "id": "re7050877",
+    "project": "laser",
+    "title": "DXF: Rand einer Restplatte als Rechteck",
+    "note": "Der DXF aus LaserCreate zeichnet den Rand einer Restplatte als Rechteck statt als ihren echten Umriss.",
+    "stage": "idee",
+    "kind": "fehler",
+    "tests": [],
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r85bc44df",
+    "project": "laser",
+    "title": "Plattenumrisse bei z = 0",
+    "note": "Normale Plattenumrisse werden bei z = 0 gezeichnet, auch wenn der Basispunkt höher liegt.",
+    "stage": "idee",
+    "kind": "fehler",
+    "tests": [],
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "rcc911c31",
+    "project": "swtolaser",
+    "title": "Grundplatte mit Rand",
+    "note": "Die Platte unter dem Stadtmodell automatisch mit erzeugen.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Schwarzplan-Konzept §7 „später“",
+    "created": "2026-09-22T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-22T12:00:00+02:00"
+  },
+  {
+    "id": "rab2dfc1f",
+    "project": "swtolaser",
+    "title": "Körper für den 3D-Druck",
+    "note": "Alles zu einem geschlossenen Körper vereinigen und die Mindestwandstärke prüfen.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Schwarzplan-Konzept §7 „später“",
+    "created": "2026-09-22T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-22T12:00:00+02:00"
+  },
+  {
+    "id": "r61ceb658",
+    "project": "swtolaser",
+    "title": "GIS-Import",
+    "note": "Shapefile oder GeoJSON mit Koordinatensystem einlesen.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Schwarzplan-Konzept §7 „später“",
+    "created": "2026-09-22T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-22T12:00:00+02:00"
+  },
+  {
+    "id": "r9d22c381",
+    "project": "swtolaser",
+    "title": "Raster-Import",
+    "note": "Pläne als Bild einlesen und nachzeichnen.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Schwarzplan-Konzept §7 „später“",
+    "created": "2026-09-22T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-22T12:00:00+02:00"
+  },
+  {
+    "id": "r87a55223",
+    "title": "Verkaufsunterlagen pro Plugin",
+    "note": "Beschreibung auf Deutsch und Englisch, Screenshots oder GIF, Preis und Funktionsliste – jeweils mit Stand „fehlt“ oder „fertig“.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Hub-Konzept, Stufe 4",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "re3ef4e0a",
+    "title": "Rhino-Paket (.yak) für den Package Manager",
+    "note": "Installieren über Rhinos eigenen Paketmanager.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Hub-Konzept, Stufe 4",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r6b8bd23d",
+    "title": "Code-Signatur-Zertifikat",
+    "note": "Signierte .rhp, damit Windows und Rhino dem Plugin vertrauen.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Hub-Konzept, Stufe 4",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r92981097",
+    "title": "Schutz gegen Dekompilieren",
+    "note": "Ein Obfuskator erschwert das Lesen der .rhp mit ILSpy und Co.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Hub-Konzept, Stufe 4",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "rf4c4bfbf",
+    "project": "laser",
+    "title": "Objekte im Panel auswählen",
+    "note": "",
+    "stage": "abgelehnt",
+    "kind": "funktion",
+    "tests": [],
+    "reason": "Von dir abgelehnt, als die Extras zum Laser-Panel besprochen wurden (Stand v44).",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "reb104469",
+    "project": "laser",
+    "title": "Satz neu erzeugen in der Änderungsprüfung",
+    "note": "",
+    "stage": "abgelehnt",
+    "kind": "funktion",
+    "tests": [],
+    "reason": "Von dir abgelehnt, als die Extras zum Laser-Panel besprochen wurden (Stand v44).",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "r9355559b",
+    "project": "laser",
+    "title": "Kosten pro Platte",
+    "note": "",
+    "stage": "abgelehnt",
+    "kind": "funktion",
+    "tests": [],
+    "reason": "Von dir abgelehnt, als die Extras zum Laser-Panel besprochen wurden (Stand v44).",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "rbd6a84b2",
+    "project": "laser",
+    "title": "Inspector ins Panel holen",
+    "note": "",
+    "stage": "abgelehnt",
+    "kind": "funktion",
+    "tests": [],
+    "reason": "Der Inspector bleibt ein eigenes Fenster – von dir zweimal so entschieden.",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-25T13:39:26+02:00",
+    "stageAt": "2026-09-24T12:00:00+02:00"
+  }
+]

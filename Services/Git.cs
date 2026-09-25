@@ -5,8 +5,8 @@ using System.Text;
 namespace PluginHub.Services;
 
 /// <summary>
-/// Asks git about the root folder. The only writes are a release's commits and its tag, through
-/// <see cref="Exec"/> - the hub never commits anything else for you.
+/// Asks git about the root folder. It changes something only on a click: a release's commits and
+/// tag, "Hub-Änderungen committen", and uploading to the backup repository.
 /// </summary>
 public static class Git
 {
@@ -59,6 +59,85 @@ public static class Git
     {
         var (code, output) = Run(root, "describe", "--tags", "--abbrev=0", "--match", pattern);
         return code == 0 && output.Trim().Length > 0 ? output.Trim() : null;
+    }
+
+    /// <summary>One line per tag: name, the object it points at, and for annotated tags the commit.</summary>
+    public static string TagRefs(string root) =>
+        Run(root, "for-each-ref", "refs/tags", "--format=%(refname:short) %(objectname) %(*objectname)").Output;
+
+    /// <summary>Every commit of the branch, oldest first, with the files it touched.</summary>
+    public static List<GitCommit> History(string root)
+    {
+        var (code, output) = Run(root, "log", "--reverse", "--format=%x1e%H%x1f%cI%x1f%s", "--name-only");
+        var list = new List<GitCommit>();
+        if (code != 0) return list;
+        foreach (string chunk in output.Split('\x1e', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var lines = chunk.Split('\n').Select(l => l.TrimEnd('\r')).ToList();
+            var head = lines[0].Split('\x1f');
+            if (head.Length != 3 || !DateTimeOffset.TryParse(head[1], out var date)) continue;
+            list.Add(new GitCommit(head[0], date, head[2], lines.Skip(1).Where(l => l.Length > 0).ToList()));
+        }
+        return list;
+    }
+
+    public static string? RemoteUrl(string root, string remote)
+    {
+        var (code, output) = Run(root, "remote", "get-url", remote);
+        return code == 0 && output.Trim().Length > 0 ? output.Trim() : null;
+    }
+
+    public static string Branch(string root) => Run(root, "rev-parse", "--abbrev-ref", "HEAD").Output.Trim();
+
+    /// <summary>Commits on HEAD that the remote's copy of the branch does not have - all of them before the first push.</summary>
+    public static int Ahead(string root, string remote, string branch)
+    {
+        bool known = Run(root, "rev-parse", "-q", "--verify", $"refs/remotes/{remote}/{branch}").Code == 0;
+        var (code, output) = Run(root, "rev-list", "--count", known ? $"{remote}/{branch}..HEAD" : "HEAD");
+        return code == 0 && int.TryParse(output.Trim(), out int n) ? n : 0;
+    }
+
+    public static List<string> Tags(string root)
+    {
+        var (code, output) = Run(root, "tag", "--list");
+        return code == 0 ? output.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(t => t.Trim()).ToList() : new();
+    }
+
+    /// <summary>
+    /// A git command whose output lines go to a job as they come - a push, which may wait for
+    /// the sign-in window of Git's credential manager. Returns the exit code.
+    /// </summary>
+    public static int Stream(string root, BuildJob job, TimeSpan timeout, params string[] args)
+    {
+        var psi = new ProcessStartInfo("git")
+        {
+            UseShellExecute        = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError  = true,
+            CreateNoWindow         = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding  = Encoding.UTF8
+        };
+        foreach (string a in new[] { "-C", root }.Concat(args)) psi.ArgumentList.Add(a);
+
+        using var p = new Process { StartInfo = psi };
+        p.OutputDataReceived += (_, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) job.Add(e.Data); };
+        p.ErrorDataReceived  += (_, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) job.Add(e.Data); };
+        try { p.Start(); }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
+        {
+            throw new HubError("git ist nicht installiert.");
+        }
+        p.BeginOutputReadLine();
+        p.BeginErrorReadLine();
+        if (!p.WaitForExit((int)timeout.TotalMilliseconds))
+        {
+            try { p.Kill(true); } catch { }
+            job.Add($"Abgebrochen: länger als {timeout.TotalMinutes:0} Minuten.");
+            return -1;
+        }
+        p.WaitForExit();
+        return p.ExitCode;
     }
 
     public static List<Commit> Log(string root, string? folder, int count)
@@ -122,3 +201,5 @@ public static class Git
 public sealed record GitChange(string State, string Path);
 
 public sealed record Commit(string Hash, DateTimeOffset Date, string Subject);
+
+public sealed record GitCommit(string Hash, DateTimeOffset Date, string Subject, List<string> Files);

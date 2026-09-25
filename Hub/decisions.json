@@ -1,0 +1,393 @@
+[
+  {
+    "id": "da4b53cea",
+    "decision": "Vor neuen Optionen und Dialogen fragt Claude nach – als Auswahl-Dialog, nicht als nummerierte Liste.",
+    "date": "2026-09-24",
+    "source": "Gespräch; seit dem Progress-Dokument",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "deb2d8338",
+    "project": "laser",
+    "decision": "Materialdicke pro Ebene, mit Mehrfachauswahl, um mehreren Ebenen eine Dicke zu geben (mind. 0,5 mm, Standard 2 mm).",
+    "date": "2026-06-25",
+    "source": "Claudes Notizen vom 25.06.2026",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "db932cf74",
+    "project": "laser",
+    "decision": "Kerf: Wert speichern, die Kompensation ist optional per Häkchen und standardmäßig aus – meist kompensiert die Lasersoftware.",
+    "date": "2026-06-25",
+    "source": "Claudes Notizen vom 25.06.2026",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "ddf89232c",
+    "project": "laser",
+    "decision": "Nach Dicke gruppieren heißt getrennte Schnittblätter: Nesting pro Dicke, eigene Unterebenen.",
+    "date": "2026-06-25",
+    "source": "Claudes Notizen vom 25.06.2026",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dfd67febd",
+    "project": "laser",
+    "decision": "Ebenen-Baum Variante A (thematisch gruppiert).",
+    "date": "2026-06-25",
+    "source": "Progress-Dokument §8",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d16f47c17",
+    "project": "laser",
+    "decision": "Verschieben über einen Griff-Befehl statt einer Plattengruppe – so bleibt die Inspektion per Einzelklick.",
+    "date": "2026-06-25",
+    "source": "Progress-Dokument §8",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "df1630652",
+    "project": "laser",
+    "decision": "Nummern als Polylinie (verbunden, mehrstellig gruppiert) oder als Text, auf eigener Ebene.",
+    "date": "2026-06-28",
+    "source": "Progress-Dokument §8",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d937a0264",
+    "project": "laser",
+    "decision": "Aktivierung gerätegebunden (ECDSA) mit harter Sperre aller Befehle; der private Schlüssel kommt nie ins Plugin oder in Git.",
+    "date": "2026-06-28",
+    "source": "Progress-Dokument §8",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d3dd4594f",
+    "project": "laser",
+    "decision": "Oberfläche komplett auf Englisch, damit das Plugin auch an Anderssprachige gehen kann.",
+    "date": "2026-07-09",
+    "source": "Progress-Dokument §8",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dcba41588",
+    "project": "laser",
+    "decision": "Symbolleiste über eine .rui neben der .rhp.",
+    "date": "2026-07-09",
+    "source": "Progress-Dokument §8",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "ddf192058",
+    "project": "laser",
+    "decision": "DXF im Format R12, weil es zuverlässig in AutoCAD lädt.",
+    "date": "2026-07-09",
+    "source": "Progress-Dokument §8",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d83c2cc15",
+    "project": "laser",
+    "decision": "Umbenennen gilt immer für einen ganzen Satz.",
+    "date": "2026-09-24",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "df11a0879",
+    "project": "laser",
+    "decision": "Der Inspector bleibt ein eigenes Fenster, nie im Panel.",
+    "date": "2026-09-24",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d374080c6",
+    "project": "laser",
+    "decision": "Eine Restplatte gehört zum aktuellen Lauf; die Auslastung zählt gegen den Rest.",
+    "date": "2026-09-24",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d7ca80286",
+    "project": "laser",
+    "decision": "Der Rest-Pfeil wird live gezeichnet – als Objekt im Modell zeigte er ins Leere.",
+    "date": "2026-09-24",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "de1304450",
+    "project": "laser",
+    "decision": "Randabstand: Standard wie bisher (= Teileabstand), einstellbar im Create-Tab; auf Restplatten nur an der äußeren Blattkante.",
+    "date": "2026-09-24",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dcbb199f3",
+    "project": "laser",
+    "decision": "Die Markierung im Panel folgt Rhinos Auswahl; Teile bleiben Sache von LaserInspect.",
+    "date": "2026-09-24",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d22b67a7a",
+    "project": "laser",
+    "decision": "Der obere Umschalter ist ein TabStrip – bewusst anders als der Umschalter „By layer / By geometry“.",
+    "date": "2026-09-24",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d2e944e98",
+    "project": "swtolaser",
+    "decision": "Name „SW to Laser“, Befehle mit Site…, der erste heißt SiteLaser.",
+    "date": "2026-09-22",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d78f91866",
+    "project": "swtolaser",
+    "decision": "Eingang in Version 1: nur Vektor (SVG, PDF, AI, DXF, DWG, EPS). GIS und Raster später.",
+    "date": "2026-09-22",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d7e0eb56a",
+    "project": "swtolaser",
+    "decision": "Modell 1:1 in echten Metern; verkleinert wird über den Modellmaßstab von Laser Create.",
+    "date": "2026-09-22",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dd53d91e3",
+    "project": "swtolaser",
+    "decision": "Ausgabe: flache, geschlossene Konturen auf einer Ebene – keine Höhe annehmen.",
+    "date": "2026-09-22",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dacba3f1d",
+    "project": "swtolaser",
+    "decision": "Gebäude werden je nach Datei über Layer, Gruppe oder Füllfarbe unterschieden – alles muss gehen.",
+    "date": "2026-09-22",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dcb43253a",
+    "project": "swtolaser",
+    "decision": "Die Übergabe an Laser Create kann beide Rollen: Contour und Floors.",
+    "date": "2026-09-22",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "db8afd80f",
+    "project": "swtolaser",
+    "decision": "Contour bekommt eine eingetippte Einheitshöhe ohne Voreinstellung – ohne Eingabe keine Übergabe.",
+    "date": "2026-09-24",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d0d6484d4",
+    "project": "swtolaser",
+    "decision": "Berührende Gebäude verschmelzen: ein Schalter, standardmäßig an.",
+    "date": "2026-09-24",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dfea93922",
+    "project": "swtolaser",
+    "decision": "Die Übergabe setzt den Modellmaßstab mit – Feld „Model 1 : N“, vorbelegt mit dem Planmaßstab oder 1:1000.",
+    "date": "2026-09-24",
+    "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d257b1f76",
+    "project": "swtolaser",
+    "decision": "Der Name des Plans wird zum Plattennamen in Laser Create.",
+    "date": "2026-09-24",
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "de860e1f9",
+    "project": "rhinokit",
+    "decision": "RhinoKit wird als Quellcode in jedes Plugin einkompiliert, nicht als gemeinsame DLL.",
+    "date": "2026-09-24",
+    "source": "Schwarzplan-Konzept und Claudes Notizen",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d14423044",
+    "decision": "Maße mit Einheit auf beiden Seiten („1709 m × 1619 m“), keine Tausender-Kommas – in beiden Plugins.",
+    "date": "2026-09-24",
+    "source": "Gespräch",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d68694ec1",
+    "decision": "Jedes Plugin hat einen eigenen, unabhängigen Lizenzcode.",
+    "date": "2026-09-24",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "df32fdca3",
+    "decision": "Ein Git-Repository für den ganzen Ordner „Plugins Rhino“.",
+    "date": "2026-09-24",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d3adae1ec",
+    "project": "hub",
+    "decision": "Der Hub ist eine lokale Browser-App, nur von diesem PC erreichbar; das Kundenregister bleibt lokal und außerhalb von Git.",
+    "date": "2026-09-24",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "daffc2d63",
+    "decision": "Versionen 1.0, 1.1, 2.0 …; Testbuilds heißen x.y.z-test.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "da3f911a9",
+    "decision": "Codes können ein Enddatum haben (Testphasen). Die Standard-Testdauer von 30 Tagen ist ein Platzhalter.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d871e5edd",
+    "decision": "Ab 7 Tagen vor dem Ende einmal täglich eine Zeile in der Befehlszeile, danach das Aktivierungsfenster.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d917d20f8",
+    "project": "hub",
+    "decision": "Mails gehen über Gmail mit App-Passwort. Fällige Nachfragen schlägt der Hub vor, du bestätigst jede.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d9a298628",
+    "decision": "Sprache pro Kunde (Deutsch oder Englisch); die Anleitung gibt es in beiden Sprachen; Kundenpakete kommen mit in Git.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d0a830204",
+    "decision": "Lizenzbedingungen: Entwurf nach deutschem Recht von Claude, geprüft wird er von einer Anwältin oder einem Anwalt.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d19f3b9cf",
+    "project": "hub",
+    "decision": "Die Roadmap ist ein Board mit Spalten; die Planung hat einen eigenen Tab.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d49989b7b",
+    "project": "hub",
+    "decision": "Gebautes wird über Test-Schritte an der Karte getestet; Probleme stehen an der Karte, Claude liest sie.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d624f813f",
+    "project": "hub",
+    "decision": "Das Repository wird per Knopf im Hub auf GitHub gesichert.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d2676d1b0",
+    "project": "hub",
+    "decision": "Jede Aufgabe führt mit einem Klick dorthin, wo sie erledigt wird.",
+    "date": "2026-09-25",
+    "source": "Gespräch zum Plugin Hub",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d19434393",
+    "project": "laser",
+    "question": "Wand/Boden-Unterscheidung vereinfachen? A: so lassen · B: eine Liste, nach Dicke geordnet · C: eine Liste plus optionale Kategorie. Sie bestimmt nur die Farbe in der Vorschau und die DXF-Ebenennamen.",
+    "source": "Progress-Dokument §7.3 – falls schon erledigt, einfach beantworten",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dacb18e4b",
+    "project": "swtolaser",
+    "question": "Straßen und Wasser mit ausgeben (als Kurven zum Gravieren) oder nur Gebäude?",
+    "source": "Schwarzplan-Konzept §6 D4",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d4889f1b7",
+    "project": "swtolaser",
+    "question": "Woher sollen später die GIS-Daten kommen – QGIS-Export, Open-Data-Portal, OSM, ALKIS?",
+    "source": "Schwarzplan-Konzept §6 A1",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d321d8741",
+    "project": "swtolaser",
+    "question": "Brauchst du einen OSM-Direktdownload, oder reicht „in QGIS holen und exportieren“?",
+    "source": "Schwarzplan-Konzept §6 A3",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d35341565",
+    "project": null,
+    "question": "Vertriebsweg: direkt per Mail und Überweisung, eigener Shop oder food4Rhino?",
+    "source": "Hub-Konzept, Punkt 29",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d6b2b742f",
+    "project": null,
+    "question": "Rechnung und Steuer selbst machen oder über einen Anbieter, der als Verkäufer auftritt (z. B. Paddle, Lemon Squeezy)?",
+    "source": "Hub-Konzept, Punkt 29",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dc5861be3",
+    "project": null,
+    "question": "Was kosten die Plugins – Kauf, vielleicht ein Preis für Studierende?",
+    "source": "Planung",
+    "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "d8cd542d8",
+    "project": null,
+    "question": "Nur Windows wie bisher, oder soll es die Plugins auch für Rhino auf dem Mac geben?",
+    "source": "Schwarzplan-Konzept §6 F4",
+    "created": "2026-09-25T13:39:26+02:00"
+  }
+]

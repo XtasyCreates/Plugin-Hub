@@ -72,6 +72,20 @@
         { "id": "kit-folder", "label": "Ordner",     "kind": "folder", "path": "RhinoKit" },
         { "id": "kit-code",   "label": "In VS Code", "kind": "vscode", "path": "RhinoKit" }
       ]
+    },
+    {
+      "id": "hub",
+      "name": "Plugin Hub",
+      "kind": "tool",
+      "icon": "grid",
+      "folder": "PluginHub",
+      "note": "Dieses Werkzeug. Claude baut es neu – dafür muss der Hub kurz beendet sein.",
+      "sources": ["PluginHub"],
+      "links": [
+        { "id": "hub-folder", "label": "Quellordner", "kind": "folder", "path": "PluginHub" },
+        { "id": "hub-vscode", "label": "In VS Code",  "kind": "vscode", "path": "PluginHub" },
+        { "id": "hub-readme", "label": "README",      "kind": "file",   "path": "PluginHub/README.md" }
+      ]
     }
   ],
   "links": [
@@ -79,7 +93,6 @@
     { "id": "root-code",     "label": "Alles in VS Code",     "kind": "vscode", "path": "." },
     { "id": "releases",      "label": "Kundenpakete",         "kind": "folder", "path": "Releases" },
     { "id": "legal",         "label": "Lizenzbedingungen",    "kind": "folder", "path": "Hub/legal" },
-    { "id": "hub-code",      "label": "Hub-Quellcode",        "kind": "folder", "path": "PluginHub" },
     { "id": "private",       "label": "Privater Hub-Ordner",  "kind": "folder", "path": "{private}" },
     { "id": "backups",       "label": "Backups",              "kind": "folder", "path": "{private}/Backups" },
     { "id": "rhino-appdata", "label": "Rhino-Einstellungen",  "kind": "folder", "path": "%APPDATA%/McNeel/Rhinoceros" }

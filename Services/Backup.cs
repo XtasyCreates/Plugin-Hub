@@ -201,7 +201,7 @@ internal sealed class BackupKey
     public string Pkcs8 { get; set; } = "";
 }
 
-/// <summary>state.json: when the last backup was made, and of what.</summary>
+/// <summary>state.json: when the last backup was made and of what, and the last upload to the backup repository.</summary>
 public sealed class HubState
 {
     private readonly HubPaths _paths;
@@ -217,12 +217,21 @@ public sealed class HubState
         get { lock (_gate) return Json.Read<StateData>(_paths.StateFile)?.LastBackup; }
     }
 
-    public void RecordBackup(BackupRecord record)
+    public PushRecord? LastPush
+    {
+        get { lock (_gate) return Json.Read<StateData>(_paths.StateFile)?.LastPush; }
+    }
+
+    public void RecordBackup(BackupRecord record) => Change(state => state.LastBackup = record);
+
+    public void RecordPush(PushRecord record) => Change(state => state.LastPush = record);
+
+    private void Change(Action<StateData> change)
     {
         lock (_gate)
         {
             var state = Json.Read<StateData>(_paths.StateFile) ?? new StateData();
-            state.LastBackup = record;
+            change(state);
             Json.Write(_paths.StateFile, state);
         }
     }
@@ -231,6 +240,7 @@ public sealed class HubState
 public sealed class StateData
 {
     public BackupRecord? LastBackup { get; set; }
+    public PushRecord? LastPush { get; set; }
 }
 
 public sealed class BackupRecord

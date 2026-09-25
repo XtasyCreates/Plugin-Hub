@@ -1,7 +1,8 @@
-// Übersicht: what needs doing, the open tasks, the projects at a glance, the sales figures.
+// Übersicht: what needs doing, the open tasks - each with the button that leads to where it gets
+// done - the projects at a glance with their next step, the sales figures.
 
 import { changed, loadOverview } from '../store.js';
-import { buildBadge, issueList, rhinoBadges, sharedClick } from '../parts.js';
+import { actionButton, buildBadge, issueList, rhinoBadges, sharedClick } from '../parts.js';
 import { esc, fmtDate, fmtDateTime, fmtWhen, icon, plural } from '../ui.js';
 
 export async function render(main) {
@@ -31,11 +32,14 @@ export async function render(main) {
         <section>
           <h2>Aufgaben <a class="faint" href="#/aufgaben">alle ${o.tasks.open} ansehen</a></h2>
           <div class="tasks compact">${o.tasks.top.map((t) => `
-            <a class="task prio-${esc(t.priority)}" href="#/aufgaben">
+            <div class="task prio-${esc(t.priority)}">
               <span class="prio-dot" title="Wichtigkeit ${esc(t.priority)}"></span>
-              <div class="task-body"><div class="t">${esc(t.title)}</div></div>
-              <span class="badge ${t.priority === 'hoch' ? 'bad' : ''}">${esc(t.priority)}</span>
-            </a>`).join('')}
+              <a class="task-body" href="#/aufgaben?feld=task-${esc(t.id)}"><div class="t">${esc(t.title)}</div></a>
+              <div class="actions">
+                ${t.priority === 'hoch' ? '<span class="badge bad">hoch</span>' : ''}
+                ${actionButton(t.goto, { task: t.id })}
+              </div>
+            </div>`).join('')}
           </div>
         </section>` : ''}
 
@@ -75,17 +79,41 @@ function projectCard(p) {
   facts.push(['Git', p.changes ? `<span class="badge">${plural(p.changes, 'Änderung', 'Änderungen')} offen</span>` : '<span class="badge ok">sauber</span>']);
   if (p.lastCommit) facts.push(['Zuletzt', `<span title="${esc(p.lastCommit.subject)}">${esc(fmtDate(p.lastCommit.date))} · ${esc(p.lastCommit.subject)}</span>`]);
 
-  const sub = p.kind === 'library' ? 'Bibliothek'
-    : [p.build?.productVersion && `Build ${p.build.productVersion}`, p.version].filter(Boolean).join(' · ') || 'noch nicht gebaut';
+  const plan = planLine(p.plan);
+  if (plan) facts.push(['Planung', plan]);
+
+  const next = p.plan?.next;
   return `
-    <a class="pcard" href="#/projekt/${esc(p.id)}">
-      <div class="pcard-top">
+    <div class="pcard">
+      <a class="pcard-top" href="#/projekt/${esc(p.id)}">
         <div class="picon">${icon(p.icon)}</div>
-        <div><div class="name">${esc(p.name)}</div><div class="faint">${esc(sub)}</div></div>
-      </div>
+        <div><div class="name">${esc(p.name)}</div><div class="faint">${esc(kindLine(p))}</div></div>
+      </a>
       ${p.note ? `<p class="faint">${esc(p.note)}</p>` : ''}
       <div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${k}</span><span>${v}</span></div>`).join('')}</div>
-    </a>`;
+      ${next ? `<a class="next ${esc(next.kind)}" href="${esc(next.route)}">${icon(NEXT_ICON[next.kind] ?? 'arrowRight')}<span>${esc(next.text)}</span></a>` : ''}
+    </div>`;
+}
+
+const NEXT_ICON = { problem: 'alert', test: 'flask', work: 'hammer', build: 'flag', release: 'tag' };
+
+export function kindLine(p) {
+  if (p.kind === 'library') return 'Bibliothek';
+  if (p.kind === 'tool') return 'Werkzeug';
+  return [p.build?.productVersion && `Build ${p.build.productVersion}`, p.version].filter(Boolean).join(' · ') || 'noch nicht gebaut';
+}
+
+/** "2 zu testen · 1 entschieden · 8 Ideen" - what is on the board for this project. */
+export function planLine(plan) {
+  if (!plan) return '';
+  const c = plan.counts;
+  return [
+    c.gebaut && `${c.gebaut} zu testen`,
+    c.arbeit && `${c.arbeit} in Arbeit`,
+    c.entschieden && `${c.entschieden} entschieden`,
+    c.getestet && `${c.getestet} getestet`,
+    c.idee && plural(c.idee, 'Idee', 'Ideen'),
+  ].filter(Boolean).join(' · ');
 }
 
 function backupValue(backup) {

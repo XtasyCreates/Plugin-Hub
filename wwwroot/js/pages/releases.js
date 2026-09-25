@@ -5,7 +5,7 @@
 import { api, post } from '../api.js';
 import { loadOverview } from '../store.js';
 import { commitHub, follow, sharedClick } from '../parts.js';
-import { dialog, esc, fmtDate, icon } from '../ui.js';
+import { dialog, esc, fmtDate, icon, plural } from '../ui.js';
 
 export async function render(main) {
   const [o, states] = await Promise.all([loadOverview(), api('/api/releases')]);
@@ -35,8 +35,14 @@ export async function render(main) {
 function card(o, s) {
   const project = o.projects.find((p) => p.id === s.product);
   const last = s.last;
+  const counts = project?.plan?.counts ?? {};
+  const board = `#/planung?projekt=${encodeURIComponent(s.product)}`;
+  const plan = [
+    counts.getestet ? `<a href="${board}&stufe=getestet">${plural(counts.getestet, 'getestete Funktion geht', 'getestete Funktionen gehen')} mit</a>` : '',
+    counts.gebaut ? `<a class="warn" href="${board}&stufe=gebaut">${plural(counts.gebaut, 'Funktion ist', 'Funktionen sind')} noch nicht getestet</a>` : '',
+  ].filter(Boolean);
   return `
-    <div class="card">
+    <div class="card" id="release-${esc(s.product)}">
       <div class="card-head">
         <h3>${icon(project?.icon ?? 'package')} ${esc(s.name)}</h3>
         <button class="btn primary" data-release="${esc(s.product)}">${icon('tag')} Release ${esc(s.version ?? '')} erstellen …</button>
@@ -45,6 +51,7 @@ function card(o, s) {
         <div class="fact"><span>Letztes Release</span><span>${last ? `${esc(last.version)} vom ${esc(fmtDate(last.date))}` : 'noch keins'}</span></div>
         <div class="fact"><span>Nächste Version</span><span>${esc(s.version ?? '–')} <span class="faint">(Testbuilds heißen ${esc(s.version ?? '')}-test)</span></span></div>
         <div class="fact"><span>Gebaute .rhp</span><span>${esc(s.buildVersion ?? '–')}</span></div>
+        ${plan.length ? `<div class="fact"><span>Roadmap</span><span>${plan.join(' · ')}</span></div>` : ''}
       </div>
       ${last ? `
         <div class="since">

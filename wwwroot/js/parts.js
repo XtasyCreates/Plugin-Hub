@@ -1,6 +1,6 @@
-// Pieces several pages share: the list of things to do, links, build state, where a code
-// stands, the mail and extend dialogs, and the build dock that stays in the corner while a
-// build or release runs.
+// Pieces several pages share: the list of things to do, the one-click buttons that lead to
+// where something gets done, links, build state, where a code stands, the mail and extend
+// dialogs, and the build dock that stays in the corner while a build, release or upload runs.
 
 import { api, post } from './api.js';
 import { busy, copy, dialog, esc, fmtWhen, icon, toast } from './ui.js';
@@ -23,14 +23,26 @@ function issue(h, here) {
         <div class="t">${esc(h.title)}</div>
         ${h.detail ? `<div class="d">${esc(h.detail)}</div>` : ''}
       </div>
-      ${action
-        ? `<button class="btn small" data-act="${esc(action.kind)}" data-target="${esc(action.target)}">${esc(action.label)}</button>`
-        : '<span></span>'}
+      ${action ? actionButton(action) : '<span></span>'}
     </div>`;
 }
 
+// ── One click to where something gets done ─────────────────────────────────
+
+const ACTION_ICON = { route: 'arrowRight', open: 'folder', url: 'external', build: 'hammer', 'commit-hub': 'git', push: 'cloud' };
+
 /**
- * Handles the clicks every page has in common - issue actions, links, build buttons.
+ * The button for a place (see Places.cs): a spot in the hub, a file, a web page, a build.
+ * `task`: the task it belongs to - a hub page then shows that task at the top, with "Erledigt".
+ */
+export function actionButton(action, { task = null, primary = false } = {}) {
+  if (!action) return '';
+  return `<button class="btn small ${primary ? 'primary' : ''}" data-act="${esc(action.kind)}" data-target="${esc(action.target)}"
+    ${task ? `data-task="${esc(task)}"` : ''}>${icon(ACTION_ICON[action.kind] ?? 'arrowRight')} ${esc(action.label)}</button>`;
+}
+
+/**
+ * Handles the clicks every page has in common - actions, links, build buttons.
  * Returns true when the click was one of them.
  */
 export async function sharedClick(e) {
@@ -39,14 +51,54 @@ export async function sharedClick(e) {
 
   if (el.dataset.open) await openLink(el.dataset.open, el);
   else if (el.dataset.build) await startBuild(el.dataset.build.split(','), el);
-  else if (el.dataset.act === 'route') location.hash = el.dataset.target;
-  else if (el.dataset.act === 'open') await openLink(el.dataset.target, el);
-  else if (el.dataset.act === 'build') await startBuild([el.dataset.target], el);
-  else if (el.dataset.act === 'commit-hub') await commitHub(el);
+  else await runAction({ kind: el.dataset.act, target: el.dataset.target ?? '' }, el, el.dataset.task);
   return true;
 }
 
+export async function runAction(action, button, task = null) {
+  switch (action.kind) {
+    case 'route': return go(task ? withParam(action.target, 'aufgabe', task) : action.target);
+    case 'open': return openLink(action.target, button);
+    case 'url': return void window.open(action.target, '_blank', 'noopener');
+    case 'build': return startBuild(action.target.split(','), button);
+    case 'commit-hub': return commitHub(button);
+    case 'push': return pushRepo(button);
+    default: return undefined;
+  }
+}
+
+/** Goes to a hub address - also when it is the one showing, so its spot gets marked again. */
+export function go(hash) {
+  if (location.hash === hash) window.dispatchEvent(new HashChangeEvent('hashchange'));
+  else location.hash = hash;
+}
+
+export const withParam = (hash, key, value) =>
+  `${hash}${hash.includes('?') ? '&' : '?'}${key}=${encodeURIComponent(value)}`;
+
+/** Takes a parameter out of the address without going anywhere - a one-off like "?feld=". */
+export function dropParam(name) {
+  const [path, query] = (location.hash || '#/').split('?');
+  const rest = new URLSearchParams(query ?? '');
+  rest.delete(name);
+  const q = rest.toString();
+  history.replaceState(null, '', q ? `${path}?${q}` : path);
+}
+
+/** Lights an element up for a moment - the spot a link led to. */
+export function flash(el) {
+  el.classList.remove('flash');
+  void el.offsetWidth;   // restart the animation
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 2600);
+}
+
 export const openLink = (id, button) => busy(button, () => post('/api/open', { linkId: id }));
+
+export async function pushRepo(button) {
+  const view = await busy(button, () => post('/api/git/push'));
+  if (view) follow(view);
+}
 
 export async function commitHub(button) {
   const result = await busy(button, () => post('/api/git/commit-hub'));

@@ -1,8 +1,10 @@
 # Plugin Hub
 
-Die Schaltzentrale für die Rhino-Plugins in diesem Ordner: Aufgaben, Lizenzcodes (auch
-Testphasen), Kundenregister, Mails an Kunden, Releases mit Kundenpaket, Builds, Schnellzugriff
-auf Dateien und eine Liste, was gerade zu tun ist.
+Die Schaltzentrale für die Rhino-Plugins in diesem Ordner: Planung (Roadmap, Entscheidungen,
+Versionen, Dokumente), Aufgaben, Lizenzcodes (auch Testphasen), Kundenregister, Mails an Kunden,
+Releases mit Kundenpaket, Builds, Schnellzugriff auf Dateien, Sicherung des Repositorys und eine
+Liste, was gerade zu tun ist – jeder Punkt darin mit einem Knopf, der dorthin führt, wo er
+erledigt wird.
 
 ## Starten
 
@@ -18,7 +20,9 @@ Seite mehr offen, beendet er sich selbst.
 | Quelltext des Hubs | `PluginHub\` | ja |
 | Projekte, Links, Paketinhalt | `Hub\projects.json` | ja |
 | Einstellungen (Kontakt, Anbieter, Testdauer …) | `Hub\settings.json` | ja |
-| Aufgaben | `Hub\tasks.json` | ja |
+| Aufgaben (mit Ziel für den Knopf) | `Hub\tasks.json` | ja |
+| Roadmap-Karten | `Hub\roadmap.json` | ja |
+| Entscheidungen und offene Fragen | `Hub\decisions.json` | ja |
 | Mail-Vorlagen, Paket-Anleitung | `Hub\templates\` | ja |
 | Lizenzbedingungen (Entwurf, DE + EN) | `Hub\legal\` | ja |
 | Kundenpakete und ihre Manifeste | `Releases\<Plugin>\<Version>\` | ja |
@@ -26,15 +30,51 @@ Seite mehr offen, beendet er sich selbst.
 | Kundenregister mit Mail-Protokoll | `%LOCALAPPDATA%\PluginHub\register.json` | **nein** |
 | Mailkonto (Passwort DPAPI-verschlüsselt) | `%LOCALAPPDATA%\PluginHub\mail.json`, `mail.secret` | **nein** |
 | Backups (mit Passwort verschlüsselt) | `%LOCALAPPDATA%\PluginHub\Backups\` | **nein** |
+| Letztes Hochladen zu GitHub | `%LOCALAPPDATA%\PluginHub\state.json` | nein |
 | Protokoll | `%LOCALAPPDATA%\PluginHub\hub.log` | nein |
 
 Die privaten Schlüssel lassen sich nur unter diesem Windows-Konto auf diesem PC lesen.
 Auf einem neuen PC holt man sie mit „Backup wiederherstellen“ zurück – ohne Backup und
 dessen Passwort sind sie verloren. Das Mail-Passwort ist nicht im Backup.
 
-Ändert der Hub Dateien in Git (Einstellungen, Aufgaben, Vorlagen, `Activation.cs`), zeigt die
-Übersicht „Änderungen des Hubs nicht committed“ mit einem Knopf, der genau diese Dateien
-committet. Sonst committet der Hub nur beim Release.
+Ändert der Hub Dateien in Git (Einstellungen, Aufgaben, Planung, Vorlagen, `Activation.cs`, die
+Dokumente oben im Ordner), zeigt die Übersicht „Änderungen des Hubs nicht committed“ mit einem
+Knopf, der genau diese Dateien committet. Sonst committet der Hub nur beim Release.
+
+## Planung
+
+Der Tab „Planung“ hat vier Bereiche, alle nach Projekt filterbar:
+
+- **Roadmap:** ein Board mit den Stufen Idee → Entschieden → In Arbeit → Gebaut → Getestet →
+  Veröffentlicht; Karten zieht man weiter. Abgelehntes liegt darunter, mit Grund. Karten in
+  „Gebaut“ tragen Test-Schritte: Claude schreibt sie beim Bauen, du hakst sie in Rhino ab. Was
+  nicht klappt, kommt ins Feld „Was beim Test nicht geklappt hat“ – Claude liest es in der
+  nächsten Sitzung, oder du kopierst den Auftrag von der Karte in den Chat. Ein Release schiebt
+  die getesteten Karten seines Plugins auf „Veröffentlicht“ und füllt damit die Änderungsliste vor.
+- **Entscheidungen:** was entschieden ist, mit Datum, und offene Fragen. Eine beantwortete Frage
+  wird zur Entscheidung, auf Wunsch gleich mit einer Roadmap-Karte.
+- **Versionen:** aus den Git-Tags, mit den Karten, die in einer Version gebaut wurden.
+- **Dokumente:** alle `.md` im Ordner und die Lizenzbedingungen – lesen und bearbeiten. Was ein
+  Release archiviert hat, bleibt unverändert.
+
+Für Claude: Wer ein Feature baut, setzt die Karte auf `gebaut`, trägt `built` (den Tag, z. B.
+`v48`) und `tests` ein; wer ein gemeldetes Problem behebt, leert `problem` und setzt die Häkchen
+zurück. Die Felder beschreibt `PluginHub\Services\Plan.cs`.
+
+## Aufgaben und ihre Knöpfe
+
+Jede Aufgabe kann ein Ziel haben (`goto` in tasks.json): eine Stelle im Hub (`route`, z. B.
+`#/einstellungen?feld=contact` – „feld“ ist ein Feldname oder eine Karten-id), einen Link aus
+projects.json (`open`), einen Build (`build`) oder eine Webseite (`url`). Führt der Knopf auf eine
+Hub-Seite, leuchtet die Stelle auf, und oben steht die Aufgabe mit „Erledigt“. Die möglichen
+Ziele listet `PluginHub\Services\Places.cs`.
+
+## Repository sichern
+
+Unter „Schlüssel und Backup → Repository sichern“ trägt man die Adresse eines privaten
+GitHub-Repositorys ein; „Hochladen“ schiebt Branch und Tags dorthin (`git push`). Beim ersten Mal
+meldet Git sich über seinen Credential Manager bei GitHub an. Danach zeigt die Übersicht, wenn
+Commits oder Tags noch nicht oben sind. Der Hub lädt nur auf Klick hoch.
 
 ## Lizenzen
 

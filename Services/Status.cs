@@ -33,13 +33,15 @@ public sealed class Status
     private readonly Tasks _tasks;
     private readonly Mailer _mailer;
     private readonly Releases _releases;
+    private readonly Plan _plan;
+    private readonly RepoBackup _repo;
 
     private readonly object _gate = new();
     private OverviewView? _cached;
     private DateTime _cachedAt;
 
     public Status(HubPaths paths, Config config, KeyStore keys, Register register, HubState state,
-        Settings settings, Tasks tasks, Mailer mailer, Releases releases)
+        Settings settings, Tasks tasks, Mailer mailer, Releases releases, Plan plan, RepoBackup repo)
     {
         _paths    = paths;
         _config   = config;
@@ -50,6 +52,8 @@ public sealed class Status
         _tasks    = tasks;
         _mailer   = mailer;
         _releases = releases;
+        _plan     = plan;
+        _repo     = repo;
     }
 
     public void Invalidate()
@@ -98,14 +102,17 @@ public sealed class Status
         var changes = git ? Git.Changes(_paths.Root) : new List<GitChange>();
         var rhino   = RhinoInfo.Running();
 
-        var keys     = config.Projects.Where(p => p.IsPlugin && p.KeyFile != null).Select(KeyStatus).ToList();
-        var backup   = BackupStatus();
-        var projects = config.Projects.Select(p => ProjectStatus(p, git, changes)).ToList();
-        var register = RegisterView();
-        var due      = SafeDue();
-        var tasks    = _tasks.All();
+        var roadmap   = SafePlan(_plan.Roadmap);
+        var decisions = SafePlan(_plan.Decisions);
+        var keys      = config.Projects.Where(p => p.IsPlugin && p.KeyFile != null).Select(KeyStatus).ToList();
+        var backup    = BackupStatus();
+        var projects  = config.Projects.Select(p => ProjectStatus(p, git, changes, roadmap, decisions)).ToList();
+        var register  = RegisterView();
+        var due       = SafeDue();
+        var tasks     = _tasks.All();
+        var remote    = git ? _repo.State() : null;
 
-        var health = Health(config, projects, rhino, keys, backup, git, changes, register, due.Count)
+        var health = Health(config, projects, rhino, keys, backup, git, changes, register, due.Count, roadmap, remote)
             .OrderBy(h => h.Level == "problem" ? 0 : 1)
             .ToList();
 
@@ -120,7 +127,21 @@ public sealed class Status
                 register.Licenses.Count(l => l.License.Trial && l.Status.State is "valid" or "ending")),
             new MailSummary(_settings.MailReady, due.Count),
             new TaskSummary(openTasks.Count, openTasks.Count(t => t.Priority == "hoch"), openTasks.Take(5).ToList()),
+            new PlanOverview(roadmap.Count(x => x.Stage == "gebaut"), roadmap.Count(Plan.HasProblem),
+                decisions.Count(d => d.Decision == null), _plan.Summary(null, roadmap, decisions)),
+            remote,
             config.Links.Select(l => new LinkView(l.Id, l.Label, l.Kind)).ToList());
+    }
+
+    /// <summary>A broken roadmap.json must not take the overview down - the planning page reports it.</summary>
+    private static List<T> SafePlan<T>(Func<List<T>> read)
+    {
+        try { return read(); }
+        catch (Exception ex) when (ex is System.Text.Json.JsonException or IOException)
+        {
+            Log.Error("Planning file unreadable: " + ex.Message);
+            return new();
+        }
     }
 
     private List<DueMail> SafeDue()
@@ -129,7 +150,8 @@ public sealed class Status
         catch (HubError) { return new(); }   // a missing template must not take the overview down
     }
 
-    private ProjectStatus ProjectStatus(ProjectDef p, bool git, List<GitChange> changes)
+    private ProjectStatus ProjectStatus(ProjectDef p, bool git, List<GitChange> changes,
+        List<RoadmapItem> roadmap, List<DecisionItem> decisions)
     {
         string prefix = p.Folder.Replace('\\', '/').TrimEnd('/') + "/";
         int changed = changes.Count(c => c.Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && !_releases.IsHubFile(c.Path));
@@ -150,7 +172,8 @@ public sealed class Status
 
         return new ProjectStatus(p.Id, p.Name, p.Kind, p.Icon, p.Folder, p.Note, p.StartCommand, p.ActivationCommand,
             version, released, changed, last, build, registrations, RhinoInfo.ToolbarCache(p),
-            p.Links.Select(l => new LinkView(l.Id, l.Label, l.Kind)).ToList());
+            p.Links.Select(l => new LinkView(l.Id, l.Label, l.Kind)).ToList(),
+            _plan.Summary(p.Id, roadmap, decisions));
     }
 
     private BuildInfo BuildInfo(ProjectDef p, string rhp)
@@ -197,10 +220,11 @@ public sealed class Status
     }
 
     private List<HealthItem> Health(HubConfig config, List<ProjectStatus> projects, List<RhinoProcess> rhino,
-        List<KeyStatus> keys, BackupView backup, bool git, List<GitChange> changes, RegisterView register, int dueMails)
+        List<KeyStatus> keys, BackupView backup, bool git, List<GitChange> changes, RegisterView register, int dueMails,
+        List<RoadmapItem> roadmap, RemoteView? remote)
     {
         var items = new List<HealthItem>();
-        var toKeys = new HealthAction("route", "#/schluessel", "Zu den Schlüsseln");
+        var toKeys = new HubAction("route", "#/schluessel", "Zu den Schlüsseln");
 
         // Private keys lying around in plain text
         foreach (string file in PlainTextKeys())
@@ -231,7 +255,7 @@ public sealed class Status
         // Backup
         if (keys.Any(k => k.InHub))
         {
-            var toBackup = new HealthAction("route", "#/schluessel", "Backup erstellen");
+            var toBackup = new HubAction("route", "#/schluessel", "Backup erstellen");
             if (backup.Last == null)
                 items.Add(new("problem", "backup", "Noch kein Backup deiner Schlüssel",
                     "Geht dieser PC kaputt, kannst du ohne Backup keine Codes mehr erzeugen – auch nicht für bestehende Kunden.",
@@ -256,6 +280,21 @@ public sealed class Status
             items.Add(new("hint", "customers", ending == 1 ? "1 Code läuft bald ab" : $"{ending} Codes laufen bald ab",
                 "Siehe Kunden – dort kannst du verlängern.", null, new("route", "#/kunden", "Zu den Kunden")));
 
+        // The contact address is compiled in: after a change every plug-in needs a build - one
+        // notice with one button for all of them instead of one "source is newer" each
+        string contact = _settings.Shared.Contact;
+        var withoutContact = contact.Length == 0 ? new List<ProjectStatus>() : projects
+            .Where(p => p.Build is { Exists: true } && config.Projects.Any(d => d.Id == p.Id && d.KeyFile != null)
+                        && !PluginActivationFile.InBuild(_paths, config.Projects.First(d => d.Id == p.Id), contact))
+            .ToList();
+        if (withoutContact.Count > 0)
+            items.Add(new("hint", "build",
+                withoutContact.Count == 1 ? $"{withoutContact[0].Name} kennt die Kontakt-Adresse noch nicht"
+                                          : "Die Plugins kennen die Kontakt-Adresse noch nicht",
+                $"Erst ein neuer Build bringt {contact} ins Aktivierungsfenster („Request a code“). Rhino muss dafür geschlossen sein.",
+                withoutContact.Count == 1 ? withoutContact[0].Id : null,
+                new("build", string.Join(",", withoutContact.Select(p => p.Id)), withoutContact.Count == 1 ? "Jetzt bauen" : "Alle bauen")));
+
         // Builds
         foreach (var p in projects.Where(p => p.Build != null))
         {
@@ -263,7 +302,7 @@ public sealed class Status
             if (!b.Exists)
                 items.Add(new("problem", "build", $"{p.Name}: noch nie gebaut", null, p.Id,
                     new("build", p.Id, "Jetzt bauen")));
-            else if (b.Outdated)
+            else if (b.Outdated && !withoutContact.Contains(p))
                 items.Add(new("hint", "build", $"{p.Name}: Der Quellcode ist neuer als die .rhp",
                     $"Zuletzt geändert: {b.NewestFile}", p.Id, new("build", p.Id, "Jetzt bauen")));
 
@@ -281,7 +320,8 @@ public sealed class Status
             {
                 if (r.State == "other")
                     items.Add(new("problem", "rhino", $"Rhino {r.Rhino} lädt {p.Name} aus einem anderen Ordner",
-                        $"{r.File} – nicht der Release-Build. Änderungen kommen dort nicht an.", p.Id, null));
+                        $"{r.File} – nicht der Release-Build. Änderungen kommen dort nicht an. Zieh die richtige .rhp in ein Rhino-{r.Rhino}-Fenster.",
+                        p.Id, p.Build != null ? new("open", "path:" + p.Build.Rhp, "Richtige .rhp zeigen") : null));
                 else if (r.State == "missing")
                     items.Add(new("hint", "rhino", $"{p.Name} ist in Rhino {r.Rhino} nicht installiert",
                         $"Zum Testen die .rhp in ein Rhino-{r.Rhino}-Fenster ziehen.", p.Id,
@@ -303,8 +343,23 @@ public sealed class Status
                     null, new("commit-hub", "", "Jetzt committen")));
 
             foreach (var p in projects.Where(p => p.Changes > 0))
+            {
+                var code = config.Projects.First(d => d.Id == p.Id).Links.FirstOrDefault(l => l.Kind == "vscode");
                 items.Add(new("hint", "git", $"{p.Name}: {Count(p.Changes, "Änderung", "Änderungen")} nicht committed",
-                    null, p.Id, null));
+                    "Meist Arbeit von Claude, die noch einen Commit braucht – sag Claude Bescheid, oder sieh sie dir in VS Code an.",
+                    p.Id, code != null ? new("open", code.Id, "In VS Code öffnen") : null));
+            }
+
+            // The copy outside this PC - once there is one, keep it current
+            if (remote?.Url != null && (remote.Ahead > 0 || remote.Tags > 0))
+            {
+                var parts = new List<string>();
+                if (remote.Ahead > 0) parts.Add(Count(remote.Ahead, "Commit", "Commits"));
+                if (remote.Tags > 0) parts.Add(Count(remote.Tags, "Version", "Versionen"));
+                items.Add(new("hint", "git", $"{string.Join(" und ", parts)} noch nicht gesichert",
+                    $"Die Kopie unter {RepoBackup.ShortName(remote.Url)} ist nicht auf dem neuesten Stand.", null,
+                    new("push", "", "Jetzt hochladen")));
+            }
 
             var known = projects.Select(p => p.Folder.Replace('\\', '/').TrimEnd('/') + "/").ToList();
             foreach (var c in changes.Where(c => c.State == "??" && !_releases.IsHubFile(c.Path)
@@ -312,6 +367,18 @@ public sealed class Status
                 items.Add(new("hint", "git", $"Nicht in Git: {c.Path.TrimEnd('/')}", null, null,
                     new("open", "path:" + c.Path.TrimEnd('/'), "Im Explorer zeigen")));
         }
+
+        // Planning: what waits for the user's test in Rhino, and findings Claude has not fixed yet
+        int toTest = roadmap.Count(x => x.Stage == "gebaut" && !Plan.HasProblem(x));
+        if (toTest > 0)
+            items.Add(new("hint", "plan", toTest == 1 ? "1 Funktion wartet auf deinen Test" : $"{toTest} Funktionen warten auf deinen Test",
+                "Die Test-Schritte stehen an den Karten in der Spalte „Gebaut“.", null,
+                new("route", "#/planung?stufe=gebaut", "Zu den Tests")));
+        var problems = roadmap.Where(Plan.HasProblem).ToList();
+        if (problems.Count > 0)
+            items.Add(new("hint", "plan", problems.Count == 1 ? $"Gemeldetes Problem: {problems[0].Title}" : $"{problems.Count} gemeldete Probleme aus deinen Tests",
+                "Claude liest sie in der nächsten Sitzung – oder kopier den Auftrag von der Karte in den Chat.", problems.Count == 1 ? problems[0].Project : null,
+                new("route", problems.Count == 1 ? $"#/planung?karte={problems[0].Id}" : "#/planung?stufe=gebaut", "Ansehen")));
 
         // Leftovers that can go
         foreach (var c in config.Cleanup.Where(c => Directory.Exists(_paths.Resolve(c.Path)) || File.Exists(_paths.Resolve(c.Path))))
@@ -346,12 +413,14 @@ public sealed record OverviewView(
     RegisterSummary Register,
     MailSummary Mail,
     TaskSummary Tasks,
+    PlanOverview Plan,
+    RemoteView? Remote,
     List<LinkView> Links);
 
 public sealed record ProjectStatus(
     string Id, string Name, string Kind, string Icon, string Folder, string? Note, string? StartCommand,
     string? ActivationCommand, string? Version, string? Released, int Changes, Commit? LastCommit,
-    BuildInfo? Build, List<Registration> Rhino, List<string> ToolbarCache, List<LinkView> Links);
+    BuildInfo? Build, List<Registration> Rhino, List<string> ToolbarCache, List<LinkView> Links, PlanSummary Plan);
 
 public sealed record ProjectDetailView(ProjectStatus Project, List<Commit> Log, List<HealthItem> Health);
 
@@ -369,11 +438,12 @@ public sealed record MailSummary(bool Ready, int Due);
 
 public sealed record TaskSummary(int Open, int High, List<TaskItem> Top);
 
+/// <summary>ToTest: cards in "gebaut"; General: the cards that belong to no project.</summary>
+public sealed record PlanOverview(int ToTest, int Problems, int OpenQuestions, PlanSummary General);
+
 public sealed record RegisterView(List<Customer> Customers, List<LicenseView> Licenses, List<MailRecord> Mails);
 
 public sealed record LinkView(string Id, string Label, string Kind);
 
-/// <summary>Level: "problem" or "hint". Action kinds: route (a page), open (a link id), build (a project), commit-hub.</summary>
-public sealed record HealthItem(string Level, string Area, string Title, string? Detail, string? Project, HealthAction? Action);
-
-public sealed record HealthAction(string Kind, string Target, string Label);
+/// <summary>Level: "problem" or "hint". What the action can do: see <see cref="HubAction"/>.</summary>
+public sealed record HealthItem(string Level, string Area, string Title, string? Detail, string? Project, HubAction? Action);

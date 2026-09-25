@@ -68,7 +68,7 @@ export async function render(main, { params }) {
         ${recentTable(o)}
       </div>
 
-      <div class="card">
+      <div class="card" id="plugins">
         <div class="card-head">
           <h3>${icon('hammer')} Plugins</h3>
           <div class="actions">

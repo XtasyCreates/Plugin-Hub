@@ -2,8 +2,13 @@
   {
     "id": "t1e9a0c21",
     "title": "Lizenzbedingungen prüfen lassen",
-    "note": "Claude hat einen Entwurf nach deutschem Recht geschrieben (Hub/legal: Lizenzbedingungen.txt und License.txt). Von einer Anwältin oder einem Anwalt für IT-Recht prüfen lassen – besonders Haftung, Gewährleistung, Testphase und Verbraucherrechte. Bis diese Aufgabe erledigt ist, warnt der Release-Assistent.",
+    "note": "Claude hat einen Entwurf nach deutschem Recht geschrieben (Hub/legal: Lizenzbedingungen.txt und License.txt). Von einer Anwältin oder einem Anwalt für IT-Recht prüfen lassen – besonders Haftung, Gewährleistung, Testphase und Verbraucherrechte. Der Knopf öffnet den Ordner mit beiden Dateien. Bis diese Aufgabe erledigt ist, warnt der Release-Assistent.",
     "priority": "hoch",
+    "goto": {
+      "kind": "open",
+      "target": "legal",
+      "label": "Ordner öffnen"
+    },
     "done": false,
     "created": "2026-09-25T00:30:00+02:00"
   },
@@ -12,6 +17,11 @@
     "title": "Gmail-App-Passwort für den Mailversand einrichten",
     "note": "Einstellungen → E-Mail. Dafür muss im Google-Konto die Bestätigung in zwei Schritten an sein; das App-Passwort erzeugst du unter myaccount.google.com → Sicherheit → App-Passwörter.",
     "priority": "mittel",
+    "goto": {
+      "kind": "route",
+      "target": "#/einstellungen?feld=mail",
+      "label": "Zum E-Mail-Konto"
+    },
     "done": true,
     "created": "2026-09-25T00:30:00+02:00",
     "doneAt": "2026-09-25T13:00:51.2073088+02:00"
@@ -19,8 +29,13 @@
   {
     "id": "t3c5f1a96",
     "title": "Eigene Kontakt-Adresse für Kunden festlegen",
-    "note": "Sie steht im Plugin („Request a code“), in der Anleitung und als Antwort-Adresse der Mails. Einstellungen → Allgemein. Wirkt im Plugin ab dem nächsten Build.",
+    "note": "Sie steht im Plugin („Request a code“), in der Anleitung und als Antwort-Adresse der Mails. Nach dem Speichern zeigt die Übersicht „Die Plugins kennen die Kontakt-Adresse noch nicht“ mit dem Knopf „Alle bauen“ – Rhino muss dafür geschlossen sein.",
     "priority": "mittel",
+    "goto": {
+      "kind": "route",
+      "target": "#/einstellungen?feld=contact",
+      "label": "Zur Kontakt-Adresse"
+    },
     "done": false,
     "created": "2026-09-25T00:30:00+02:00"
   },
@@ -29,6 +44,11 @@
     "title": "Anbieter-Angaben eintragen",
     "note": "Name und Anschrift für die Lizenzbedingungen – Einstellungen → Allgemein. Ohne sie lässt der Release-Assistent kein Release zu.",
     "priority": "mittel",
+    "goto": {
+      "kind": "route",
+      "target": "#/einstellungen?feld=seller",
+      "label": "Zum Anbieter"
+    },
     "done": false,
     "created": "2026-09-25T00:30:00+02:00"
   },
@@ -37,15 +57,39 @@
     "title": "Testdauer festlegen",
     "note": "Bis dahin schlägt der Hub 30 Tage vor (Platzhalter, Einstellungen → Allgemein).",
     "priority": "niedrig",
+    "goto": {
+      "kind": "route",
+      "target": "#/einstellungen?feld=trialDays",
+      "label": "Zur Testdauer"
+    },
     "done": false,
     "created": "2026-09-25T00:30:00+02:00"
   },
   {
     "id": "t6f0b3d58",
     "title": "Repository außerhalb dieses PCs sichern",
-    "note": "Quelltext, Tags und Kundenpakete liegen nur in „Plugins Rhino“ auf diesem PC. Eine zweite Kopie – z. B. ein privates GitHub-Repository – schützt vor einem Festplattenausfall. Das Hub-Backup sichert nur Schlüssel und Kundenregister.",
+    "note": "Quelltext, Tags und Kundenpakete liegen nur in „Plugins Rhino“ auf diesem PC. Eine zweite Kopie in einem privaten GitHub-Repository schützt vor einem Festplattenausfall. Der Knopf führt zu „Repository sichern“: Repository bei GitHub anlegen, Adresse eintragen, „Hochladen“. Das Hub-Backup sichert nur Schlüssel und Kundenregister.",
     "priority": "mittel",
+    "goto": {
+      "kind": "route",
+      "target": "#/schluessel?feld=git-remote",
+      "label": "Zur Git-Sicherung"
+    },
     "done": false,
     "created": "2026-09-25T00:30:00+02:00"
+  },
+  {
+    "id": "te9c1fa2b",
+    "title": "Erstes Release: Laser Create 1.0.0",
+    "note": "Wenn die Tests in Rhino gut aussehen und die Lizenzbedingungen geprüft sind. Der Release-Assistent baut ohne „-test“, schnürt das Kundenpaket und legt Commit und Tag an.",
+    "priority": "niedrig",
+    "project": "laser",
+    "goto": {
+      "kind": "route",
+      "target": "#/releases?feld=release-laser",
+      "label": "Zum Release Laser Create"
+    },
+    "done": false,
+    "created": "2026-09-25T13:39:26+02:00"
   }
 ]

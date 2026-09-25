@@ -1,13 +1,17 @@
-// Schlüssel und Backup: one key pair per plug-in, and the backup that keeps them safe.
+// Schlüssel und Backup: one key pair per plug-in, the backup that keeps them safe, and the copy
+// of the whole repository outside this PC.
 
-import { post } from '../api.js';
-import { loadOverview } from '../store.js';
-import { issueList, sharedClick } from '../parts.js';
-import { dialog, esc, fmtDateTime, icon, notice, toast } from '../ui.js';
+import { post, put } from '../api.js';
+import { changed, loadOverview } from '../store.js';
+import { issueList, pushRepo, sharedClick } from '../parts.js';
+import { busy, dialog, esc, fmtDateTime, icon, notice, plural, toast } from '../ui.js';
+
+let changingRemote = false;
 
 export async function render(main) {
   const o = await loadOverview();
   const issues = o.health.filter((h) => ['keys', 'backup', 'secrets'].includes(h.area));
+  const remote = o.remote;
 
   main.innerHTML = `
     <div class="page">
@@ -20,12 +24,12 @@ export async function render(main) {
 
       ${issueList(issues, { here: '#/schluessel' })}
 
-      <div class="card" style="margin-top:16px">
+      <div class="card" style="margin-top:16px" id="keys">
         <div class="card-head"><h3>${icon('key')} Schlüssel</h3></div>
         ${o.keys.map((k) => keyRow(k, o)).join('')}
       </div>
 
-      <div class="card">
+      <div class="card" id="backup">
         <div class="card-head"><h3>${icon('shield')} Backup</h3></div>
         ${backupState(o.backup)}
         <p class="card-note" style="margin-top:12px">Das Backup enthält alle privaten Schlüssel und das Kundenregister, verschlüsselt mit deinem Passwort.
@@ -36,6 +40,8 @@ export async function render(main) {
           <button class="btn ghost" data-open="backups">${icon('folder')} Backup-Ordner</button>
         </div>
       </div>
+
+      ${remote ? repoCard(remote) : ''}
 
       <div class="card">
         <div class="card-head"><h3>${icon('lock')} Wo alles liegt</h3></div>
@@ -57,7 +63,71 @@ export async function render(main) {
     if (generate) return generateKey(o.keys.find((k) => k.product === generate.dataset.generate));
     if (t.closest('[data-backup]')) return createBackup();
     if (t.closest('[data-restore]')) return restoreBackup();
+    if (t.closest('[data-push]')) return pushRepo(t.closest('[data-push]'));
+    if (t.closest('[data-change-remote]')) {
+      changingRemote = true;
+      changed();
+    }
+    if (t.closest('[data-keep-remote]')) {
+      changingRemote = false;
+      changed();
+    }
   };
+  main.querySelector('[data-remote-form]')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = new FormData(e.target).get('url');
+    const state = await busy(e.target.querySelector('[type=submit]'), () => put('/api/git/remote', { url }));
+    if (!state) return;
+    changingRemote = false;
+    toast('Verbunden – jetzt „Hochladen“ klicken');
+    changed();
+  });
+}
+
+/**
+ * The repository outside this PC. Not set up: three steps and the address field. Set up: how
+ * much is not uploaded yet, and the button that does it.
+ */
+function repoCard(remote) {
+  const connected = remote.url && !changingRemote;
+  const last = remote.lastPush && remote.lastPush.url === remote.url ? remote.lastPush : null;
+  const behind = [remote.ahead && plural(remote.ahead, 'Commit', 'Commits'), remote.tags && plural(remote.tags, 'Version', 'Versionen')].filter(Boolean);
+
+  const setup = `
+    <ol class="steps-list">
+      <li>Bei GitHub ein <strong>privates</strong>, leeres Repository anlegen – ohne README.
+        <a href="https://github.com/new" target="_blank" rel="noopener">github.com/new ${icon('external')}</a>
+        <div class="faint">Privat, weil der Quelltext der Plugins darin liegt. Schlüssel und Kunden sind nicht in Git.</div></li>
+      <li>Die Adresse kopieren: auf GitHub der grüne Knopf „Code“ → HTTPS, z. B. https://github.com/name/plugins-rhino.git</li>
+      <li>Hier eintragen, „Verbinden“, dann „Hochladen“. Beim ersten Mal öffnet Git ein Fenster, in dem du dich bei GitHub anmeldest.</li>
+    </ol>
+    <form class="inline" data-remote-form>
+      <input type="text" name="url" data-place="git-remote" value="${esc(remote.url ?? '')}" placeholder="https://github.com/name/plugins-rhino.git" spellcheck="false" autocomplete="off">
+      <button class="btn primary" type="submit">Verbinden</button>
+      ${remote.url ? '<button class="btn" type="button" data-keep-remote>Abbrechen</button>' : ''}
+    </form>`;
+
+  const state = `
+    <div class="facts">
+      <div class="fact"><span>Repository</span><span class="mono" title="${esc(remote.url)}">${esc(remote.url)}</span></div>
+      <div class="fact"><span>Zuletzt hochgeladen</span><span>${last ? esc(fmtDateTime(last.at)) : 'noch nie'}</span></div>
+      <div class="fact"><span>Stand</span><span>${behind.length ? `${behind.join(' und ')} noch nicht oben` : `${icon('check')} alles gesichert`}</span></div>
+    </div>
+    <div class="actions" style="margin-top:14px">
+      <button class="btn primary" data-push data-place="git-remote">${icon('cloud')} Hochladen</button>
+      <button class="btn ghost" data-change-remote>Adresse ändern</button>
+    </div>`;
+
+  return `
+    <div class="card" id="git-remote-card">
+      <div class="card-head">
+        <h3>${icon('cloud')} Repository sichern</h3>
+        <span class="badge ${connected ? (behind.length ? 'accent' : 'ok') : 'bad'}">${connected ? (behind.length ? 'nicht aktuell' : 'gesichert') : 'nicht eingerichtet'}</span>
+      </div>
+      <p class="card-note">Quelltext, Versionen und Kundenpakete liegen nur auf diesem PC. Eine Kopie in einem privaten GitHub-Repository schützt vor einem Festplattenausfall –
+        das Backup oben sichert nur Schlüssel und Kundenregister. Der Hub lädt nur hoch, wenn du klickst.</p>
+      ${connected ? state : setup}
+    </div>`;
 }
 
 function keyRow(k, o) {
