@@ -33,12 +33,13 @@ const ACTION_ICON = { route: 'arrowRight', open: 'folder', url: 'external', buil
 
 /**
  * The button for a place (see Places.cs): a spot in the hub, a file, a web page, a build.
- * `task`: the task it belongs to - a hub page then shows that task at the top, with "Erledigt".
+ * `task` or `step` ("cardId:index"): what it belongs to - a hub page then shows that task or
+ * test step at the top, with "Erledigt" or "Abgehakt".
  */
-export function actionButton(action, { task = null, primary = false } = {}) {
+export function actionButton(action, { task = null, step = null, primary = false } = {}) {
   if (!action) return '';
-  return `<button class="btn small ${primary ? 'primary' : ''}" data-act="${esc(action.kind)}" data-target="${esc(action.target)}"
-    ${task ? `data-task="${esc(task)}"` : ''}>${icon(ACTION_ICON[action.kind] ?? 'arrowRight')} ${esc(action.label)}</button>`;
+  return `<button type="button" class="btn small ${primary ? 'primary' : ''}" data-act="${esc(action.kind)}" data-target="${esc(action.target)}"
+    ${task ? `data-task="${esc(task)}"` : ''} ${step ? `data-step-ref="${esc(step)}"` : ''}>${icon(ACTION_ICON[action.kind] ?? 'arrowRight')} ${esc(action.label)}</button>`;
 }
 
 /**
@@ -51,13 +52,14 @@ export async function sharedClick(e) {
 
   if (el.dataset.open) await openLink(el.dataset.open, el);
   else if (el.dataset.build) await startBuild(el.dataset.build.split(','), el);
-  else await runAction({ kind: el.dataset.act, target: el.dataset.target ?? '' }, el, el.dataset.task);
+  else await runAction({ kind: el.dataset.act, target: el.dataset.target ?? '' }, el, { task: el.dataset.task, step: el.dataset.stepRef });
   return true;
 }
 
-export async function runAction(action, button, task = null) {
+export async function runAction(action, button, { task = null, step = null } = {}) {
   switch (action.kind) {
-    case 'route': return go(task ? withParam(action.target, 'aufgabe', task) : action.target);
+    case 'route':
+      return go(task ? withParam(action.target, 'aufgabe', task) : step ? withParam(action.target, 'schritt', step) : action.target);
     case 'open': return openLink(action.target, button);
     case 'url': return void window.open(action.target, '_blank', 'noopener');
     case 'build': return startBuild(action.target.split(','), button);

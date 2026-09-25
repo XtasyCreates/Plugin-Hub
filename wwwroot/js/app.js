@@ -1,6 +1,6 @@
 // The frame: side bar, routing between pages, the spot a link points at ("?feld=") and the
-// task it came from ("?aufgabe="), the heartbeat that keeps the hub running, and the notice
-// when it stops answering.
+// task or test step it came from ("?aufgabe=", "?schritt="), the heartbeat that keeps the hub
+// running, and the notice when it stops answering.
 
 import { api, onOffline, post } from './api.js';
 import { confirmDialog, esc, icon, toast } from './ui.js';
@@ -55,6 +55,7 @@ async function show({ keepScroll = false } = {}) {
     dropParam('feld');   // once - a redraw after a save must not jump back there
   }
   if (params.aufgabe) await taskBar(params.aufgabe);
+  else if (params.schritt) await stepBar(params.schritt);
 }
 
 /**
@@ -81,30 +82,61 @@ async function taskBar(id) {
   } catch {
     return;
   }
-  if (!task || main.querySelector('.taskbar')) return;
+  if (!task) return;
+  contextBar({
+    iconName: 'list', label: 'Aufgabe', text: task.title, done: task.done, doneText: 'Erledigt', param: 'aufgabe',
+    back: ['#/aufgaben', 'Alle Aufgaben'],
+    tick: async () => {
+      await post(`/api/tasks/${id}/done`, { done: true });
+      toast('Aufgabe erledigt');
+    },
+  });
+}
 
+/** Came here from a test step on a roadmap card ("cardId:index"): the step on top, "Abgehakt" ticks it. */
+async function stepBar(ref) {
+  const [id, index] = ref.split(':');
+  let card;
+  try {
+    card = (await api('/api/plan')).roadmap.find((x) => x.id === id);
+  } catch {
+    return;
+  }
+  const step = card?.tests[Number(index)];
+  if (!step) return;
+  contextBar({
+    iconName: 'flask', label: `Test · ${card.title}`, text: step.text, done: step.done, doneText: 'Abgehakt', param: 'schritt',
+    back: [`#/planung?karte=${encodeURIComponent(id)}`, 'Zur Karte'],
+    tick: async () => {
+      await post(`/api/roadmap/${id}/tests/${Number(index)}`, { done: true });
+      toast('Schritt abgehakt');
+    },
+  });
+}
+
+function contextBar({ iconName, label, text, done, doneText, param, back, tick }) {
+  if (main.querySelector('.taskbar')) return;
   const bar = document.createElement('div');
   bar.className = 'taskbar';
   bar.innerHTML = `
-    ${icon('list')}
-    <div class="t"><span class="label">Aufgabe</span> ${esc(task.title)}</div>
-    ${task.done
-      ? `<span class="badge ok">${icon('check')} erledigt</span>`
-      : `<button class="btn small primary" data-task-done>${icon('check')} Erledigt</button>`}
-    <a class="btn small ghost" href="#/aufgaben">Alle Aufgaben</a>
-    <button class="btn small ghost icon-only" data-task-close aria-label="Leiste schließen">${icon('x')}</button>`;
+    ${icon(iconName)}
+    <div class="t" title="${esc(text)}"><span class="label">${esc(label)}</span> ${esc(text)}</div>
+    ${done
+      ? `<span class="badge ok">${icon('check')} ${esc(doneText.toLowerCase())}</span>`
+      : `<button class="btn small primary" data-bar-done>${icon('check')} ${esc(doneText)}</button>`}
+    <a class="btn small ghost" href="${esc(back[0])}">${esc(back[1])}</a>
+    <button class="btn small ghost icon-only" data-bar-close aria-label="Leiste schließen">${icon('x')}</button>`;
   bar.addEventListener('click', async (e) => {
-    if (e.target.closest('[data-task-done]')) {
+    if (e.target.closest('[data-bar-done]')) {
       try {
-        await post(`/api/tasks/${id}/done`, { done: true });
-        toast('Aufgabe erledigt');
+        await tick();
         changed();
       } catch (ex) {
         toast(ex.message, 'bad');
       }
     }
-    if (e.target.closest('[data-task-close]')) {
-      dropParam('aufgabe');
+    if (e.target.closest('[data-bar-close]')) {
+      dropParam(param);
       bar.remove();
     }
   });

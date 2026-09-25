@@ -4,7 +4,7 @@
 
 import { api, post } from '../api.js';
 import { changed, getOverview, keyOf, loadOverview } from '../store.js';
-import { buildBadge, buildLine, isoDate, issueList, linkChips, mailDialog, sharedClick, statusBadge } from '../parts.js';
+import { buildBadge, buildLine, dropParam, isoDate, issueList, linkChips, mailDialog, sharedClick, statusBadge } from '../parts.js';
 import { busy, checkMachineId, copy, esc, fmtDate, fmtWhen, icon, toast } from '../ui.js';
 
 const form = {
@@ -36,7 +36,21 @@ export async function render(main, { params }) {
   if (params.kunde) {
     const c = reg.customers.find((x) => x.id === params.kunde);
     if (c) Object.assign(form, { customerId: c.id, customerName: c.name, email: c.email, language: c.language, result: null });
-    history.replaceState(null, '', '#/verkauf');
+    dropParam('kunde');
+  }
+
+  // A test step brings the form half filled: ?produkt=laser&tage=2&geraet=dieser-pc (or art=kauf)
+  if (params.produkt || params.tage || params.art || params.geraet) {
+    if (params.produkt) form.product = params.produkt;
+    const days = Number(params.tage);
+    if (days >= 1 && days <= 365) Object.assign(form, { kind: 'trial', end: daysFromNow(days) });
+    if (params.art === 'kauf') form.kind = 'full';
+    if (params.geraet === 'dieser-pc') {
+      form.machineId = (await api('/api/this-machine')).machineId;
+      if (!form.note) form.note = 'Eigener Test';
+    }
+    form.result = null;
+    ['produkt', 'tage', 'art', 'geraet'].forEach(dropParam);
   }
 
   const plugins = o.projects.filter((p) => p.kind === 'plugin');

@@ -531,6 +531,9 @@ a.chip { text-decoration: none; }
 .steps { display: grid; gap: 5px; padding: 9px 12px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--bg); }
 .check.step { align-items: flex-start; }
 .check.step input { margin-top: 3px; }
+.step-row { display: flex; align-items: flex-start; gap: 10px; }
+.step-row .check.step { flex: 1; min-width: 0; }
+.step-row .btn { flex: none; margin-top: -3px; }
 .more-fields > summary { cursor: pointer; color: var(--muted); font-size: 13px; }
 .more-fields[open] > summary { margin-bottom: 10px; }
 .more-fields > .form-grid { margin-top: 12px; }

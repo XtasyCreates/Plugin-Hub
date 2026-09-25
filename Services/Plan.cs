@@ -142,12 +142,15 @@ public sealed class Plan
         item.Reason  = Clean(request.Reason);
         if (request.Source != null) item.Source = Clean(request.Source);
 
-        // Steps that stay the same keep their tick; the order is the one typed
+        // Steps that stay the same keep their tick and their button; the order is the one typed
         if (request.Tests != null)
         {
-            var old = item.Tests.ToDictionary(t => t.Text, t => t.Done);
+            var old = item.Tests.GroupBy(t => t.Text).ToDictionary(g => g.Key, g => g.First());
             item.Tests = request.Tests.Select(t => t.Trim()).Where(t => t.Length > 0).Distinct()
-                .Select(t => new TestStep { Text = t, Done = old.GetValueOrDefault(t) }).ToList();
+                .Select(t => old.TryGetValue(t, out var was)
+                    ? new TestStep { Text = t, Done = was.Done, Goto = was.Goto }
+                    : new TestStep { Text = t })
+                .ToList();
         }
 
         if (stage == "abgelehnt" && item.Reason == null)
@@ -326,6 +329,8 @@ public sealed class TestStep
 {
     public string Text { get; set; } = "";
     public bool Done { get; set; }
+    /// <summary>Where the step is done, when that is in the hub - the button next to it. Set in the file, by Claude.</summary>
+    public HubAction? Goto { get; set; }
 }
 
 public sealed class DecisionItem

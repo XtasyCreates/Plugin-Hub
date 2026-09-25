@@ -5,7 +5,7 @@
 
 import { api, del, post, put } from '../api.js';
 import { changed, loadOverview } from '../store.js';
-import { dropParam, flash, sharedClick } from '../parts.js';
+import { actionButton, dropParam, flash, runAction, sharedClick } from '../parts.js';
 import { markdown } from '../markdown.js';
 import { confirmDialog, copy, dialog, esc, fmtDate, fmtDateTime, icon, plural, toast } from '../ui.js';
 
@@ -195,7 +195,8 @@ async function boardView(o) {
           flash(col);
         }
       }
-      if (params.karte) {
+      // Two redraws close together (a link, the tab coming into view) must not open the card twice
+      if (params.karte && !document.querySelector('dialog[open]')) {
         dropParam('karte');
         open(find(params.karte));
       }
@@ -289,6 +290,8 @@ async function cardDialog(o, data, item, defaults = {}) {
   };
   const name = namer(o);
   const done = x.tests.filter((t) => t.done).length;
+  const kind = o.projects.find((p) => p.id === x.project)?.kind;
+  const testWhere = kind === 'tool' ? 'Test im Hub' : kind ? 'Test in Rhino' : 'Test';
   let warned = false;
 
   const saved = await dialog({
@@ -309,9 +312,12 @@ async function cardDialog(o, data, item, defaults = {}) {
       <label class="field"><span>Notiz <em>optional</em></span><textarea name="note" rows="3">${esc(x.note)}</textarea></label>
       ${!isNew && x.tests.length ? `
         <div class="field">
-          <span>Test in Rhino <em data-progress>${done} von ${x.tests.length} abgehakt</em></span>
+          <span>${testWhere} <em data-progress>${done} von ${x.tests.length} abgehakt</em></span>
           <div class="steps">${x.tests.map((t, i) => `
-            <label class="check step"><input type="checkbox" data-step="${i}" ${t.done ? 'checked' : ''}><span>${esc(t.text)}</span></label>`).join('')}
+            <div class="step-row">
+              <label class="check step"><input type="checkbox" data-step="${i}" ${t.done ? 'checked' : ''}><span>${esc(t.text)}</span></label>
+              ${actionButton(t.goto, { step: `${x.id}:${i}` })}
+            </div>`).join('')}
           </div>
         </div>` : ''}
       <label class="field" data-when="problem" ${x.problem || ['arbeit', 'gebaut'].includes(x.stage) ? '' : 'hidden'}>
@@ -369,6 +375,15 @@ async function cardDialog(o, data, item, defaults = {}) {
           box.checked = !box.checked;
           toast(ex.message, 'bad');
         }
+      });
+
+      // A step's button: a spot in the hub closes the card - that page then shows the step on top
+      form.addEventListener('click', async (e) => {
+        const act = e.target.closest('[data-act]');
+        if (!act) return;
+        e.preventDefault();
+        if (act.dataset.act === 'route') form.closest('dialog').querySelector('[data-cancel]').click();
+        await runAction({ kind: act.dataset.act, target: act.dataset.target }, act, { step: act.dataset.stepRef });
       });
 
       form.querySelector('.dlg-foot [type=submit]').addEventListener('click', () => { form.elements.then.value = ''; });
