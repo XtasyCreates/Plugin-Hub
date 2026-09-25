@@ -110,8 +110,12 @@ public sealed class Mailer
         return list.OrderBy(d => d.DaysLeft).ToList();
     }
 
-    /// <summary>Sends a mail about a code - as the page shows it, edits included - and records it.</summary>
-    public MailRecord Send(string kind, string licenseId, string subject, string body)
+    /// <summary>
+    /// Sends a mail about a code - as the page shows it, edits included - and records it.
+    /// <paramref name="inReplyTo"/>: the message id of the customer's request, so the answer
+    /// lands in the same conversation in both mailboxes.
+    /// </summary>
+    public MailRecord Send(string kind, string licenseId, string subject, string body, string? inReplyTo = null)
     {
         var draft = Draft(kind, licenseId);
         if (!Settings.IsMailAddress(draft.To))
@@ -119,7 +123,7 @@ public sealed class Mailer
         if (string.IsNullOrWhiteSpace(subject) || string.IsNullOrWhiteSpace(body))
             throw new HubError("Betreff und Text dürfen nicht leer sein.");
 
-        Deliver(draft.To, subject.Trim(), body);
+        Deliver(draft.To, subject.Trim(), body, inReplyTo);
 
         var license = _register.FindLicense(licenseId)!;
         if (kind == "followup") _register.MarkFollowUp(licenseId, skipped: false);
@@ -145,7 +149,7 @@ public sealed class Mailer
         return mail.SenderEmail;
     }
 
-    private void Deliver(string to, string subject, string body)
+    private void Deliver(string to, string subject, string body, string? inReplyTo = null)
     {
         var mail = _settings.Mail;
         if (!Settings.IsMailAddress(mail.SenderEmail))
@@ -164,6 +168,14 @@ public sealed class Mailer
         string contact = _settings.Shared.Contact;
         if (Settings.IsMailAddress(contact) && !contact.Equals(mail.SenderEmail, StringComparison.OrdinalIgnoreCase))
             message.ReplyToList.Add(contact);
+
+        // An answer to a request: mail programs thread it with the request
+        string? parent = inReplyTo?.Trim();
+        if (parent is { Length: > 2 } && parent.StartsWith('<') && parent.EndsWith('>') && !parent.Any(char.IsWhiteSpace))
+        {
+            message.Headers.Add("In-Reply-To", parent);
+            message.Headers.Add("References", parent);
+        }
 
         using var client = new SmtpClient(mail.Host, mail.Port) { Timeout = 30_000 };
         string? pickup = Environment.GetEnvironmentVariable("PLUGINHUB_MAIL_PICKUP");
@@ -199,8 +211,9 @@ public sealed class Mailer
     private static string DateText(DateOnly day, string lang) =>
         lang == "en" ? day.ToString("d MMMM yyyy", English) : day.ToString("dd.MM.yyyy", German);
 
+    // A code works through its last day, as the activation window says since v48
     private static string Validity(DateOnly? end, string lang) => end is DateOnly day
-        ? lang == "en" ? $"The code works until {DateText(day, lang)}." : $"Der Code gilt bis zum {DateText(day, lang)}."
+        ? lang == "en" ? $"The code works until 23:59 on {DateText(day, lang)}." : $"Der Code gilt bis zum {DateText(day, lang)}, 23:59 Uhr."
         : lang == "en" ? "The code has no end date." : "Der Code gilt unbegrenzt.";
 
     private static string Fill(string text, Dictionary<string, string> values)

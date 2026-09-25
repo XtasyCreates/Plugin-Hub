@@ -54,6 +54,7 @@ export async function render(main) {
           <a class="tile" href="#/kunden"><div class="label">Kunden</div><div class="value">${o.register.customers}</div></a>
           <a class="tile" href="#/kunden"><div class="label">Ausgestellte Codes</div><div class="value">${o.register.licenses}</div></a>
           <a class="tile" href="#/kunden"><div class="label">Laufende Testphasen</div><div class="value">${o.register.trials}</div></a>
+          <a class="tile" href="#/mails?feld=anfragen"><div class="label">Code-Anfragen</div><div class="value ${o.inbox.new ? 'bad' : ''}">${o.inbox.new}</div></a>
           <a class="tile" href="#/mails"><div class="label">Fällige Nachfragen</div><div class="value ${o.mail.due ? 'bad' : ''}">${o.mail.due}</div></a>
           <a class="tile" href="#/kunden"><div class="label">Noch nicht bezahlt</div><div class="value ${o.register.unpaid ? 'bad' : ''}">${o.register.unpaid}</div></a>
           <a class="tile" href="#/schluessel"><div class="label">Letztes Backup</div>${backupValue(o.backup)}</a>

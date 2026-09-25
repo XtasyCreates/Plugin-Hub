@@ -35,13 +35,14 @@ public sealed class Status
     private readonly Releases _releases;
     private readonly Plan _plan;
     private readonly RepoBackup _repo;
+    private readonly Inbox _inbox;
 
     private readonly object _gate = new();
     private OverviewView? _cached;
     private DateTime _cachedAt;
 
     public Status(HubPaths paths, Config config, KeyStore keys, Register register, HubState state,
-        Settings settings, Tasks tasks, Mailer mailer, Releases releases, Plan plan, RepoBackup repo)
+        Settings settings, Tasks tasks, Mailer mailer, Releases releases, Plan plan, RepoBackup repo, Inbox inbox)
     {
         _paths    = paths;
         _config   = config;
@@ -54,6 +55,7 @@ public sealed class Status
         _releases = releases;
         _plan     = plan;
         _repo     = repo;
+        _inbox    = inbox;
     }
 
     public void Invalidate()
@@ -111,8 +113,9 @@ public sealed class Status
         var due       = SafeDue();
         var tasks     = _tasks.All();
         var remote    = git ? _repo.State() : null;
+        var inbox     = _inbox.State();
 
-        var health = Health(config, projects, rhino, keys, backup, git, changes, register, due.Count, roadmap, remote)
+        var health = Health(config, projects, rhino, keys, backup, git, changes, register, due.Count, roadmap, remote, inbox)
             .OrderBy(h => h.Level == "problem" ? 0 : 1)
             .ToList();
 
@@ -126,6 +129,7 @@ public sealed class Status
                 register.Licenses.Count(l => !l.License.Paid && l.License.Price is > 0),
                 register.Licenses.Count(l => l.License.Trial && l.Status.State is "valid" or "ending")),
             new MailSummary(_settings.MailReady, due.Count),
+            new InboxSummary(_inbox.Ready, inbox.Requests.Count(r => r.Status == "neu"), inbox.LastCheck, inbox.LastError),
             new TaskSummary(openTasks.Count, openTasks.Count(t => t.Priority == "hoch"), openTasks.Take(5).ToList()),
             new PlanOverview(roadmap.Count(x => x.Stage == "gebaut"), roadmap.Count(Plan.HasProblem),
                 decisions.Count(d => d.Decision == null), _plan.Summary(null, roadmap, decisions)),
@@ -221,7 +225,7 @@ public sealed class Status
 
     private List<HealthItem> Health(HubConfig config, List<ProjectStatus> projects, List<RhinoProcess> rhino,
         List<KeyStatus> keys, BackupView backup, bool git, List<GitChange> changes, RegisterView register, int dueMails,
-        List<RoadmapItem> roadmap, RemoteView? remote)
+        List<RoadmapItem> roadmap, RemoteView? remote, InboxState inbox)
     {
         var items = new List<HealthItem>();
         var toKeys = new HubAction("route", "#/schluessel", "Zu den Schlüsseln");
@@ -275,6 +279,24 @@ public sealed class Status
                 _settings.MailReady ? "Testphasen enden bald – der Hub hat die Mails vorbereitet."
                                     : "Der Mailversand ist noch nicht eingerichtet (Einstellungen → E-Mail).",
                 null, new("route", "#/mails", "Zu den Mails")));
+        // Code requests that came in by mail
+        var fresh = inbox.Requests.Where(r => r.Status == "neu").OrderByDescending(r => r.Received).ToList();
+        if (fresh.Count > 0)
+        {
+            var first = fresh[0];
+            string who = first.FromName.Length > 0 ? first.FromName : first.FromEmail;
+            string product = config.Projects.FirstOrDefault(p => p.Id == first.Product)?.Name ?? "ein Plugin";
+            string wants = first.Wants switch { "trial" => "Testphase", "full" => "Kauf", _ => "Code" };
+            items.Add(new("hint", "mail",
+                fresh.Count == 1 ? $"Code-Anfrage von {who}" : $"{fresh.Count} neue Code-Anfragen",
+                fresh.Count == 1 ? $"{product} · {wants} · Geräte-ID {first.MachineId}"
+                                 : $"Die neueste: {who} – {product}, {wants}.",
+                first.Product, new("route", "#/mails?feld=anfragen", "Ansehen")));
+        }
+        if (_inbox.Ready && inbox.LastError != null)
+            items.Add(new("hint", "mail", "Das Postfach für Code-Anfragen ließ sich nicht lesen", inbox.LastError, null,
+                new("route", "#/mails?feld=anfragen", "Ansehen")));
+
         int ending = register.Licenses.Count(l => l.Status.State == "ending");
         if (ending > 0)
             items.Add(new("hint", "customers", ending == 1 ? "1 Code läuft bald ab" : $"{ending} Codes laufen bald ab",
@@ -412,6 +434,7 @@ public sealed record OverviewView(
     BackupView Backup,
     RegisterSummary Register,
     MailSummary Mail,
+    InboxSummary Inbox,
     TaskSummary Tasks,
     PlanOverview Plan,
     RemoteView? Remote,
@@ -435,6 +458,9 @@ public sealed record BackupView(BackupRecord? Last, bool KeysChanged, bool Regis
 public sealed record RegisterSummary(int Customers, int Licenses, int Unpaid, int Trials);
 
 public sealed record MailSummary(bool Ready, int Due);
+
+/// <summary>New: code requests not handled yet. Error: why the last look into the mailbox failed.</summary>
+public sealed record InboxSummary(bool Ready, int New, DateTimeOffset? LastCheck, string? Error);
 
 public sealed record TaskSummary(int Open, int High, List<TaskItem> Top);
 

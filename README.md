@@ -28,6 +28,7 @@ Seite mehr offen, beendet er sich selbst.
 | Kundenpakete und ihre Manifeste | `Releases\<Plugin>\<Version>\` | ja |
 | Private Schlüssel (DPAPI-verschlüsselt) | `%LOCALAPPDATA%\PluginHub\keys\` | **nein** |
 | Kundenregister mit Mail-Protokoll | `%LOCALAPPDATA%\PluginHub\register.json` | **nein** |
+| Code-Anfragen aus dem Postfach | `%LOCALAPPDATA%\PluginHub\inbox.json` | **nein** |
 | Mailkonto (Passwort DPAPI-verschlüsselt) | `%LOCALAPPDATA%\PluginHub\mail.json`, `mail.secret` | **nein** |
 | Backups (mit Passwort verschlüsselt) | `%LOCALAPPDATA%\PluginHub\Backups\` | **nein** |
 | Letztes Hochladen zu GitHub | `%LOCALAPPDATA%\PluginHub\state.json` | nein |
@@ -70,6 +71,24 @@ Jede Aufgabe kann ein Ziel haben (`goto` in tasks.json): eine Stelle im Hub (`ro
 projects.json (`open`), einen Build (`build`) oder eine Webseite (`url`). Führt der Knopf auf eine
 Hub-Seite, leuchtet die Stelle auf, und oben steht die Aufgabe mit „Erledigt“. Die möglichen
 Ziele listet `PluginHub\Services\Places.cs`.
+
+## Code-Anfragen
+
+Schickt ein Kunde über „Request a code“ (oder mit einer eigenen Mail samt Geräte-ID) eine Anfrage
+an die Kontakt-Adresse, erscheint sie im Tab **Mails** unter „Code-Anfragen“, als Hinweis in der
+Übersicht, als Zahl in der Seitenleiste und im Titel des Browser-Tabs. Der Hub liest dafür das
+Postfach seines Mailkontos per IMAP (`imap.gmail.com:993`, dasselbe App-Passwort wie beim
+Senden) – alle zwei Minuten, solange er läuft, und auf „Jetzt prüfen“. Er liest nur: In Gmail
+wird nichts markiert, verschoben oder gelöscht.
+
+Eine Anfrage ist eine Mail mit Geräte-ID, die keine Antwort ist. Plugin, „Testphase“ oder „Kauf“
+und die Version liest der Hub aus dem Text, den das Plugin schreibt. „Testcode senden …“ bzw.
+„Kauf-Code senden …“ füllt das Formular damit aus, erzeugt den Code und öffnet die Mail an den
+Kunden – als Antwort auf seine Anfrage, also im selben Gespräch. Die Anfragen liegen im privaten
+Ordner (`inbox.json`), weil sie Adressen von Kunden enthalten.
+
+Zum Testen ohne echtes Postfach: `PLUGINHUB_MAIL_DROP=<Ordner>` liest die `.eml`-Dateien dort,
+`PLUGINHUB_IMAP=host:port` spricht ohne TLS mit einem Test-Server.
 
 ## Repository sichern
 

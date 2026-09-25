@@ -146,6 +146,7 @@ function contextBar({ iconName, label, text, done, doneText, param, back, tick }
 function drawSide(path, route) {
   const o = getOverview();
   if (!o) return;
+  document.title = o.inbox.new ? `(${o.inbox.new}) Plugin Hub` : 'Plugin Hub';
   const problem = (test) => o.health.some((h) => h.level === 'problem' && test(h));
   const current = route.nav ?? path;
 
@@ -167,7 +168,7 @@ function drawSide(path, route) {
       ${link('#/planung', 'board', 'Planung', { count: o.plan.toTest })}
       ${link('#/verkauf', 'package', 'Verkauf und Export')}
       ${link('#/kunden', 'users', 'Kunden', { count: o.register.customers })}
-      ${link('#/mails', 'mail', 'Mails', { alarm: problem((h) => h.area === 'mail'), count: o.mail.due })}
+      ${link('#/mails', 'mail', 'Mails', { alarm: problem((h) => h.area === 'mail'), count: o.mail.due + o.inbox.new })}
       ${link('#/releases', 'tag', 'Releases')}
       ${link('#/schluessel', 'shield', 'Schlüssel und Backup', { alarm: problem((h) => ['keys', 'backup', 'secrets'].includes(h.area)) })}
       ${link('#/einstellungen', 'sliders', 'Einstellungen')}
@@ -216,7 +217,26 @@ document.getElementById('offline-retry').addEventListener('click', async () => {
 
 // ── Keep the hub alive while this page is open ─────────────────────────────
 
-setInterval(() => { if (!quitting) post('/api/heartbeat').catch(() => {}); }, 30_000);
+// It also says how many code requests wait: a new one shows as a message, in the tab's title
+// and in the side bar
+let requestsSeen = null;
+async function heartbeat() {
+  if (quitting) return;
+  let n;
+  try {
+    n = (await post('/api/heartbeat'))?.requests ?? 0;
+  } catch {
+    return;
+  }
+  document.title = n ? `(${n}) Plugin Hub` : 'Plugin Hub';
+  if (requestsSeen !== null && n > requestsSeen) {
+    toast(n - requestsSeen === 1 ? 'Neue Code-Anfrage – siehe Mails' : `${n - requestsSeen} neue Code-Anfragen – siehe Mails`);
+    if (!document.querySelector('dialog[open]')) changed();
+  }
+  requestsSeen = n;
+}
+setInterval(heartbeat, 30_000);
+heartbeat();
 document.addEventListener('visibilitychange', () => {
   // Coming back to the tab redraws the page - unless a dialog is open, which would lose its input
   if (document.visibilityState === 'visible' && !quitting && !document.querySelector('dialog[open]')) show({ keepScroll: true });

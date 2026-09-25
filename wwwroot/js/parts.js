@@ -169,9 +169,10 @@ const MAIL_TITLE = { code: 'Code per Mail senden', followup: 'Nachfrage senden',
 
 /**
  * Shows a mail as it would go out - subject and text editable - and sends it on request.
+ * `inReplyTo`: the message id of a customer's request - the answer joins its conversation.
  * Resolves true when it was sent.
  */
-export async function mailDialog(kind, licenseId, language = null) {
+export async function mailDialog(kind, licenseId, language = null, { inReplyTo = null } = {}) {
   let draft;
   try {
     draft = await post('/api/mails/preview', { kind, licenseId, language });
@@ -196,7 +197,7 @@ export async function mailDialog(kind, licenseId, language = null) {
         await copy(`${v.subject}\n\n${v.body}`, 'Text');
         return 'copied';
       }
-      await post('/api/mails/send', { kind, licenseId, subject: v.subject, body: v.body });
+      await post('/api/mails/send', { kind, licenseId, subject: v.subject, body: v.body, inReplyTo });
       return 'sent';
     },
   });

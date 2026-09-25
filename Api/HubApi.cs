@@ -10,7 +10,8 @@ public static class HubApi
     {
         // ── The hub itself ────────────────────────────────────────────────────
         app.MapGet("/api/hello", (HubPaths paths) => new { app = "PluginHub", root = paths.Root });
-        app.MapPost("/api/heartbeat", () => Results.NoContent());
+        // The page asks every half minute - and hears whether new code requests came in
+        app.MapPost("/api/heartbeat", (Inbox inbox) => new { requests = inbox.NewCount });
         app.MapPost("/api/quit", (IHostApplicationLifetime lifetime) =>
         {
             // Answer first, then stop
@@ -143,7 +144,7 @@ public static class HubApi
             mailer.Draft(request.Kind, request.LicenseId, request.Language));
         app.MapPost("/api/mails/send", (MailRequest request, Mailer mailer, Status status) =>
         {
-            var record = mailer.Send(request.Kind, request.LicenseId, request.Subject ?? "", request.Body ?? "");
+            var record = mailer.Send(request.Kind, request.LicenseId, request.Subject ?? "", request.Body ?? "", request.InReplyTo);
             status.Invalidate();
             return record;
         });
@@ -209,6 +210,21 @@ public static class HubApi
             tasks.Delete(id);
             status.Invalidate();
             return Results.NoContent();
+        });
+
+        // ── Code requests from the mailbox ────────────────────────────────────
+        app.MapGet("/api/inbox", (Inbox inbox, Status status) => inbox.View(status.RegisterView()));
+        app.MapPost("/api/inbox/check", (Inbox inbox, Status status) =>
+        {
+            int added = inbox.Check();
+            status.Invalidate();
+            return new { added };
+        });
+        app.MapPost("/api/inbox/{id}/status", (string id, InboxStatusRequest request, Inbox inbox, Status status) =>
+        {
+            var handled = inbox.Handle(id, request.Status, request.LicenseId);
+            status.Invalidate();
+            return handled;
         });
 
         // ── Planning: roadmap, decisions, versions, documents ─────────────────
@@ -318,7 +334,8 @@ public sealed record CustomerRequest(string Name, string? Email, string? Note, s
 
 public sealed record LicenseUpdate(string? Price, bool Paid, string? Note);
 
-public sealed record MailRequest(string Kind, string LicenseId, string? Language, string? Subject, string? Body);
+/// <summary>InReplyTo: the message id of a customer's request the mail answers.</summary>
+public sealed record MailRequest(string Kind, string LicenseId, string? Language, string? Subject, string? Body, string? InReplyTo = null);
 
 public sealed record PasswordRequest(string? Password);
 

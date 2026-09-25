@@ -52,6 +52,7 @@ builder.Services.AddSingleton<HubState>();
 builder.Services.AddSingleton<Backup>();
 builder.Services.AddSingleton<Licenses>();
 builder.Services.AddSingleton<Mailer>();
+builder.Services.AddSingleton<Inbox>();
 builder.Services.AddSingleton<Documents>();
 builder.Services.AddSingleton<Places>();
 builder.Services.AddSingleton<Tasks>();
@@ -89,6 +90,7 @@ catch (Exception ex)
 HubInstance.Announce(paths, port);
 Log.Info($"Started on {url} - root {paths.Root}");
 app.Services.GetRequiredService<IdleWatch>().Start(app.Lifetime);
+app.Services.GetRequiredService<Inbox>().Watch(app.Lifetime.ApplicationStopping);
 if (openBrowser) Desktop.OpenUrl(url);
 
 await app.WaitForShutdownAsync();

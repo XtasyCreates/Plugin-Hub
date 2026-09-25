@@ -616,6 +616,26 @@ a.chip { text-decoration: none; }
 .steps-list a svg.i { width: 14px; height: 14px; }
 form.inline input { flex: 1; min-width: 0; }
 
+/* ── Code requests ────────────────────────────────────────────────────── */
+
+.reqs { display: grid; }
+.req { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line-soft); }
+.reqs > .req:first-child { border-top: 0; padding-top: 2px; }
+.req .t { font-weight: 600; }
+.req .t .faint { font-weight: 400; margin-left: 4px; }
+.req-body { display: grid; gap: 5px; min-width: 0; }
+.req-facts { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 13px; }
+.req-actions { margin-top: 4px; }
+.req.done { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.req.done .t { font-weight: 500; }
+.reqs-done { margin-top: 10px; }
+.reqs-done > summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 0; }
+pre.mail-text {
+  margin: 0; max-height: 50vh; overflow: auto; padding: 10px 12px; border-radius: 8px;
+  border: 1px solid var(--line-soft); background: var(--bg);
+  font: 13px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spinner { animation-duration: 2.4s; }
   .toast { animation: none; }
