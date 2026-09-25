@@ -47,7 +47,9 @@ Der Tab „Planung“ hat vier Bereiche, alle nach Projekt filterbar:
 
 - **Roadmap:** ein Board mit den Stufen Idee → Entschieden → In Arbeit → Gebaut → Getestet →
   Veröffentlicht; Karten zieht man weiter. Abgelehntes liegt darunter, mit Grund. Karten in
-  „Gebaut“ tragen Test-Schritte: Claude schreibt sie beim Bauen, du hakst sie in Rhino ab. Was
+  „Gebaut“ tragen Test-Schritte: Claude schreibt sie beim Bauen, du hakst sie in Rhino ab. Ein
+  Schritt, der im Hub passiert, hat einen Knopf dorthin (`goto` am Schritt); die Seite zeigt ihn
+  dann oben mit „Abgehakt“. Was
   nicht klappt, kommt ins Feld „Was beim Test nicht geklappt hat“ – Claude liest es in der
   nächsten Sitzung, oder du kopierst den Auftrag von der Karte in den Chat. Ein Release schiebt
   die getesteten Karten seines Plugins auf „Veröffentlicht“ und füllt damit die Änderungsliste vor.
