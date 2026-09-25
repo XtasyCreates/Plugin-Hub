@@ -4,59 +4,48 @@
     "title": "Lizenzbedingungen prüfen lassen",
     "note": "Claude hat einen Entwurf nach deutschem Recht geschrieben (Hub/legal: Lizenzbedingungen.txt und License.txt). Von einer Anwältin oder einem Anwalt für IT-Recht prüfen lassen – besonders Haftung, Gewährleistung, Testphase und Verbraucherrechte. Bis diese Aufgabe erledigt ist, warnt der Release-Assistent.",
     "priority": "hoch",
-    "project": null,
     "done": false,
-    "created": "2026-09-25T00:30:00+02:00",
-    "doneAt": null
+    "created": "2026-09-25T00:30:00+02:00"
   },
   {
     "id": "t2b7d4e80",
     "title": "Gmail-App-Passwort für den Mailversand einrichten",
     "note": "Einstellungen → E-Mail. Dafür muss im Google-Konto die Bestätigung in zwei Schritten an sein; das App-Passwort erzeugst du unter myaccount.google.com → Sicherheit → App-Passwörter.",
     "priority": "mittel",
-    "project": null,
-    "done": false,
+    "done": true,
     "created": "2026-09-25T00:30:00+02:00",
-    "doneAt": null
+    "doneAt": "2026-09-25T13:00:51.2073088+02:00"
   },
   {
     "id": "t3c5f1a96",
     "title": "Eigene Kontakt-Adresse für Kunden festlegen",
     "note": "Sie steht im Plugin („Request a code“), in der Anleitung und als Antwort-Adresse der Mails. Einstellungen → Allgemein. Wirkt im Plugin ab dem nächsten Build.",
     "priority": "mittel",
-    "project": null,
     "done": false,
-    "created": "2026-09-25T00:30:00+02:00",
-    "doneAt": null
+    "created": "2026-09-25T00:30:00+02:00"
   },
   {
     "id": "t4a8e6b37",
     "title": "Anbieter-Angaben eintragen",
     "note": "Name und Anschrift für die Lizenzbedingungen – Einstellungen → Allgemein. Ohne sie lässt der Release-Assistent kein Release zu.",
     "priority": "mittel",
-    "project": null,
     "done": false,
-    "created": "2026-09-25T00:30:00+02:00",
-    "doneAt": null
+    "created": "2026-09-25T00:30:00+02:00"
   },
   {
     "id": "t5d2c9f04",
     "title": "Testdauer festlegen",
     "note": "Bis dahin schlägt der Hub 30 Tage vor (Platzhalter, Einstellungen → Allgemein).",
     "priority": "niedrig",
-    "project": null,
     "done": false,
-    "created": "2026-09-25T00:30:00+02:00",
-    "doneAt": null
+    "created": "2026-09-25T00:30:00+02:00"
   },
   {
     "id": "t6f0b3d58",
     "title": "Repository außerhalb dieses PCs sichern",
     "note": "Quelltext, Tags und Kundenpakete liegen nur in „Plugins Rhino“ auf diesem PC. Eine zweite Kopie – z. B. ein privates GitHub-Repository – schützt vor einem Festplattenausfall. Das Hub-Backup sichert nur Schlüssel und Kundenregister.",
     "priority": "mittel",
-    "project": null,
     "done": false,
-    "created": "2026-09-25T00:30:00+02:00",
-    "doneAt": null
+    "created": "2026-09-25T00:30:00+02:00"
   }
 ]
