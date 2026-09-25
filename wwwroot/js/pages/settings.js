@@ -60,25 +60,26 @@ export async function render(main) {
           <h3>${icon('mail')} E-Mail</h3>
           <span class="badge ${settings.ready ? 'ok' : 'bad'}">${settings.ready ? 'eingerichtet' : 'nicht eingerichtet'}</span>
         </div>
-        <p class="card-note">So richtest du Gmail ein: Im Google-Konto unter <em>Sicherheit</em> die Bestätigung in zwei Schritten einschalten, dann unter
-          <em>App-Passwörter</em> ein Passwort für „Plugin Hub“ erzeugen und hier eintragen. Dein normales Gmail-Passwort funktioniert nicht – und gehört auch nicht hierher.</p>
+        <p class="card-note">Der Hub sendet über dein Gmail-Konto. Dafür braucht er ein <em>App-Passwort</em> von Google – dein normales
+          Gmail-Passwort funktioniert hier nicht und gehört auch nicht hierher.
+          <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">App-Passwort bei Google erzeugen</a>
+          (geht nur, wenn im Google-Konto die Bestätigung in zwei Schritten an ist).</p>
         <div class="form-grid">
-          <label class="field"><span>Absender-Name</span><input type="text" name="senderName" value="${esc(m.senderName)}" placeholder="Gustav – Laser Create"></label>
-          <label class="field"><span>Absender-Adresse (Gmail)</span><input type="email" name="senderEmail" value="${esc(m.senderEmail)}" placeholder="name@gmail.com"></label>
-          <label class="field"><span>Server</span><input type="text" name="host" value="${esc(m.host)}"></label>
-          <label class="field"><span>Port</span><input type="number" name="port" value="${m.port}"></label>
+          <label class="field"><span>Absender-Adresse <em>deine Gmail-Adresse</em></span>
+            <input type="email" name="senderEmail" value="${esc(m.senderEmail)}" placeholder="name@gmail.com"></label>
+          <label class="field"><span>App-Passwort ${settings.hasPassword ? '<em>ist gespeichert – nur zum Ändern eintragen</em>' : '<em>16 Zeichen, Leerzeichen sind egal</em>'}</span>
+            <input type="password" name="password" autocomplete="new-password" placeholder="${settings.hasPassword ? '••••••••••••••••' : 'abcd efgh ijkl mnop'}"></label>
+          <label class="field"><span>Absender-Name <em>so sehen dich die Kunden</em></span>
+            <input type="text" name="senderName" value="${esc(m.senderName)}" placeholder="Gustav"></label>
+          <div class="form-grid inner">
+            <label class="field"><span>Server</span><input type="text" name="host" value="${esc(m.host)}"></label>
+            <label class="field"><span>Port</span><input type="number" name="port" value="${m.port}" style="width:90px"></label>
+          </div>
         </div>
         <div class="actions" style="margin-top:14px">
           <button class="btn primary" type="submit">Speichern</button>
-        </div>
-        <div class="form-grid" style="margin-top:18px">
-          <label class="field"><span>App-Passwort ${settings.hasPassword ? '<em>ist gespeichert – nur zum Ändern eintragen</em>' : ''}</span>
-            <input type="password" name="password" autocomplete="new-password" placeholder="${settings.hasPassword ? '••••••••••••••••' : '16 Zeichen von Google'}"></label>
-          <div class="field"><span>&nbsp;</span>
-            <div class="actions">
-              <button class="btn" type="button" data-password>${icon('lock')} Passwort speichern</button>
-              <button class="btn" type="button" data-test ${settings.ready ? '' : 'disabled'}>${icon('send')} Test-Mail an mich</button>
-            </div></div>
+          <button class="btn" type="button" data-test ${settings.ready ? '' : 'disabled'}>${icon('send')} Test-Mail an mich</button>
+          ${settings.ready ? '' : '<span class="faint">Die Test-Mail geht, sobald Adresse und App-Passwort gespeichert sind.</span>'}
         </div>
       </form>
 
@@ -114,11 +115,16 @@ export async function render(main) {
   }, s.contact !== new FormData(e.target).get('contact')
     ? 'Gespeichert. Die neue Kontakt-Adresse kommt mit dem nächsten Build ins Plugin.' : 'Gespeichert');
 
-  main.querySelector('#mail').onsubmit = (e) => save(e, () => {
+  // One "Speichern" for address and password: two buttons meant saving one and forgetting the other
+  main.querySelector('#mail').onsubmit = (e) => save(e, async () => {
     const f = new FormData(e.target);
-    return put('/api/settings/mail', {
+    const saved = await put('/api/settings/mail', {
       senderName: f.get('senderName'), senderEmail: f.get('senderEmail'), host: f.get('host'), port: Number(f.get('port')), userName: '',
     });
+    // Empty means "keep the stored one" - the page never gets it back to show
+    const password = String(f.get('password') ?? '').replace(/\s+/g, '');
+    if (password) await put('/api/settings/mail-password', { password });
+    return saved;
   }, 'Gespeichert');
 
   main.querySelector('#templates').onsubmit = (e) => save(e, () => {
@@ -133,19 +139,6 @@ export async function render(main) {
 
   main.onclick = async (e) => {
     if (await sharedClick(e)) return;
-    const password = e.target.closest('[data-password]');
-    if (password) {
-      const field = main.querySelector('[name=password]');
-      if (!field.value) {
-        toast('Trag zuerst das App-Passwort ein.', 'bad');
-        return;
-      }
-      if (await busy(password, () => put('/api/settings/mail-password', { password: field.value.replace(/\s+/g, '') })) !== undefined) {
-        toast('Passwort verschlüsselt gespeichert');
-        changed();
-      }
-      return;
-    }
     const test = e.target.closest('[data-test]');
     if (test) {
       const result = await busy(test, () => post('/api/mails/test'));
