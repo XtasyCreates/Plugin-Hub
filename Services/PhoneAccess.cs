@@ -33,6 +33,11 @@ public sealed class PhoneAccess
     private DateTime _infoAt = DateTime.MinValue;
     private int _refreshing;
 
+    // The link Tailscale asked to be opened, kept for a while: the page draws the card again
+    // right after switching on, and the link must still be there
+    private static readonly TimeSpan ApprovalAge = TimeSpan.FromMinutes(30);
+    private (string Link, DateTime At)? _approval;
+
     public PhoneAccess(HubPaths paths, HubPort port)
     {
         _paths = paths;
@@ -101,9 +106,14 @@ public sealed class PhoneAccess
 
         var (ok, output, approval) = Serve("--bg", "--https=443", $"http://127.0.0.1:{_port.Value}");
         if (approval != null)
+        {
+            _approval = (approval, DateTime.UtcNow);
+            Log.Info("Tailscale asks to allow Serve: " + approval);
             return Describe(Tailscale(refresh: true), approval);
+        }
         if (!ok)
             throw new HubError("Tailscale Serve ließ sich nicht einschalten: " + Short(output));
+        _approval = null;
 
         lock (_gate)
         {
@@ -163,6 +173,8 @@ public sealed class PhoneAccess
     private PhoneView Describe(TailscaleInfo info, string? approval)
     {
         var s = _state;
+        if (approval == null && !s.Enabled && _approval is { } pending && DateTime.UtcNow - pending.At < ApprovalAge)
+            approval = pending.Link;
         return new PhoneView(
             s.Enabled, s.Enabled ? "https://" + s.Host : null, s.Login, s.Since,
             info.Installed, info.State, info.Host, info.Login, info.ServesHub, info.CertReady,

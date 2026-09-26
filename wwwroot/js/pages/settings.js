@@ -161,6 +161,7 @@ export async function render(main) {
       if (!view) return;
       showPhone(view);
       if (action === 'on' && view.enabled) toast('Handy-Zugang ist an');
+      if (action === 'on' && !view.enabled && view.approval) toast('Tailscale möchte zuerst deine Freigabe – siehe Karte');
       if (action === 'off') toast('Handy-Zugang ist aus');
       if (action !== 'check') changed();
     }
@@ -227,9 +228,10 @@ function showPhone(v, error = null) {
         <div class="fact"><span>Angemeldet als</span><span>${esc(v.tailscaleLogin ?? '–')}</span></div>
       </div>
       ${v.approval ? `
-        <div class="issue" style="margin-top:12px">${icon('info')}<div><div class="t">Tailscale fragt einmal nach deiner Freigabe</div>
-          <div class="d">Damit dein Tailnet HTTPS und „Serve“ nutzen darf. Öffne den Link, bestätige dort, und klick danach noch einmal „Einschalten“.</div></div>
-          <a class="btn small" href="${esc(v.approval)}" target="_blank" rel="noopener">${icon('external')} Freigabe öffnen</a></div>`
+        <div class="issue" style="margin-top:12px">${icon('info')}<div><div class="t">Schritt 1: Tailscale fragt einmal nach deiner Freigabe</div>
+          <div class="d">Damit dein Tailnet HTTPS und „Serve“ nutzen darf. Öffne den Link, melde dich an, falls Tailscale fragt, und bestätige dort.
+            Schritt 2: hier noch einmal „Einschalten“.</div></div>
+          <a class="btn small primary" href="${esc(v.approval)}" target="_blank" rel="noopener">${icon('external')} Freigabe öffnen</a></div>`
       : `<p class="card-note" style="margin-top:12px">„Einschalten“ lässt Tailscale die Anfragen deines Handys an den Hub weiterreichen und trägt den Hub
           in den Autostart ein. Nur dein Konto ${esc(v.tailscaleLogin ?? '')} kommt herein.</p>`}`;
   }
@@ -239,7 +241,8 @@ function showPhone(v, error = null) {
     ${intro}
     ${step}
     ${pc ? `<div class="actions" style="margin-top:14px">
-      ${v.installed && v.state === 'Running' ? `<button class="btn primary" type="button" data-phone="on">${icon('phone')} Einschalten</button>` : ''}
+      ${v.installed && v.state === 'Running'
+        ? `<button class="btn ${v.approval ? '' : 'primary'}" type="button" data-phone="on">${icon('phone')} ${v.approval ? 'Noch einmal einschalten' : 'Einschalten'}</button>` : ''}
       ${check}
     </div>` : '<p class="faint">Ein- und ausschalten geht am PC.</p>'}`;
 }
