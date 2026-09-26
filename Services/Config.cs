@@ -92,8 +92,12 @@ public sealed class ProjectDef
     public string? VersionFile { get; set; }
     /// <summary>The built files that go into the customer package - nothing else does.</summary>
     public List<string> Package { get; set; } = new();
-    /// <summary>How the package ZIP starts: "LaserCreate" gives LaserCreate-1.0.0.zip.</summary>
+    /// <summary>How the package ZIP starts: "LaserCreate" gives LaserCreate-1.0.0.zip. Also the name in Rhino's Package Manager.</summary>
     public string? PackageName { get; set; }
+    /// <summary>What Rhino's Package Manager says about the plug-in - in English, like the plug-ins.</summary>
+    public string? PackageDescription { get; set; }
+    /// <summary>Words the Package Manager finds it by.</summary>
+    public List<string> PackageKeywords { get; set; } = new();
     public string? TagPattern { get; set; }
     /// <summary>The .rui Rhino may keep a cached copy of.</summary>
     public string? Toolbar { get; set; }

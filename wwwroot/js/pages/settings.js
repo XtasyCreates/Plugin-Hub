@@ -157,12 +157,17 @@ export async function render(main) {
     if (phone) {
       const action = phone.dataset.phone;
       if (action === 'copy') return copy(phone.dataset.address, 'Adresse');
-      const view = await busy(phone, () => (action === 'check' ? api('/api/phone') : post(`/api/phone/${action}`)));
+      const request = action === 'check' ? () => api('/api/phone')
+        : action.startsWith('unattended') ? () => post('/api/phone/unattended', { on: action === 'unattended-on' })
+        : () => post(`/api/phone/${action}`);
+      const view = await busy(phone, request);
       if (!view) return;
       showPhone(view);
       if (action === 'on' && view.enabled) toast('Handy-Zugang ist an');
       if (action === 'on' && !view.enabled && view.approval) toast('Tailscale möchte zuerst deine Freigabe – siehe Karte');
       if (action === 'off') toast('Handy-Zugang ist aus');
+      if (action === 'unattended-on') toast('Tailscale verbindet jetzt schon beim Windows-Start');
+      if (action === 'unattended-off') toast('Tailscale verbindet wieder erst nach dem Anmelden');
       if (action !== 'check') changed();
     }
   };
@@ -188,20 +193,38 @@ function showPhone(v, error = null) {
   }
 
   if (v.enabled) {
+    // After a restart: the hub starts with Windows once you sign in; Tailscale connects at the
+    // Windows start only when it runs unattended - otherwise with its app, a minute later
+    const restart = v.unattended === true
+      ? `${icon('check')} Tailscale verbindet schon beim Windows-Start`
+      : v.unattended === false
+        ? '<span class="warn">Tailscale verbindet erst nach dem Anmelden, etwa eine Minute später</span>'
+        : '–';
     const facts = [
       ['Adresse fürs Handy', `<span class="mono">${esc(v.address)}</span>`],
       ['Nur für das Konto', esc(v.login ?? '')],
       ['An seit', esc(v.since ? fmtDateTime(v.since) : '–')],
       ['Tailscale auf diesem PC', v.state === 'Running' ? `${icon('check')} verbunden` : `<span class="warn">${esc(v.state ?? 'nicht erreichbar')}</span>`],
-      ['Weitergabe an den Hub', v.servesHub ? `${icon('check')} aktiv` : '<span class="warn">aus – noch einmal einschalten</span>'],
-      ['Startet mit Windows', v.autostart ? `${icon('check')} ja` : '<span class="warn">nein</span>'],
+      ['Weitergabe an den Hub', v.servesHub ? `${icon('check')} aktiv` : '<span class="warn">aus – der Hub richtet sie ein, sobald Tailscale verbunden ist</span>'],
+      ...(v.mended ? [['Weitergabe selbst repariert', esc(fmtDateTime(v.mended))]] : []),
+      ['Startet mit Windows', v.autostart ? `${icon('check')} ja, nach dem Anmelden` : '<span class="warn">nein</span>'],
+      ['Nach einem Neustart', restart],
     ];
+    const unattended = !pc ? ''
+      : v.unattended === false
+        ? `<button class="btn primary" type="button" data-phone="unattended-on">${icon('power')} Tailscale vor dem Anmelden verbinden</button>`
+        : v.unattended === true
+          ? '<button class="btn ghost" type="button" data-phone="unattended-off">Wieder erst nach dem Anmelden</button>'
+          : '';
     card.innerHTML = `
       ${head('<span class="badge ok">an</span>')}
       <div class="facts">${facts.map(([k, val]) => `<div class="fact"><span>${k}</span><span>${val}</span></div>`).join('')}</div>
       <p class="card-note" style="margin-top:12px">Öffne die Adresse auf dem Handy – dort muss Tailscale mit demselben Konto verbunden sein – und
-        leg sie als Lesezeichen oder auf den Home-Bildschirm. Der Hub startet mit Windows und läuft weiter; der PC darf dabei nicht schlafen.</p>
+        leg sie als Lesezeichen oder auf den Home-Bildschirm. Nach einem Neustart meldest du dich an: Der Hub startet dann von selbst (sein Symbol
+        erscheint neben der Uhr) und richtet die Weitergabe wieder ein, sobald Tailscale verbunden ist.
+        ${v.unattended === false ? '„Tailscale vor dem Anmelden verbinden“ schaltet in Tailscale „Run unattended“ ein – dann ist es schon beim Windows-Start verbunden, auch ohne seine App.' : ''}</p>
       ${pc ? `<div class="actions">
+        ${unattended}
         <button class="btn" type="button" data-phone="copy" data-address="${esc(v.address)}">${icon('copy')} Adresse kopieren</button>
         <button class="btn danger" type="button" data-phone="off">${icon('power')} Ausschalten</button>
         ${check}

@@ -37,6 +37,13 @@ public static class Shell
         }
     }
 
+    /// <summary>Shows a file in Explorer, selected - never from a test hub, which would open windows on the desktop.</summary>
+    public static void Select(string file)
+    {
+        if (Environment.GetEnvironmentVariable("PLUGINHUB_PRIVATE_DIR") is { Length: > 0 }) return;
+        if (File.Exists(file)) Start("explorer.exe", "/select," + Quote(file));
+    }
+
     private static string VsCode()
     {
         string[] candidates =

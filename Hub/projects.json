@@ -15,6 +15,8 @@
       "activationCommand": "LaserActivation",
       "versionFile": "LaserExportPlugin/Version.props",
       "packageName": "LaserCreate",
+      "packageDescription": "Turns walls, floors and contour models into nested laser plates - with material thickness per layer, part numbers, rest plates and DXF export for the laser cutter.",
+      "packageKeywords": ["laser", "lasercut", "nesting", "dxf", "architecture", "model"],
       "package": [
         "LaserExportPlugin/bin/Release/LaserExportPlugin.rhp",
         "LaserExportPlugin/bin/Release/LaserExportPlugin.rui"
@@ -47,17 +49,22 @@
       "activationCommand": "SiteActivation",
       "versionFile": "SwToLaserPlugin/Version.props",
       "packageName": "SWtoLaser",
+      "packageDescription": "Reads figure-ground plans (Schwarzplan) from DXF, DWG, PDF and SVG, turns them into closed building outlines at model scale and hands them to Laser Create.",
+      "packageKeywords": ["schwarzplan", "figure-ground", "site", "urban", "laser", "model"],
       "package": [
-        "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp"
+        "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp",
+        "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rui"
       ],
       "tagPattern": "swl-v[0-9]*",
+      "toolbar": "SwToLaserPlugin.rui",
       "sources": ["SwToLaserPlugin", "RhinoKit"],
       "links": [
         { "id": "swl-folder",   "label": "Quellordner",    "kind": "folder", "path": "SwToLaserPlugin" },
         { "id": "swl-rhp",      "label": "Release-Ordner", "kind": "select", "path": "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp" },
         { "id": "swl-code",     "label": "In VS Code",     "kind": "vscode", "path": "SwToLaserPlugin" },
         { "id": "swl-releases", "label": "Kundenpakete",   "kind": "folder", "path": "Releases/SW to Laser" },
-        { "id": "swl-concept",  "label": "Konzept",        "kind": "file",   "path": "Schwarzplan Plugin Konzept 22_09_26.md" }
+        { "id": "swl-concept",  "label": "Konzept",        "kind": "file",   "path": "Schwarzplan Plugin Konzept 22_09_26.md" },
+        { "id": "swl-icons",    "label": "Icons",          "kind": "folder", "path": "SwToLaserPlugin/icons" }
       ]
     },
     {

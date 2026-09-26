@@ -38,6 +38,12 @@ public sealed class PhoneAccess
     private static readonly TimeSpan ApprovalAge = TimeSpan.FromMinutes(30);
     private (string Link, DateTime At)? _approval;
 
+    // The watch that keeps Serve pointed at the hub (see Watch): when it last set it up
+    // again, and how often in a row that failed
+    private DateTimeOffset? _mended;
+    private int _mendFailures;
+    private DateTime _mendTriedAt = DateTime.MinValue;
+
     public PhoneAccess(HubPaths paths, HubPort port)
     {
         _paths = paths;
@@ -154,6 +160,89 @@ public sealed class PhoneAccess
         return Describe(Tailscale(refresh: true), null);
     }
 
+    // ── After a restart ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Keeps Tailscale handing the phone's requests to this hub while phone access is on.
+    /// After a restart the hub starts with Windows, but Tailscale connects only when its own
+    /// app has started - unless it runs unattended, a minute or so later - and its Serve
+    /// setting may be gone or name a port the hub no longer has. So the hub looks shortly
+    /// after starting and then every minute, and sets Serve up again for the same PC and
+    /// account. Anything else - another account, another name - waits for the user.
+    /// </summary>
+    public void Watch(CancellationToken stopping)
+    {
+        _ = Task.Run(async () =>
+        {
+            var wait = TimeSpan.FromSeconds(10);
+            while (!stopping.IsCancellationRequested)
+            {
+                try { await Task.Delay(wait, stopping); }
+                catch (TaskCanceledException) { return; }
+                wait = TimeSpan.FromMinutes(1);
+
+                try { Mend(); }
+                catch (Exception ex) { Log.Error("Phone access check: " + ex.Message); }
+            }
+        });
+    }
+
+    /// <summary>Sets Serve up again when it no longer reaches the hub. Returns what it did, for the log and tests.</summary>
+    internal string Mend()
+    {
+        var s = _state;
+        if (!s.Enabled) return "off";
+
+        var info = Tailscale(refresh: true);
+        if (!info.Installed || info.State != "Running") return "waiting for Tailscale";
+        if (info.ServesHub) { _mendFailures = 0; return "fine"; }
+
+        if (!string.Equals(info.Host, s.Host, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(info.Login, s.Login, StringComparison.OrdinalIgnoreCase))
+            return "other PC name or account - the user switches on again";
+
+        // Three failures in a row: try again only every quarter of an hour
+        if (_mendFailures >= 3 && DateTime.UtcNow - _mendTriedAt < TimeSpan.FromMinutes(15)) return "backing off";
+        _mendTriedAt = DateTime.UtcNow;
+
+        var (ok, output, approval) = Serve("--bg", "--https=443", $"http://127.0.0.1:{_port.Value}");
+        if (approval != null)
+        {
+            _approval = (approval, DateTime.UtcNow);
+            _mendFailures++;
+            Log.Info("Tailscale asks to allow Serve again: " + approval);
+            return "approval needed";
+        }
+        if (!ok)
+        {
+            _mendFailures++;
+            Log.Error("Tailscale Serve could not be set up again: " + Short(output));
+            return "failed";
+        }
+
+        _mendFailures = 0;
+        _mended = DateTimeOffset.Now;
+        Tailscale(refresh: true);
+        Log.Info($"Tailscale Serve set up again for the phone: https://{s.Host} -> port {_port.Value}");
+        return "mended";
+    }
+
+    /// <summary>
+    /// Tailscale's "Run unattended": connected from the Windows start on, before anyone signs
+    /// in, and still after signing out. Without it Tailscale connects only once its app has
+    /// started after sign-in. Switched with the CLI on the user's click.
+    /// </summary>
+    public PhoneView SetUnattended(bool on)
+    {
+        string exe = TailscaleExe() ?? throw new HubError("Tailscale ist auf diesem PC nicht installiert.");
+        var (code, output) = Run(exe, TimeSpan.FromSeconds(15), "set", "--unattended=" + (on ? "true" : "false"));
+        if (code != 0)
+            throw new HubError("Tailscale ließ sich nicht umstellen: " + Short(output) +
+                               " Du kannst es auch selbst tun: Rechtsklick auf das Tailscale-Symbol → Settings → „Run unattended“.");
+        Log.Info("Tailscale unattended: " + (on ? "on" : "off"));
+        return Describe(Tailscale(refresh: true), null);
+    }
+
     /// <summary>
     /// For the notices on the overview: the last known Tailscale state, fetched again in the
     /// background once it is older than a minute - the overview must never wait for the CLI.
@@ -178,7 +267,7 @@ public sealed class PhoneAccess
         return new PhoneView(
             s.Enabled, s.Enabled ? "https://" + s.Host : null, s.Login, s.Since,
             info.Installed, info.State, info.Host, info.Login, info.ServesHub, info.CertReady,
-            Autostart(), approval, TestHub());
+            Autostart(), approval, TestHub(), info.Unattended, _mended);
     }
 
     // ── Tailscale ──────────────────────────────────────────────────────────
@@ -201,6 +290,13 @@ public sealed class PhoneAccess
             {
                 var (serveCode, serveOutput) = Run(exe, TimeSpan.FromSeconds(8), "serve", "status", "--json");
                 if (serveCode == 0) info.ServesHub = ProxiesTo(serveOutput, _port.Value);
+            }
+
+            // Whether Tailscale connects before sign-in ("Run unattended": ForceDaemon in its prefs)
+            if (info.Installed)
+            {
+                var (prefsCode, prefs) = Run(exe, TimeSpan.FromSeconds(8), "debug", "prefs");
+                if (prefsCode == 0) info.Unattended = ReadUnattended(prefs);
             }
         }
 
@@ -232,6 +328,17 @@ public sealed class PhoneAccess
                     StringComparison.OrdinalIgnoreCase));
         }
         catch (JsonException) { /* an old or broken CLI - reported as not running */ }
+    }
+
+    /// <summary>"ForceDaemon": true in the prefs - left out when false. Null when the output is no JSON.</summary>
+    private static bool? ReadUnattended(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty("ForceDaemon", out var f) && f.ValueKind == JsonValueKind.True;
+        }
+        catch (JsonException) { return null; }
     }
 
     /// <summary>True when some Serve handler hands requests on to this port on this PC.</summary>
@@ -469,10 +576,16 @@ public sealed class TailscaleInfo
 
     /// <summary>The tailnet has HTTPS certificates for this PC's name.</summary>
     public bool CertReady { get; set; }
+
+    /// <summary>Tailscale runs unattended - connected from the Windows start on. Null when not known.</summary>
+    public bool? Unattended { get; set; }
 }
 
-/// <summary>What the settings page shows. Approval: the link Tailscale wants opened once to allow Serve.</summary>
+/// <summary>
+/// What the settings page shows. Approval: the link Tailscale wants opened once to allow Serve.
+/// Unattended: Tailscale connects before sign-in. Mended: when the hub last set Serve up again itself.
+/// </summary>
 public sealed record PhoneView(
     bool Enabled, string? Address, string? Login, DateTimeOffset? Since,
     bool Installed, string? State, string? TailscaleHost, string? TailscaleLogin, bool ServesHub, bool CertReady,
-    bool Autostart, string? Approval, bool TestHub);
+    bool Autostart, string? Approval, bool TestHub, bool? Unattended, DateTimeOffset? Mended);

@@ -14,6 +14,14 @@ Der Hub öffnet sich im Browser unter `http://127.0.0.1:51730` – nur dieser PC
 Läuft er schon, zeigt ein zweiter Start nur den laufenden. Ist drei Minuten lang keine
 Seite mehr offen, beendet er sich selbst – außer der Handy-Zugang ist an.
 
+Solange er läuft, steht sein Symbol im Infobereich neben der Uhr (`Services\TrayIcon.cs`,
+Windows Forms auf einem eigenen Thread): Klick öffnet den Hub, Rechtsklick „Hub öffnen“ und
+„Hub beenden“. So sieht man auch einen Hub, der ohne Fenster mit Windows gestartet ist.
+
+Jeder Reiter hat eine eigene Farbe (`--c-…` in `hub.css`, `body[data-tab]` setzt `app.js`): sein
+Symbol in der Seitenleiste, die Markierung des offenen Reiters, der Streifen über der Seite, die
+Kachel am Titel und die Symbole der Karten. Die Seitenleiste ist eine Stufe dunkler als die Seite.
+
 ## Wo was liegt
 
 | Was | Wo | In Git? |
@@ -26,7 +34,8 @@ Seite mehr offen, beendet er sich selbst – außer der Handy-Zugang ist an.
 | Entscheidungen und offene Fragen | `Hub\decisions.json` | ja |
 | Mail-Vorlagen, Paket-Anleitung | `Hub\templates\` | ja |
 | Lizenzbedingungen (Entwurf, DE + EN) | `Hub\legal\` | ja |
-| Kundenpakete und ihre Manifeste | `Releases\<Plugin>\<Version>\` | ja |
+| Kundenpakete (ZIP und Rhino-Paket .yak) und ihre Manifeste | `Releases\<Plugin>\<Version>\` | ja |
+| Was im Package Manager von Rhino ist | `Hub\packages.json` | ja |
 | Private Schlüssel (DPAPI-verschlüsselt) | `%LOCALAPPDATA%\PluginHub\keys\` | **nein** |
 | Kundenregister mit Mail-Protokoll | `%LOCALAPPDATA%\PluginHub\register.json` | **nein** |
 | Code-Anfragen aus dem Postfach | `%LOCALAPPDATA%\PluginHub\inbox.json` | **nein** |
@@ -117,6 +126,14 @@ So bleibt es sicher:
   beendet sich nicht nach drei Minuten. Der PC darf dann nicht schlafen, solange du ihn
   unterwegs brauchst. Für einen Build des Hubs vorher „Hub beenden“ am PC.
 
+Nach einem Neustart: Der Hub startet mit der Anmeldung an Windows. Tailscale verbindet sich
+ohne „Run unattended“ erst, wenn seine App gestartet ist – etwa eine Minute später. Der Hub
+schaut 10 Sekunden nach dem Start und danach jede Minute nach (`PhoneAccess.Watch`): Reicht
+Serve nicht (mehr) an seinen Port weiter, richtet er es für denselben PC und dasselbe Konto neu
+ein; die Karte zeigt, wann. Die Karte zeigt auch, ob Tailscale schon beim Windows-Start
+verbindet, und schaltet das auf Klick um (`tailscale set --unattended`, gelesen aus
+`tailscale debug prefs` → `ForceDaemon`).
+
 Die Übersicht meldet, wenn das Handy den Hub nicht erreichen kann: Tailscale nicht verbunden,
 Serve aus, oder der PC hat im Tailnet einen anderen Namen.
 
@@ -151,6 +168,16 @@ Paket (nur die Dateien aus `package` in projects.json plus Anleitung, Lizenzbedi
 Changes.txt), committet es mit dem Tag `<id>-<Version>` (z. B. `laser-1.0.0`) und stellt danach
 die nächste Patch-Version ein. Die `vNN`-Tags von Laser Create sind Claudes interne Zählung.
 
+Neben dem ZIP baut jedes Release ein **Rhino-Paket** (`<name>-<Version>-rh8_nn-win.yak`) mit
+Yak.exe aus Rhino 8 (`Services\YakPackages.cs`): dieselben Dateien, das Symbol
+`<Plugin>\icons\package.png` (aus dem Panel-Symbol, `PluginHub\tools\make_package_icons.ps1`) und
+ein Manifest mit Name (`packageName`), Beschreibung und Stichworten aus projects.json; Autor ist
+der Anbieter aus den Einstellungen. „rh8_nn“ ist die Rhino-Version, gegen die gebaut wurde – das
+Paket gilt ab ihr. In Rhinos Package Manager kommt es erst mit „Zum Package Manager hochladen“
+unter Releases (`yak push`, vorher einmal „Bei Rhino anmelden“ = `yak login`); danach ist es
+öffentlich. Was hochgeladen ist, steht in `Hub\packages.json`. „Probepaket bauen“ packt den
+aktuellen Build nach `<Plugin>\bin\Release\package\`, ohne Release und ohne Hochladen.
+
 ## Bauen
 
 Den Hub vorher beenden (Seitenleiste → „Hub beenden“), sonst ist die .exe gesperrt:
@@ -168,9 +195,12 @@ Neuladen im Browser.
     set PLUGINHUB_PORT=51799
     set PLUGINHUB_TAILSCALE=<Ersatz für tailscale.exe>   (antwortet auf status/serve wie die echte)
     set PLUGINHUB_AUTOSTART_FILE=<Datei>                 (statt des Autostart-Eintrags)
+    set PLUGINHUB_YAK=<Ersatz für Yak.exe>               (baut echt, lädt nie hoch)
+    set PLUGINHUB_YAK_TOKEN=<Datei>                      (statt %APPDATA%\McNeel\yak.yml)
     PluginHub.exe --no-browser
 
-Ein Test-Hub (mit `PLUGINHUB_PRIVATE_DIR`) trägt nie etwas in den echten Autostart ein. Eine
+Ein Test-Hub (mit `PLUGINHUB_PRIVATE_DIR`) trägt nie etwas in den echten Autostart ein, zeigt
+kein Symbol neben der Uhr und öffnet keinen Explorer. Eine
 Anfrage „vom Handy“ simuliert man mit den Headern `X-Forwarded-Host: <pc-name>` und
 `Tailscale-User-Login: <konto>`.
 

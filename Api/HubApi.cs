@@ -36,6 +36,13 @@ public static class HubApi
             status.Invalidate();
             return view;
         });
+        // Tailscale connected from the Windows start on, before sign-in ("Run unattended")
+        app.MapPost("/api/phone/unattended", (UnattendedRequest request, PhoneAccess phone, Status status) =>
+        {
+            var view = phone.SetUnattended(request.On);
+            status.Invalidate();
+            return view;
+        });
 
         // ── Overview, projects, files ─────────────────────────────────────────
         app.MapGet("/api/overview", (Status status) => status.Overview());
@@ -79,6 +86,16 @@ public static class HubApi
         app.MapPost("/api/releases/{id}", (string id, ReleaseRequest request, Config config, Releases releases, Status status) =>
         {
             var job = releases.Start(config.Project(id), request);
+            status.Invalidate();
+            return job.View(0);
+        });
+        // Rhino packages (.yak): a probe of the current build, signing in to Rhino, uploading a release's
+        app.MapPost("/api/releases/{id}/yak/probe", (string id, Config config, Releases releases) =>
+            releases.Probe(config.Project(id)).View(0));
+        app.MapPost("/api/releases/yak/signin", (Releases releases) => releases.SignIn().View(0));
+        app.MapPost("/api/releases/{id}/yak/push", (string id, PushRequest request, Config config, Releases releases, Status status) =>
+        {
+            var job = releases.Push(config.Project(id), request.Version);
             status.Invalidate();
             return job.View(0);
         });
@@ -338,6 +355,10 @@ public static class HubApi
 }
 
 public sealed record OpenRequest(string LinkId);
+
+public sealed record UnattendedRequest(bool On);
+
+public sealed record PushRequest(string Version);
 
 public sealed record ProjectRequest(string Project);
 

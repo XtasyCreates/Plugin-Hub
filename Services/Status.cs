@@ -309,7 +309,8 @@ public sealed class Status
                 : ts.State != "Running"      ? "Tailscale ist auf diesem PC nicht verbunden oder nicht angemeldet."
                 : !string.Equals(ts.Host, _phone.Host, StringComparison.OrdinalIgnoreCase)
                                              ? "Der PC heißt im Tailnet inzwischen anders – schalte den Handy-Zugang noch einmal ein."
-                : !ts.ServesHub              ? "Tailscale reicht nichts mehr an den Hub weiter – schalte den Handy-Zugang noch einmal ein."
+                : !ts.ServesHub              ? "Tailscale reicht nichts mehr an den Hub weiter. Der Hub richtet das jede Minute selbst " +
+                                               "wieder ein – bleibt der Hinweis, schalte den Handy-Zugang noch einmal ein."
                 : null;
             if (problem != null)
                 items.Add(new("problem", "phone", "Das Handy erreicht den Hub nicht", problem, null, toPhone));

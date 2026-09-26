@@ -24,7 +24,16 @@
     <LangVersion>11</LangVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ApplicationIcon>hub.ico</ApplicationIcon>
+    <!-- Only for the icon in the notification area (Services/TrayIcon.cs) -->
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
+
+  <!-- Windows Forms names (Control, Timer, Application …) stay out of the other files;
+       TrayIcon.cs names them in full -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
 
   <!-- What an activation code is and how the machine id is made come from RhinoKit,
        compiled in from the very files the plug-ins use: codes made here are checked

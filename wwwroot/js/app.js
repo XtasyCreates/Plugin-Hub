@@ -37,6 +37,34 @@ const side = document.getElementById('side');
 const main = document.getElementById('main');
 let quitting = false;
 
+// Each tab's colour (hub.css, [data-tab]) and icon - the side bar, the strip over the page and
+// the tile at its title all show it, so the open tab is told at a glance
+const TABS = {
+  '#/': { key: 'uebersicht', icon: 'grid' },
+  '#/aufgaben': { key: 'aufgaben', icon: 'list' },
+  '#/planung': { key: 'planung', icon: 'board' },
+  '#/verkauf': { key: 'verkauf', icon: 'package' },
+  '#/kunden': { key: 'kunden', icon: 'users' },
+  '#/mails': { key: 'mails', icon: 'mail' },
+  '#/releases': { key: 'releases', icon: 'tag' },
+  '#/schluessel': { key: 'schluessel', icon: 'shield' },
+  '#/einstellungen': { key: 'einstellungen', icon: 'sliders' },
+};
+
+/** Colours the page as its tab and puts the tab's tile before the title; project pages have their own tile. */
+function markTab(route) {
+  const tab = TABS[route.nav ?? ''];
+  document.body.dataset.tab = tab?.key ?? 'projekt';
+  const title = main.querySelector('.page-head h1');
+  const box = title?.parentElement;
+  if (!tab || !box || box.closest('.titled') || box.querySelector('.picon')) return;
+  const titled = document.createElement('div');
+  titled.className = 'titled';
+  box.replaceWith(titled);
+  titled.innerHTML = `<span class="tab-mark" aria-hidden="true">${icon(tab.icon)}</span>`;
+  titled.append(box);
+}
+
 async function show({ keepScroll = false } = {}) {
   const [path, query] = (location.hash || '#/').split('?');
   const route = ROUTES.find((r) => r.path.test(path)) ?? ROUTES[0];
@@ -50,6 +78,7 @@ async function show({ keepScroll = false } = {}) {
     main.innerHTML = `<div class="page"><div class="issue problem">${icon('alert')}<div><div class="t">Die Seite ließ sich nicht laden</div><div class="d">${esc(e.message)}</div></div><span></span></div></div>`;
   }
   if (!keepScroll) side.classList.remove('open');   // the phone's menu closes on the way to a page
+  markTab(route);
   drawSide(path, route);
   if (keepScroll) window.scrollTo(0, scroll);
   if (params.feld) {
@@ -153,7 +182,7 @@ function drawSide(path, route) {
   const current = route.nav ?? path;
 
   const link = (href, iconName, label, { alarm = false, count = null } = {}) => `
-    <a href="${href}" class="${current === href ? 'on' : ''}" ${current === href ? 'aria-current="page"' : ''}>
+    <a href="${href}" data-tab="${TABS[href]?.key ?? 'projekt'}" class="${current === href ? 'on' : ''}" ${current === href ? 'aria-current="page"' : ''}>
       ${icon(iconName)}<span>${esc(label)}</span>
       ${alarm ? '<span class="dot" title="Braucht Aufmerksamkeit"></span>' : count ? `<span class="count">${count}</span>` : ''}
     </a>`;

@@ -29,6 +29,25 @@
   --mono: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
   --radius: 8px;
   --shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 4px 14px rgba(0, 0, 0, .05);
+
+  /* The tabs a step darker, the page a step lighter - so the side bar and what is open in it
+     never run into each other */
+  --side-bg: #E6E6EB;
+  --side-hover: #DADAE1;
+  --page-bg: #FAFAFC;
+
+  /* One colour per tab: its icon in the side bar, the marker of the open tab, the strip over
+     the page and the tile at its title. Problems stay red, buttons orange. */
+  --c-uebersicht: #2F6FDB;
+  --c-aufgaben: #1E9A58;
+  --c-planung: #7A4BD6;
+  --c-verkauf: #D9761A;
+  --c-kunden: #0E9488;
+  --c-mails: #1B8FD0;
+  --c-releases: #D23C7C;
+  --c-schluessel: #B07F0A;
+  --c-einstellungen: #667085;
+  --c-projekt: #4C5FD0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -54,13 +73,45 @@
     --ok: #6CC070;
     --ok-fill: #1F3322;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .2);
+
+    /* Dark too: tabs darker, page lighter - and the cards a step above the page */
+    --side-bg: #19191D;
+    --side-hover: #26262C;
+    --page-bg: #29292E;
+    --surface: #313137;
+    --surface-alt: #393940;
+
+    --c-uebersicht: #6EA0FF;
+    --c-aufgaben: #4CC482;
+    --c-planung: #A788FF;
+    --c-verkauf: #F2A55A;
+    --c-kunden: #3CC7B8;
+    --c-mails: #5AB8F0;
+    --c-releases: #F27AAE;
+    --c-schluessel: #E6B84A;
+    --c-einstellungen: #A3ADC2;
+    --c-projekt: #8C98F2;
   }
 }
+
+/* The colour of the tab that is open (body[data-tab], set by app.js) and of each tab's link.
+   :where keeps the default weaker than the colours below. */
+:where(body, .nav a) { --tab: var(--accent); }
+[data-tab="uebersicht"]    { --tab: var(--c-uebersicht); }
+[data-tab="aufgaben"]      { --tab: var(--c-aufgaben); }
+[data-tab="planung"]       { --tab: var(--c-planung); }
+[data-tab="verkauf"]       { --tab: var(--c-verkauf); }
+[data-tab="kunden"]        { --tab: var(--c-kunden); }
+[data-tab="mails"]         { --tab: var(--c-mails); }
+[data-tab="releases"]      { --tab: var(--c-releases); }
+[data-tab="schluessel"]    { --tab: var(--c-schluessel); }
+[data-tab="einstellungen"] { --tab: var(--c-einstellungen); }
+[data-tab="projekt"]       { --tab: var(--c-projekt); }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
-  background: var(--bg);
+  background: var(--page-bg);
   color: var(--text);
   font: 14px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -86,7 +137,7 @@ svg.i {
 .side {
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
   display: flex; flex-direction: column;
-  padding: 16px 12px; border-right: 1px solid var(--line);
+  padding: 16px 12px; border-right: 1px solid var(--line); background: var(--side-bg);
 }
 .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 18px; font-weight: 600; font-size: 15px; }
 .brand img { width: 26px; height: 26px; }
@@ -99,9 +150,12 @@ svg.i {
   padding: 7px 10px; border-radius: var(--radius);
   color: var(--muted); text-decoration: none;
 }
-.nav a:hover { background: var(--surface-alt); color: var(--text); }
-.nav a.on { background: var(--selected); color: var(--text); font-weight: 600; }
-.nav a.on svg.i { color: var(--accent); }
+.nav a:hover { background: var(--side-hover); color: var(--text); }
+.nav a svg.i { color: var(--tab); }
+.nav a.on {
+  background: color-mix(in srgb, var(--tab) 15%, var(--side-bg)); color: var(--text); font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--tab);
+}
 .nav .count { margin-left: auto; font-size: 12px; color: var(--faint); font-weight: 400; }
 .nav .dot { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
 .nav-label { font-size: 12px; font-weight: 600; color: var(--faint); padding: 18px 10px 6px; }
@@ -113,8 +167,17 @@ svg.i {
 .side-foot .led { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
 .side-foot .led.on { background: var(--ok); }
 
-.main { padding: 32px 44px 110px; min-width: 0; outline: none; }
+.main { padding: 32px 44px 110px; min-width: 0; outline: none; border-top: 4px solid var(--tab); }
 .page { max-width: 1000px; }
+
+/* The open tab's tile at the page title - the tab's icon in its colour */
+.titled { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.tab-mark {
+  width: 44px; height: 44px; border-radius: 11px; flex: none;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--tab) 16%, transparent); color: var(--tab);
+}
+.tab-mark svg.i { width: 24px; height: 24px; }
 .loading { color: var(--muted); }
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
 .page-head .sub { color: var(--muted); margin-top: 4px; }
@@ -132,7 +195,7 @@ section:first-of-type { margin-top: 0; }
 .card + .card, .issues + .card { margin-top: 16px; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
 .card-head h3 { display: flex; align-items: center; gap: 9px; }
-.card-head h3 svg.i { color: var(--accent); }
+.card-head h3 svg.i { color: var(--tab); }   /* in the colour of the open tab */
 .card-note { color: var(--muted); font-size: 13px; margin: -6px 0 14px; }
 
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
@@ -663,8 +726,11 @@ body.phone [data-change-remote], body.phone [data-remote-form], body.phone [data
      unfolds the navigation over the page */
   .side {
     position: sticky; top: 0; z-index: 30; height: auto; max-height: 100vh; max-height: 100dvh;
-    padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--line); background: var(--bg);
+    padding: 8px 12px; border-right: 0; border-bottom: 3px solid var(--tab); background: var(--side-bg);
   }
+  .main { border-top: 0; }
+  .titled { align-items: flex-start; }      /* the subtitle wraps to several lines here */
+  .tab-mark { width: 38px; height: 38px; border-radius: 10px; margin-top: 2px; }
   .brand { padding: 2px 0 2px 4px; gap: 9px; }
   .brand .here {
     display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

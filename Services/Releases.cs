@@ -32,8 +32,10 @@ public sealed class Releases
     private readonly KeyStore _keys;
     private readonly Builds _builds;
     private readonly Plan _plan;
+    private readonly YakPackages _yak;
 
-    public Releases(HubPaths paths, Config config, Settings settings, Tasks tasks, KeyStore keys, Builds builds, Plan plan)
+    public Releases(HubPaths paths, Config config, Settings settings, Tasks tasks, KeyStore keys, Builds builds, Plan plan,
+        YakPackages yak)
     {
         _plan     = plan;
         _paths    = paths;
@@ -42,6 +44,7 @@ public sealed class Releases
         _tasks    = tasks;
         _keys     = keys;
         _builds   = builds;
+        _yak      = yak;
     }
 
     public string? CurrentVersion(ProjectDef p)
@@ -73,7 +76,30 @@ public sealed class Releases
         string? build = null;
         if (p.Output != null && File.Exists(_paths.Resolve(p.Output)))
             build = FileVersionInfo.GetVersionInfo(_paths.Resolve(p.Output)).ProductVersion;
-        return new ReleaseState(p.Id, p.Name, CurrentVersion(p), build, last, since, history);
+
+        var pushed = history.Where(r => r.Yak != null)
+            .Select(r => (r.Version, Record: _yak.Pushed(p.Id, r.Version)))
+            .Where(x => x.Record != null)
+            .ToDictionary(x => x.Version, x => x.Record!.Pushed);
+        var package = new PackageState(YakPackages.PackageName(p), YakPackages.Exe() != null, YakPackages.SignedIn, pushed);
+        return new ReleaseState(p.Id, p.Name, CurrentVersion(p), build, last, since, history, package);
+    }
+
+    // ── Rhino packages ─────────────────────────────────────────────────────
+
+    /// <summary>A package of the current build, to look into before a release.</summary>
+    public BuildJob Probe(ProjectDef p) =>
+        _yak.Probe(p, _settings.Shared.Seller, version => Documents(p, version, "Probepaket – kein Release."));
+
+    public BuildJob SignIn() => _yak.Login();
+
+    /// <summary>Uploads the package of a release to Rhino's Package Manager.</summary>
+    public BuildJob Push(ProjectDef p, string version)
+    {
+        var record = History(p).FirstOrDefault(r => r.Version == version)
+                     ?? throw new HubError($"{p.Name} {version} gibt es nicht als Release.");
+        if (record.Yak == null) throw new HubError($"{p.Name} {version} wurde ohne Rhino-Paket veröffentlicht (vor v52).");
+        return _yak.Push(p, version, Path.Combine(_paths.Root, "Releases", p.Name, version, record.Yak));
     }
 
     public ReleasePlan Plan(ProjectDef p)
@@ -127,8 +153,9 @@ public sealed class Releases
             job.Add($"Die .rhp meldet Version {built}");
 
             job.Add("Kundenpaket schnüren");
-            var record = Package(p, version, changes, folder, baseCommit, confirmed);
+            var record = Package(p, version, changes, folder, baseCommit, confirmed, job.Add);
             job.Add($"{record.Zip}: {record.ZipSize / 1024} KB, {record.Files.Count} Dateien");
+            job.Add($"Rhino-Paket: {record.Yak} – {record.YakSize / 1024} KB (hochladen unter Releases, wenn du willst)");
 
             // What was tested went out with this version
             published = _plan.Publish(p.Id, version);
@@ -245,17 +272,66 @@ public sealed class Releases
     }
 
     private ReleaseRecord Package(ProjectDef p, string version, string changes, string folder, string baseCommit,
-        Dictionary<string, bool> confirmed)
+        Dictionary<string, bool> confirmed, Action<string> say)
     {
         Directory.CreateDirectory(folder);
-        var shared = _settings.Shared;
         string zipName = $"{p.PackageName ?? p.Name.Replace(" ", "")}-{version}.zip";
         string zipPath = Path.Combine(folder, zipName);
-        string date    = DateTime.Now.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
 
         var built = p.Package.Select(_paths.Resolve).ToList();
         var missing = built.Where(f => !File.Exists(f)).ToList();
         if (missing.Count > 0) throw new HubError("Für das Paket fehlt: " + string.Join(", ", missing.Select(_paths.Relative)));
+
+        var docs  = Documents(p, version, changes);
+        var files = new List<PackagedFile>();
+        using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+        {
+            foreach (string file in built)
+            {
+                zip.CreateEntryFromFile(file, $"{p.Name}/{Path.GetFileName(file)}", CompressionLevel.Optimal);
+                files.Add(new PackagedFile(Path.GetFileName(file), new FileInfo(file).Length, Sha256(File.ReadAllBytes(file))));
+            }
+            foreach (var (name, bytes) in docs)
+            {
+                var entry = zip.CreateEntry($"{p.Name}/{name}", CompressionLevel.Optimal);
+                using (var stream = entry.Open()) stream.Write(bytes);
+                files.Add(new PackagedFile(name, bytes.Length, Sha256(bytes)));
+            }
+        }
+
+        // The same files as a Rhino package, for the Package Manager
+        say("Rhino-Paket (.yak) bauen");
+        var yak = _yak.Build(p, version, _settings.Shared.Seller, docs, folder, say);
+
+        var record = new ReleaseRecord
+        {
+            Product    = p.Id,
+            Name       = p.Name,
+            Version    = version,
+            Tag        = Tag(p, version),
+            Date       = DateTimeOffset.Now,
+            BaseCommit = baseCommit,
+            Zip        = zipName,
+            ZipSize    = new FileInfo(zipPath).Length,
+            ZipSha256  = Sha256(File.ReadAllBytes(zipPath)),
+            Yak        = yak.Name,
+            YakSize    = yak.Size,
+            YakSha256  = yak.Sha256,
+            Files      = files,
+            Checks     = confirmed,
+            Changes    = changes
+        };
+        Json.Write(Path.Combine(folder, "manifest.json"), record);
+        Json.WriteText(Path.Combine(folder, "CHANGES.md"), $"# {p.Name} {version}\n\n{changes}\n");
+        return record;
+    }
+
+    /// <summary>Guide, licence terms and changes, filled in - text with a byte order mark, as Notepad likes it.</summary>
+    private List<(string Name, byte[] Bytes)> Documents(ProjectDef p, string version, string changes)
+    {
+        var shared = _settings.Shared;
+        string date = DateTime.Now.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
+        string rhp  = p.Package.Select(Path.GetFileName).FirstOrDefault(f => f!.EndsWith(".rhp", StringComparison.OrdinalIgnoreCase)) ?? "";
 
         var values = new Dictionary<string, string>
         {
@@ -263,7 +339,7 @@ public sealed class Releases
             ["version"]           = version,
             ["date"]              = date,
             ["year"]              = DateTime.Now.Year.ToString(CultureInfo.InvariantCulture),
-            ["rhp"]               = Path.GetFileName(built.FirstOrDefault(f => f.EndsWith(".rhp", StringComparison.OrdinalIgnoreCase)) ?? ""),
+            ["rhp"]               = rhp,
             ["command"]           = p.StartCommand ?? "",
             ["activationCommand"] = p.ActivationCommand ?? "",
             ["contact"]           = shared.Contact,
@@ -280,41 +356,8 @@ public sealed class Releases
             ("Changes.txt",           $"{p.Name} {version} – {date}\r\n\r\n{changes.Replace("\r\n", "\n").Replace("\n", "\r\n")}\r\n")
         };
 
-        var files = new List<PackagedFile>();
-        using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
-        {
-            foreach (string file in built)
-            {
-                zip.CreateEntryFromFile(file, $"{p.Name}/{Path.GetFileName(file)}", CompressionLevel.Optimal);
-                files.Add(new PackagedFile(Path.GetFileName(file), new FileInfo(file).Length, Sha256(File.ReadAllBytes(file))));
-            }
-            foreach (var (name, text) in docs)
-            {
-                byte[] bytes = new UTF8Encoding(true).GetPreamble().Concat(Encoding.UTF8.GetBytes(text)).ToArray();
-                var entry = zip.CreateEntry($"{p.Name}/{name}", CompressionLevel.Optimal);
-                using (var stream = entry.Open()) stream.Write(bytes);
-                files.Add(new PackagedFile(name, bytes.Length, Sha256(bytes)));
-            }
-        }
-
-        var record = new ReleaseRecord
-        {
-            Product    = p.Id,
-            Name       = p.Name,
-            Version    = version,
-            Tag        = Tag(p, version),
-            Date       = DateTimeOffset.Now,
-            BaseCommit = baseCommit,
-            Zip        = zipName,
-            ZipSize    = new FileInfo(zipPath).Length,
-            ZipSha256  = Sha256(File.ReadAllBytes(zipPath)),
-            Files      = files,
-            Checks     = confirmed,
-            Changes    = changes
-        };
-        Json.Write(Path.Combine(folder, "manifest.json"), record);
-        Json.WriteText(Path.Combine(folder, "CHANGES.md"), $"# {p.Name} {version}\n\n{changes}\n");
-        return record;
+        return docs.Select(d => (d.Name, new UTF8Encoding(true).GetPreamble().Concat(Encoding.UTF8.GetBytes(d.Text)).ToArray()))
+                   .ToList();
     }
 
     private List<string> Changes(ProjectDef p, ReleaseRecord? last)
@@ -371,6 +414,10 @@ public sealed class ReleaseRecord
     public string Zip { get; set; } = "";
     public long ZipSize { get; set; }
     public string ZipSha256 { get; set; } = "";
+    /// <summary>The Rhino package (.yak) beside the ZIP; null for releases from before v52.</summary>
+    public string? Yak { get; set; }
+    public long YakSize { get; set; }
+    public string? YakSha256 { get; set; }
     public List<PackagedFile> Files { get; set; } = new();
     public Dictionary<string, bool> Checks { get; set; } = new();
     public string Changes { get; set; } = "";
@@ -386,4 +433,7 @@ public sealed record ReleasePlan(string Product, string Name, string Version, st
 public sealed record ReleaseRequest(string? Version, string? Changes, Dictionary<string, bool>? Confirmed);
 
 public sealed record ReleaseState(string Product, string Name, string? Version, string? BuildVersion, ReleaseRecord? Last,
-    List<string> Since, List<ReleaseRecord> History);
+    List<string> Since, List<ReleaseRecord> History, PackageState Package);
+
+/// <summary>The plug-in in Rhino's Package Manager: its name there, whether Yak is at hand and signed in, what went up when.</summary>
+public sealed record PackageState(string Name, bool Available, bool SignedIn, Dictionary<string, DateTimeOffset> Pushed);

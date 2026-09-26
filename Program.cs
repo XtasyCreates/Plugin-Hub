@@ -6,7 +6,8 @@ using PluginHub.Services;
 // the browser - and, with phone access on, the user's phone through Tailscale Serve (see
 // PhoneAccess). A second start only shows the hub that is already running, and with no
 // page open for three minutes it ends itself - so it never lingers holding its .exe. With
-// phone access on it starts with Windows and stays.
+// phone access on it starts with Windows and stays. While it runs, its icon sits in the
+// notification area (TrayIcon), so a hub without a window is still seen.
 //
 //   --no-browser     start without opening a page (tests, and the start with Windows)
 //   PLUGINHUB_ROOT, PLUGINHUB_PRIVATE_DIR, PLUGINHUB_PORT
@@ -66,6 +67,7 @@ builder.Services.AddSingleton<Plan>();
 builder.Services.AddSingleton<Versions>();
 builder.Services.AddSingleton<Builds>();
 builder.Services.AddSingleton<RepoBackup>();
+builder.Services.AddSingleton<YakPackages>();
 builder.Services.AddSingleton<Releases>();
 builder.Services.AddSingleton<Status>();
 builder.Services.AddSingleton<IdleWatch>();
@@ -97,6 +99,8 @@ HubInstance.Announce(paths, port);
 Log.Info($"Started on {url} - root {paths.Root}");
 app.Services.GetRequiredService<IdleWatch>().Start(app.Lifetime);
 app.Services.GetRequiredService<Inbox>().Watch(app.Lifetime.ApplicationStopping);
+app.Services.GetRequiredService<PhoneAccess>().Watch(app.Lifetime.ApplicationStopping);
+TrayIcon.Show(url, app.Services.GetRequiredService<PhoneAccess>(), app.Lifetime);
 if (openBrowser) Desktop.OpenUrl(url);
 
 await app.WaitForShutdownAsync();
