@@ -32,6 +32,7 @@ public sealed class Places
         Add(settings, "Unterschrift unter Mails", "route", "#/einstellungen?feld=signature", "Zur Unterschrift");
         Add(settings, "E-Mail-Konto", "route", "#/einstellungen?feld=mail", "Zum E-Mail-Konto");
         Add(settings, "Mail-Vorlagen", "route", "#/einstellungen?feld=templates", "Zu den Mail-Vorlagen");
+        Add(settings, "Handy-Zugang", "route", "#/einstellungen?feld=handy", "Zum Handy-Zugang");
 
         const string sales = "Verkauf";
         Add(sales, "Lizenzcode erzeugen", "route", "#/verkauf?feld=code-card", "Code erzeugen");

@@ -1,10 +1,11 @@
-// The frame: side bar, routing between pages, the spot a link points at ("?feld=") and the
-// task or test step it came from ("?aufgabe=", "?schritt="), the heartbeat that keeps the hub
-// running, and the notice when it stops answering.
+// The frame: side bar (on the phone a narrow bar with a menu), routing between pages, the spot
+// a link points at ("?feld=") and the task or test step it came from ("?aufgabe=",
+// "?schritt="), the heartbeat that keeps the hub running, and the notice when it stops
+// answering.
 
 import { api, onOffline, post } from './api.js';
 import { confirmDialog, esc, icon, toast } from './ui.js';
-import { changed, getOverview, loadOverview } from './store.js';
+import { changed, getOverview, loadOverview, loadSession, onPhone } from './store.js';
 import { dropParam, flash, resumeBuild } from './parts.js';
 import * as overview from './pages/overview.js';
 import * as tasks from './pages/tasks.js';
@@ -48,6 +49,7 @@ async function show({ keepScroll = false } = {}) {
   } catch (e) {
     main.innerHTML = `<div class="page"><div class="issue problem">${icon('alert')}<div><div class="t">Die Seite ließ sich nicht laden</div><div class="d">${esc(e.message)}</div></div><span></span></div></div>`;
   }
+  if (!keepScroll) side.classList.remove('open');   // the phone's menu closes on the way to a page
   drawSide(path, route);
   if (keepScroll) window.scrollTo(0, scroll);
   if (params.feld) {
@@ -160,8 +162,17 @@ function drawSide(path, route) {
     ? `<span class="led on"></span>${esc([...new Set(o.rhino.map((r) => r.label))].join(', '))} läuft`
     : '<span class="led"></span>Rhino ist geschlossen';
 
+  // The page's name, for the narrow bar on the phone
+  const here = { '#/': 'Übersicht', '#/aufgaben': 'Aufgaben', '#/planung': 'Planung', '#/verkauf': 'Verkauf und Export',
+    '#/kunden': 'Kunden', '#/mails': 'Mails', '#/releases': 'Releases', '#/schluessel': 'Schlüssel und Backup',
+    '#/einstellungen': 'Einstellungen' }[current] ?? o.projects.find((p) => `#/projekt/${p.id}` === current)?.name ?? '';
+  const open = side.classList.contains('open');
+
   side.innerHTML = `
-    <div class="brand"><img src="favicon.svg" alt=""><span>Plugin Hub</span></div>
+    <div class="brand">
+      <img src="favicon.svg" alt=""><span>Plugin Hub</span><span class="here">${esc(here)}</span>
+      <button class="btn ghost icon-only menu-btn" data-menu aria-expanded="${open}" aria-label="Menü">${icon(open ? 'x' : 'menu')}</button>
+    </div>
     <nav class="nav">
       ${link('#/', 'grid', 'Übersicht', { alarm: problem(() => true) })}
       ${link('#/aufgaben', 'list', 'Aufgaben', { count: o.tasks.open })}
@@ -177,13 +188,28 @@ function drawSide(path, route) {
     </nav>
     <div class="side-foot">
       <div class="rhino">${rhino}</div>
+      ${onPhone() ? `<div class="rhino">${icon('phone')} Vom Handy über Tailscale</div>` : ''}
       <button class="btn ghost small" data-quit>${icon('power')} Hub beenden</button>
     </div>`;
 }
 
 side.addEventListener('click', async (e) => {
+  const menu = e.target.closest('[data-menu]');
+  if (menu) {
+    const open = side.classList.toggle('open');
+    menu.setAttribute('aria-expanded', String(open));
+    menu.innerHTML = icon(open ? 'x' : 'menu');
+    return;
+  }
+  // A tap on the page it already shows only folds the menu away
+  if (e.target.closest('.nav a')) side.classList.remove('open');
   if (!e.target.closest('[data-quit]')) return;
-  if (!(await confirmDialog('Hub beenden?', 'Er startet wieder über die Desktop-Verknüpfung „Plugin Hub“.', { confirm: 'Beenden' }))) return;
+  // With phone access on, the phone loses the hub too - until the next start
+  const access = (await api('/api/session').catch(() => null))?.phoneAccess;
+  const text = access
+    ? 'Er startet wieder über die Desktop-Verknüpfung „Plugin Hub“ oder mit dem nächsten Windows-Start. Bis dahin erreicht ihn auch dein Handy nicht.'
+    : 'Er startet wieder über die Desktop-Verknüpfung „Plugin Hub“.';
+  if (!(await confirmDialog('Hub beenden?', text, { confirm: 'Beenden' }))) return;
   quitting = true;
   await post('/api/quit').catch(() => {});
   showOffline(true);
@@ -198,6 +224,9 @@ function showOffline(down) {
   if (!down) return;
   document.getElementById('offline-title').textContent = quitting ? 'Der Hub ist beendet' : 'Der Hub antwortet nicht';
   if (quitting) document.getElementById('offline-text').textContent = 'Du kannst diesen Tab schließen. Neu starten geht über die Desktop-Verknüpfung „Plugin Hub“.';
+  // The phone cannot restart it - it can only say what the PC needs
+  else if (onPhone()) document.getElementById('offline-text').textContent =
+    'Das Handy erreicht deinen PC nicht. Er muss an sein und darf nicht schlafen, und Tailscale muss auf PC und Handy verbunden sein.';
 }
 
 onOffline((down) => {
@@ -245,5 +274,8 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('hashchange', () => show());
 window.addEventListener('hub:changed', () => show({ keepScroll: true }));
 
-show();
-resumeBuild();
+// Where the page is open decides what it offers - asked once, before the first page
+loadSession().finally(() => {
+  show();
+  resumeBuild();
+});

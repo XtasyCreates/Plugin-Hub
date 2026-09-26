@@ -90,6 +90,9 @@ svg.i {
 }
 .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 18px; font-weight: 600; font-size: 15px; }
 .brand img { width: 26px; height: 26px; }
+/* The page's name and the menu button belong to the narrow bar on the phone (two classes: .btn
+   further down would otherwise show the button again) */
+.brand .here, .brand .menu-btn { display: none; }
 .nav { display: grid; gap: 2px; }
 .nav a {
   display: flex; align-items: center; gap: 10px;
@@ -454,7 +457,7 @@ a.task-body:hover .t { color: var(--accent-ink); }
 .stage-chips .chip b { font-variant-numeric: tabular-nums; }
 .stage-chips .chip.zero { color: var(--faint); }
 .fact a { text-decoration: none; }
-.fact a.warn { color: var(--danger); }
+.fact a.warn, .fact .warn { color: var(--danger); }
 
 /* ── Planning: tabs, project filter ───────────────────────────────────── */
 
@@ -641,10 +644,50 @@ pre.mail-text {
   .toast { animation: none; }
 }
 
+/* ── On the phone: what only works on the PC is left out ────────────── */
+
+.phone-note { display: none; }
+body.phone .phone-note { display: grid; margin-bottom: 16px; }
+body.phone .pc-only,
+body.phone [data-build], body.phone [data-open], body.phone [data-clear-cache], body.phone [data-release],
+body.phone [data-act="build"], body.phone [data-act="open"], body.phone [data-act="push"],
+body.phone [data-push], body.phone [data-generate], body.phone [data-backup], body.phone [data-restore],
+body.phone [data-change-remote], body.phone [data-remote-form], body.phone [data-quit] {
+  display: none !important;
+}
+
 @media (max-width: 860px) {
   .app { grid-template-columns: 1fr; }
-  .side { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-  .side-foot { margin-top: 12px; }
+
+  /* The side bar becomes a narrow bar on top: the hub, the page, and a menu button that
+     unfolds the navigation over the page */
+  .side {
+    position: sticky; top: 0; z-index: 30; height: auto; max-height: 100vh; max-height: 100dvh;
+    padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--line); background: var(--bg);
+  }
+  .brand { padding: 2px 0 2px 4px; gap: 9px; }
+  .brand .here {
+    display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-weight: 500; color: var(--muted);
+  }
+  .brand .here::before { content: "·"; margin-right: 9px; color: var(--faint); }
+  .brand .menu-btn { display: inline-flex; margin-left: auto; flex: none; }
+  .side:not(.open) .nav, .side:not(.open) .side-foot { display: none; }
+  .side.open { overflow-y: auto; box-shadow: 0 14px 34px rgba(0, 0, 0, .18); }
+  .side.open .nav { padding-top: 8px; }
+  .side-foot { margin-top: 12px; padding-bottom: 6px; }
+  .nav a { padding: 10px; }
+  .taskbar { top: 60px; }
+
+  /* A notice's button goes under its text - beside it, the text had a third of the width */
+  .issue { grid-template-columns: auto minmax(0, 1fr); }
+  .issue > :last-child:not(:empty) { grid-column: 2; justify-self: start; }
+  .issue > span:empty:last-child { display: none; }
+
+  /* The board: one column across the screen, the next one a swipe away */
+  .board { grid-template-columns: repeat(6, 84vw); scroll-snap-type: x mandatory; overscroll-behavior-x: contain; }
+  .col { scroll-snap-align: start; }
+
   .main { padding: 22px 16px 110px; }
   .form-grid { grid-template-columns: minmax(0, 1fr); }
   .rel, .keyrow { grid-template-columns: minmax(0, 1fr); }

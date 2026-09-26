@@ -9,9 +9,10 @@ erledigt wird.
 ## Starten
 
 Desktop-Verknüpfung **Plugin Hub**, oder `PluginHub\bin\Release\PluginHub.exe`.
-Der Hub öffnet sich im Browser unter `http://127.0.0.1:51730` – nur dieser PC erreicht ihn.
+Der Hub öffnet sich im Browser unter `http://127.0.0.1:51730` – nur dieser PC erreicht ihn
+(und, mit Handy-Zugang, dein Handy über Tailscale, siehe unten).
 Läuft er schon, zeigt ein zweiter Start nur den laufenden. Ist drei Minuten lang keine
-Seite mehr offen, beendet er sich selbst.
+Seite mehr offen, beendet er sich selbst – außer der Handy-Zugang ist an.
 
 ## Wo was liegt
 
@@ -30,6 +31,7 @@ Seite mehr offen, beendet er sich selbst.
 | Kundenregister mit Mail-Protokoll | `%LOCALAPPDATA%\PluginHub\register.json` | **nein** |
 | Code-Anfragen aus dem Postfach | `%LOCALAPPDATA%\PluginHub\inbox.json` | **nein** |
 | Mailkonto (Passwort DPAPI-verschlüsselt) | `%LOCALAPPDATA%\PluginHub\mail.json`, `mail.secret` | **nein** |
+| Handy-Zugang (Name im Tailnet, erlaubtes Konto) | `%LOCALAPPDATA%\PluginHub\phone.json` | **nein** |
 | Backups (mit Passwort verschlüsselt) | `%LOCALAPPDATA%\PluginHub\Backups\` | **nein** |
 | Letztes Hochladen zu GitHub | `%LOCALAPPDATA%\PluginHub\state.json` | nein |
 | Protokoll | `%LOCALAPPDATA%\PluginHub\hub.log` | nein |
@@ -90,6 +92,34 @@ Ordner (`inbox.json`), weil sie Adressen von Kunden enthalten.
 Zum Testen ohne echtes Postfach: `PLUGINHUB_MAIL_DROP=<Ordner>` liest die `.eml`-Dateien dort,
 `PLUGINHUB_IMAP=host:port` spricht ohne TLS mit einem Test-Server.
 
+## Vom Handy aus
+
+Einstellungen → **Handy-Zugang**. Der Weg geht über [Tailscale](https://tailscale.com): Die
+kostenlose App kommt auf PC und Handy, beide mit demselben Konto. „Einschalten“ lässt
+`tailscale serve` die Anfragen deines Handys an den Hub weiterreichen – unter
+`https://<pc-name>.<tailnet>.ts.net`, verschlüsselt und nur für deine Geräte sichtbar. Im
+Internet ist nichts offen, am Router und in der Windows-Firewall ändert sich nichts. Beim
+ersten Mal fragt Tailscale im Browser nach einer Freigabe für Serve und HTTPS; danach noch
+einmal „Einschalten“.
+
+So bleibt es sicher:
+- Eine weitergereichte Anfrage erkennt der Hub an `X-Forwarded-Host`, das Serve immer setzt.
+  Sie gilt als Handy-Anfrage, egal was sie als Host angibt, denn den Host-Header gibt Serve
+  unverändert weiter.
+- Herein kommt sie nur, wenn der Handy-Zugang an ist, der PC-Name stimmt und
+  `Tailscale-User-Login` genau das Konto ist, mit dem eingeschaltet wurde. Dieses Konto setzt
+  Tailscale selbst, ein Gerät kann es nicht vorgeben. Funnel (öffentlich) und getaggte Geräte
+  kommen nicht herein.
+- Vom Handy aus gesperrt sind Schlüssel, Backups, Releases, Bauen, Hochladen zu GitHub, die
+  Repository-Adresse, Dateien auf dem PC, „Hub beenden“ und der Handy-Zugang selbst. Die Seite
+  blendet diese Knöpfe auf dem Handy aus (`body.phone`), der Server lehnt sie trotzdem ab.
+- Solange der Handy-Zugang an ist, startet der Hub mit Windows (HKCU\…\Run, `--no-browser`) und
+  beendet sich nicht nach drei Minuten. Der PC darf dann nicht schlafen, solange du ihn
+  unterwegs brauchst. Für einen Build des Hubs vorher „Hub beenden“ am PC.
+
+Die Übersicht meldet, wenn das Handy den Hub nicht erreichen kann: Tailscale nicht verbunden,
+Serve aus, oder der PC hat im Tailnet einen anderen Namen.
+
 ## Repository sichern
 
 Unter „Schlüssel und Backup → Repository sichern“ trägt man die Adresse eines privaten
@@ -130,7 +160,13 @@ Neuladen im Browser.
     set PLUGINHUB_PRIVATE_DIR=<leerer Ordner>
     set PLUGINHUB_MAIL_PICKUP=<Ordner>      (Mails werden dort als .eml abgelegt statt gesendet)
     set PLUGINHUB_PORT=51799
+    set PLUGINHUB_TAILSCALE=<Ersatz für tailscale.exe>   (antwortet auf status/serve wie die echte)
+    set PLUGINHUB_AUTOSTART_FILE=<Datei>                 (statt des Autostart-Eintrags)
     PluginHub.exe --no-browser
+
+Ein Test-Hub (mit `PLUGINHUB_PRIVATE_DIR`) trägt nie etwas in den echten Autostart ein. Eine
+Anfrage „vom Handy“ simuliert man mit den Headern `X-Forwarded-Host: <pc-name>` und
+`Tailscale-User-Login: <konto>`.
 
 Wichtig für Claude: Aus den Werkzeugen gestartete Programme schreiben außerhalb des
 Projektordners in eine Sandbox, die der Nutzer nicht sieht. Echte Schlüssel, Kunden und

@@ -4,6 +4,7 @@
 import { api } from './api.js';
 
 let overview = null;
+let phone = false;
 
 export async function loadOverview() {
   overview = await api('/api/overview');
@@ -11,6 +12,20 @@ export async function loadOverview() {
 }
 
 export const getOverview = () => overview;
+
+/**
+ * Asks the hub where this page is open. On the phone (through Tailscale) the body gets the
+ * class "phone", and what only works on the PC - keys, backups, builds, releases, uploading,
+ * files - is left out.
+ */
+export async function loadSession() {
+  const session = await api('/api/session').catch(() => null);
+  phone = Boolean(session?.phone);
+  document.body.classList.toggle('phone', phone);
+  return phone;
+}
+
+export const onPhone = () => phone;
 
 export const changed = () => window.dispatchEvent(new CustomEvent('hub:changed'));
 

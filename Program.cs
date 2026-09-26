@@ -3,13 +3,17 @@ using PluginHub.Api;
 using PluginHub.Services;
 
 // Plugin Hub: a small web server that only this PC can reach (http://127.0.0.1), used in
-// the browser. A second start only shows the hub that is already running, and with no
-// page open for three minutes it ends itself - so it never lingers holding its .exe.
+// the browser - and, with phone access on, the user's phone through Tailscale Serve (see
+// PhoneAccess). A second start only shows the hub that is already running, and with no
+// page open for three minutes it ends itself - so it never lingers holding its .exe. With
+// phone access on it starts with Windows and stays.
 //
-//   --no-browser     start without opening a page (tests)
+//   --no-browser     start without opening a page (tests, and the start with Windows)
 //   PLUGINHUB_ROOT, PLUGINHUB_PRIVATE_DIR, PLUGINHUB_PORT
 //                    run against a copy: a test hub touches neither the real keys nor
 //                    the real register
+//   PLUGINHUB_TAILSCALE, PLUGINHUB_AUTOSTART_FILE
+//                    a stand-in for tailscale.exe, and a file instead of the autostart entry
 
 HubPaths paths;
 try
@@ -44,6 +48,8 @@ builder.WebHost.UseKestrel(k => k.Listen(IPAddress.Loopback, port));
 builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = true);
 
 builder.Services.AddSingleton(paths);
+builder.Services.AddSingleton(new HubPort(port));
+builder.Services.AddSingleton<PhoneAccess>();
 builder.Services.AddSingleton<Config>();
 builder.Services.AddSingleton<Settings>();
 builder.Services.AddSingleton<KeyStore>();

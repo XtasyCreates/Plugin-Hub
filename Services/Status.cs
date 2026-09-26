@@ -36,14 +36,17 @@ public sealed class Status
     private readonly Plan _plan;
     private readonly RepoBackup _repo;
     private readonly Inbox _inbox;
+    private readonly PhoneAccess _phone;
 
     private readonly object _gate = new();
     private OverviewView? _cached;
     private DateTime _cachedAt;
 
     public Status(HubPaths paths, Config config, KeyStore keys, Register register, HubState state,
-        Settings settings, Tasks tasks, Mailer mailer, Releases releases, Plan plan, RepoBackup repo, Inbox inbox)
+        Settings settings, Tasks tasks, Mailer mailer, Releases releases, Plan plan, RepoBackup repo, Inbox inbox,
+        PhoneAccess phone)
     {
+        _phone    = phone;
         _paths    = paths;
         _config   = config;
         _keys     = keys;
@@ -296,6 +299,21 @@ public sealed class Status
         if (_inbox.Ready && inbox.LastError != null)
             items.Add(new("hint", "mail", "Das Postfach für Code-Anfragen ließ sich nicht lesen", inbox.LastError, null,
                 new("route", "#/mails?feld=anfragen", "Ansehen")));
+
+        // Phone access that no longer reaches the hub - the phone itself cannot tell why
+        if (_phone.Enabled && _phone.CachedInfo() is { } ts)
+        {
+            var toPhone = new HubAction("route", "#/einstellungen?feld=handy", "Zum Handy-Zugang");
+            string? problem =
+                  !ts.Installed              ? "Tailscale ist auf diesem PC nicht mehr installiert."
+                : ts.State != "Running"      ? "Tailscale ist auf diesem PC nicht verbunden oder nicht angemeldet."
+                : !string.Equals(ts.Host, _phone.Host, StringComparison.OrdinalIgnoreCase)
+                                             ? "Der PC heißt im Tailnet inzwischen anders – schalte den Handy-Zugang noch einmal ein."
+                : !ts.ServesHub              ? "Tailscale reicht nichts mehr an den Hub weiter – schalte den Handy-Zugang noch einmal ein."
+                : null;
+            if (problem != null)
+                items.Add(new("problem", "phone", "Das Handy erreicht den Hub nicht", problem, null, toPhone));
+        }
 
         int ending = register.Licenses.Count(l => l.Status.State == "ending");
         if (ending > 0)

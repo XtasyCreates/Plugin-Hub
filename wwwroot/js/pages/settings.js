@@ -1,10 +1,11 @@
 // Einstellungen: what belongs to the products (Hub\settings.json, in Git), the mail account
-// (private, the password never comes back to the page) and the mail templates.
+// (private, the password never comes back to the page), the mail templates, and phone access
+// through Tailscale (private, switched on and off only on the PC).
 
 import { api, post, put } from '../api.js';
-import { changed, loadOverview } from '../store.js';
+import { changed, loadOverview, onPhone } from '../store.js';
 import { sharedClick } from '../parts.js';
-import { busy, esc, icon, toast } from '../ui.js';
+import { busy, copy, esc, fmtDateTime, icon, toast } from '../ui.js';
 
 const KINDS = [
   { id: 'code', label: 'Code senden' },
@@ -100,7 +101,15 @@ export async function render(main) {
           </div>`).join('')}
         <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Vorlagen speichern</button></div>
       </form>
+
+      <div class="card" id="handy">
+        <div class="card-head"><h3>${icon('phone')} Handy-Zugang</h3></div>
+        <p class="faint">Prüfe Tailscale …</p>
+      </div>
     </div>`;
+
+  // Asking Tailscale takes a moment - the rest of the page does not wait for it
+  api('/api/phone').then(showPhone).catch((e) => showPhone(null, e.message));
 
   main.oninput = null;
   main.onchange = null;
@@ -144,7 +153,95 @@ export async function render(main) {
       const result = await busy(test, () => post('/api/mails/test'));
       if (result) toast(`Test-Mail an ${result.to} gesendet – schau in dein Postfach`);
     }
+    const phone = e.target.closest('[data-phone]');
+    if (phone) {
+      const action = phone.dataset.phone;
+      if (action === 'copy') return copy(phone.dataset.address, 'Adresse');
+      const view = await busy(phone, () => (action === 'check' ? api('/api/phone') : post(`/api/phone/${action}`)));
+      if (!view) return;
+      showPhone(view);
+      if (action === 'on' && view.enabled) toast('Handy-Zugang ist an');
+      if (action === 'off') toast('Handy-Zugang ist aus');
+      if (action !== 'check') changed();
+    }
   };
+}
+
+/**
+ * The phone card: what Tailscale says, and one button for the next step - install, sign in,
+ * allow Serve once, switch on. On the phone itself it only shows where things stand.
+ */
+function showPhone(v, error = null) {
+  const card = document.getElementById('handy');
+  if (!card) return;
+  const pc = !onPhone();
+  const head = (badge) => `<div class="card-head"><h3>${icon('phone')} Handy-Zugang</h3>${badge}</div>`;
+  const check = `<button class="btn" type="button" data-phone="check">${icon('refresh')} Erneut prüfen</button>`;
+  const intro = `<p class="card-note">Mit <strong>Tailscale</strong> erreichst du den Hub von deinem Handy aus – von überall, verschlüsselt und
+    nur für deine eigenen Geräte. Im Internet ist nichts zu sehen, und am Router richtest du nichts ein. Vom Handy aus geht alles außer
+    Schlüsseln, Backups, Releases, Bauen, Hochladen und Dateien auf dem PC.</p>`;
+
+  if (!v) {
+    card.innerHTML = `${head('')}<p class="faint">Tailscale ließ sich nicht fragen: ${esc(error ?? '')}</p>${pc ? `<div class="actions">${check}</div>` : ''}`;
+    return;
+  }
+
+  if (v.enabled) {
+    const facts = [
+      ['Adresse fürs Handy', `<span class="mono">${esc(v.address)}</span>`],
+      ['Nur für das Konto', esc(v.login ?? '')],
+      ['An seit', esc(v.since ? fmtDateTime(v.since) : '–')],
+      ['Tailscale auf diesem PC', v.state === 'Running' ? `${icon('check')} verbunden` : `<span class="warn">${esc(v.state ?? 'nicht erreichbar')}</span>`],
+      ['Weitergabe an den Hub', v.servesHub ? `${icon('check')} aktiv` : '<span class="warn">aus – noch einmal einschalten</span>'],
+      ['Startet mit Windows', v.autostart ? `${icon('check')} ja` : '<span class="warn">nein</span>'],
+    ];
+    card.innerHTML = `
+      ${head('<span class="badge ok">an</span>')}
+      <div class="facts">${facts.map(([k, val]) => `<div class="fact"><span>${k}</span><span>${val}</span></div>`).join('')}</div>
+      <p class="card-note" style="margin-top:12px">Öffne die Adresse auf dem Handy – dort muss Tailscale mit demselben Konto verbunden sein – und
+        leg sie als Lesezeichen oder auf den Home-Bildschirm. Der Hub startet mit Windows und läuft weiter; der PC darf dabei nicht schlafen.</p>
+      ${pc ? `<div class="actions">
+        <button class="btn" type="button" data-phone="copy" data-address="${esc(v.address)}">${icon('copy')} Adresse kopieren</button>
+        <button class="btn danger" type="button" data-phone="off">${icon('power')} Ausschalten</button>
+        ${check}
+      </div>` : '<p class="faint">Ein- und ausschalten geht am PC.</p>'}`;
+    return;
+  }
+
+  let step;
+  if (!v.installed) {
+    step = `
+      <ol class="steps-list">
+        <li>Tailscale auf diesem PC installieren und anmelden:
+          <a href="https://tailscale.com/download/windows" target="_blank" rel="noopener">tailscale.com/download ${icon('external')}</a></li>
+        <li>Tailscale auf dem Handy installieren (App Store oder Google Play) und mit <strong>demselben Konto</strong> anmelden.</li>
+        <li>Hier „Erneut prüfen“, dann „Einschalten“.</li>
+      </ol>`;
+  } else if (v.state !== 'Running') {
+    step = `<div class="issue">${icon('info')}<div><div class="t">Tailscale ist auf diesem PC nicht verbunden</div>
+      <div class="d">Öffne Tailscale über das Symbol in der Taskleiste und melde dich an – mit dem Konto, das auch dein Handy nutzt.</div></div><span></span></div>`;
+  } else {
+    step = `
+      <div class="facts">
+        <div class="fact"><span>Dieser PC im Tailnet</span><span class="mono">${esc(v.tailscaleHost ?? '–')}</span></div>
+        <div class="fact"><span>Angemeldet als</span><span>${esc(v.tailscaleLogin ?? '–')}</span></div>
+      </div>
+      ${v.approval ? `
+        <div class="issue" style="margin-top:12px">${icon('info')}<div><div class="t">Tailscale fragt einmal nach deiner Freigabe</div>
+          <div class="d">Damit dein Tailnet HTTPS und „Serve“ nutzen darf. Öffne den Link, bestätige dort, und klick danach noch einmal „Einschalten“.</div></div>
+          <a class="btn small" href="${esc(v.approval)}" target="_blank" rel="noopener">${icon('external')} Freigabe öffnen</a></div>`
+      : `<p class="card-note" style="margin-top:12px">„Einschalten“ lässt Tailscale die Anfragen deines Handys an den Hub weiterreichen und trägt den Hub
+          in den Autostart ein. Nur dein Konto ${esc(v.tailscaleLogin ?? '')} kommt herein.</p>`}`;
+  }
+
+  card.innerHTML = `
+    ${head('<span class="badge">aus</span>')}
+    ${intro}
+    ${step}
+    ${pc ? `<div class="actions" style="margin-top:14px">
+      ${v.installed && v.state === 'Running' ? `<button class="btn primary" type="button" data-phone="on">${icon('phone')} Einschalten</button>` : ''}
+      ${check}
+    </div>` : '<p class="faint">Ein- und ausschalten geht am PC.</p>'}`;
 }
 
 async function save(e, action, message) {

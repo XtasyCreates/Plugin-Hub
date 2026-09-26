@@ -22,6 +22,9 @@ export async function render(main) {
         </div>
       </header>
 
+      <div class="issue phone-note">${icon('phone')}<div><div class="t">Auf dem Handy nur zum Ansehen</div>
+        <div class="d">Schlüssel, Backups und das Hochladen zu GitHub gehen am PC.</div></div><span></span></div>
+
       ${issueList(issues, { here: '#/schluessel' })}
 
       <div class="card" style="margin-top:16px" id="keys">

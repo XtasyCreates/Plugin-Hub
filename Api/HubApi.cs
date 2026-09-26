@@ -19,6 +19,24 @@ public static class HubApi
             return Results.NoContent();
         });
 
+        // ── The phone ─────────────────────────────────────────────────────────
+        // Where the page is open: on the phone it leaves out what only works on this PC
+        app.MapGet("/api/session", (HttpContext context, PhoneAccess phone) =>
+            new { phone = LocalOnly.FromPhone(context), phoneAccess = phone.Enabled });
+        app.MapGet("/api/phone", (PhoneAccess phone) => phone.View());
+        app.MapPost("/api/phone/on", (PhoneAccess phone, Status status) =>
+        {
+            var view = phone.TurnOn();
+            status.Invalidate();
+            return view;
+        });
+        app.MapPost("/api/phone/off", (PhoneAccess phone, Status status) =>
+        {
+            var view = phone.TurnOff();
+            status.Invalidate();
+            return view;
+        });
+
         // ── Overview, projects, files ─────────────────────────────────────────
         app.MapGet("/api/overview", (Status status) => status.Overview());
         app.MapGet("/api/projects/{id}", (string id, Status status) => status.ProjectDetail(id));

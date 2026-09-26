@@ -20,6 +20,9 @@ export async function render(main) {
         <button class="btn" data-open="releases">${icon('folder')} Kundenpakete</button>
       </header>
 
+      <div class="issue phone-note">${icon('phone')}<div><div class="t">Auf dem Handy nur zum Ansehen</div>
+        <div class="d">Releases erstellst du am PC – der Hub baut und packt sie dort.</div></div><span></span></div>
+
       ${states.map((s) => card(o, s)).join('')}
     </div>`;
 

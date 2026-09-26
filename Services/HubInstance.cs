@@ -69,18 +69,20 @@ public sealed class RunningHub
 /// <summary>
 /// Ends the hub once no page has checked in for three minutes - it should not linger in the
 /// background holding its .exe (a rebuild of the hub would fail). A running build keeps it
-/// alive.
+/// alive, and so does phone access: the phone must find it whenever it asks.
 /// </summary>
 public sealed class IdleWatch
 {
     private static readonly TimeSpan Grace = TimeSpan.FromMinutes(3);
 
     private readonly Builds _builds;
+    private readonly PhoneAccess _phone;
     private long _lastTicks = DateTime.UtcNow.Ticks;
 
-    public IdleWatch(Builds builds)
+    public IdleWatch(Builds builds, PhoneAccess phone)
     {
         _builds = builds;
+        _phone  = phone;
     }
 
     public void Touch() => Interlocked.Exchange(ref _lastTicks, DateTime.UtcNow.Ticks);
@@ -96,7 +98,7 @@ public sealed class IdleWatch
                 try { await Task.Delay(TimeSpan.FromSeconds(15), stopping); }
                 catch (TaskCanceledException) { return; }
 
-                if (_builds.Running)
+                if (_builds.Running || _phone.Enabled)
                 {
                     Touch();
                     continue;
