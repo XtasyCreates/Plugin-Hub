@@ -74,6 +74,7 @@ public sealed class LocalOnly
                 return;
             }
             context.Items[PhoneKey] = true;
+            Desktop.KeepAwake();      // a PC woken from the phone stays up while the phone uses it
         }
         else if (!_hosts.Contains(request.Host.Value))
         {

@@ -15,6 +15,24 @@ public static class Desktop
     /// <summary>A message box - the only way a hub without a page can say what went wrong.</summary>
     public static void ShowError(string text) => MessageBoxW(IntPtr.Zero, text, "Plugin Hub", 0x10);
 
+    /// <summary>
+    /// Tells Windows the system is in use right now - it starts its count to sleep over. A PC
+    /// woken from the phone (Wake-on-LAN) sees no keyboard or mouse and goes back to sleep after
+    /// two minutes; the phone's page asks every half minute, and each request keeps it awake.
+    /// Once the page is closed, the PC sleeps as it would anyway. Only the idle count is reset -
+    /// no lasting request, nothing that could keep the PC up after the hub is gone.
+    /// </summary>
+    public static void KeepAwake()
+    {
+        try { SetThreadExecutionState(EsSystemRequired); }
+        catch { /* never worth failing a request over */ }
+    }
+
+    private const uint EsSystemRequired = 0x00000001;
+
+    [DllImport("kernel32.dll")]
+    private static extern uint SetThreadExecutionState(uint flags);
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int MessageBoxW(IntPtr owner, string text, string caption, uint type);
 }

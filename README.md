@@ -120,6 +120,12 @@ So bleibt es sicher:
 Die Übersicht meldet, wenn das Handy den Hub nicht erreichen kann: Tailscale nicht verbunden,
 Serve aus, oder der PC hat im Tailnet einen anderen Namen.
 
+Schläft der PC, lässt er sich per Wake-on-LAN wecken – Anleitung: `Wake-on-LAN Anleitung
+26_09_26.md` im Hauptordner. Ein so geweckter PC schläft ohne Tastatur und Maus nach zwei Minuten
+wieder ein; jede Anfrage vom Handy setzt deshalb den Leerlauf-Zähler von Windows zurück
+(`Desktop.KeepAwake`, SetThreadExecutionState). Die offene Seite fragt alle 30 Sekunden, der PC
+bleibt wach, solange sie offen ist, und schläft danach wie gewohnt.
+
 ## Repository sichern
 
 Unter „Schlüssel und Backup → Repository sichern“ trägt man die Adresse eines privaten
