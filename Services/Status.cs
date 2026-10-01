@@ -332,7 +332,7 @@ public sealed class Status
             items.Add(new("hint", "build",
                 withoutContact.Count == 1 ? $"{withoutContact[0].Name} kennt die Kontakt-Adresse noch nicht"
                                           : "Die Plugins kennen die Kontakt-Adresse noch nicht",
-                $"Erst ein neuer Build bringt {contact} ins Aktivierungsfenster („Request a code“). Rhino muss dafür geschlossen sein.",
+                $"Erst ein neuer Build bringt {contact} ins Aktivierungsfenster („Request a free trial“, „Buy a license“). Rhino muss dafür geschlossen sein.",
                 withoutContact.Count == 1 ? withoutContact[0].Id : null,
                 new("build", string.Join(",", withoutContact.Select(p => p.Id)), withoutContact.Count == 1 ? "Jetzt bauen" : "Alle bauen")));
 

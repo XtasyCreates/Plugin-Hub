@@ -258,7 +258,7 @@ public sealed class Releases
 
         bool contact = shared.Contact.Length > 0;
         checks.Add(new("contact", "Kontakt-Adresse eingetragen", contact, false, false,
-            contact ? null : "Ohne Kontakt-Adresse fehlt im Plugin „Request a code“ und in der Anleitung die Adresse."));
+            contact ? null : "Ohne Kontakt-Adresse fehlen im Plugin die Knöpfe „Request a free trial“ und „Buy a license“ und in der Anleitung die Adresse."));
 
         var untested = _plan.Roadmap().Where(x => x.Project == p.Id && x.Stage == "gebaut").Select(x => x.Title).ToList();
         checks.Add(new("roadmap", "Alles Gebaute ist getestet", untested.Count == 0, false, false,

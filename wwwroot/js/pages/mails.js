@@ -209,7 +209,7 @@ function requestsCard(o, inbox) {
           ${inbox.ready ? `<button class="btn small" data-inbox-check>${icon('refresh')} Jetzt prüfen</button>` : ''}
         </div>
       </div>
-      <p class="card-note">Mails mit Geräte-ID an ${esc(inbox.account || 'dein Mailkonto')} – etwa aus „Request a code“ im Aktivierungsfenster.
+      <p class="card-note">Mails mit Geräte-ID an ${esc(inbox.account || 'dein Mailkonto')} – etwa aus „Request a free trial“ oder „Buy a license“ im Aktivierungsfenster.
         Der Hub liest das Postfach nur; in Gmail wird nichts markiert, verschoben oder gelöscht.</p>
       ${inbox.ready ? '' : `
         <div class="issue">${icon('info')}

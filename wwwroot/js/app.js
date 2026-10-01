@@ -11,6 +11,7 @@ import * as overview from './pages/overview.js';
 import * as tasks from './pages/tasks.js';
 import * as plan from './pages/plan.js';
 import * as sales from './pages/sales.js';
+import * as stats from './pages/stats.js';
 import * as customers from './pages/customers.js';
 import * as customer from './pages/customer.js';
 import * as mails from './pages/mails.js';
@@ -24,6 +25,7 @@ const ROUTES = [
   { path: /^#\/aufgaben$/, page: tasks, nav: '#/aufgaben' },
   { path: /^#\/planung(?:\/(entscheidungen|versionen|dokumente))?$/, page: plan, nav: '#/planung' },
   { path: /^#\/verkauf$/, page: sales, nav: '#/verkauf' },
+  { path: /^#\/statistik$/, page: stats, nav: '#/statistik' },
   { path: /^#\/kunden$/, page: customers, nav: '#/kunden' },
   { path: /^#\/kunden\/([\w-]+)$/, page: customer, nav: '#/kunden' },
   { path: /^#\/mails$/, page: mails, nav: '#/mails' },
@@ -44,6 +46,7 @@ const TABS = {
   '#/aufgaben': { key: 'aufgaben', icon: 'list' },
   '#/planung': { key: 'planung', icon: 'board' },
   '#/verkauf': { key: 'verkauf', icon: 'package' },
+  '#/statistik': { key: 'statistik', icon: 'chart' },
   '#/kunden': { key: 'kunden', icon: 'users' },
   '#/mails': { key: 'mails', icon: 'mail' },
   '#/releases': { key: 'releases', icon: 'tag' },
@@ -193,7 +196,7 @@ function drawSide(path, route) {
 
   // The page's name, for the narrow bar on the phone
   const here = { '#/': 'Übersicht', '#/aufgaben': 'Aufgaben', '#/planung': 'Planung', '#/verkauf': 'Verkauf und Export',
-    '#/kunden': 'Kunden', '#/mails': 'Mails', '#/releases': 'Releases', '#/schluessel': 'Schlüssel und Backup',
+    '#/statistik': 'Statistik', '#/kunden': 'Kunden', '#/mails': 'Mails', '#/releases': 'Releases', '#/schluessel': 'Schlüssel und Backup',
     '#/einstellungen': 'Einstellungen' }[current] ?? o.projects.find((p) => `#/projekt/${p.id}` === current)?.name ?? '';
   const open = side.classList.contains('open');
 
@@ -207,6 +210,7 @@ function drawSide(path, route) {
       ${link('#/aufgaben', 'list', 'Aufgaben', { count: o.tasks.open })}
       ${link('#/planung', 'board', 'Planung', { count: o.plan.toTest })}
       ${link('#/verkauf', 'package', 'Verkauf und Export')}
+      ${link('#/statistik', 'chart', 'Statistik')}
       ${link('#/kunden', 'users', 'Kunden', { count: o.register.customers })}
       ${link('#/mails', 'mail', 'Mails', { alarm: problem((h) => h.area === 'mail'), count: o.mail.due + o.inbox.new })}
       ${link('#/releases', 'tag', 'Releases')}

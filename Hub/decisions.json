@@ -161,7 +161,7 @@
   {
     "id": "d7e0eb56a",
     "project": "swtolaser",
-    "decision": "Modell 1:1 in echten Metern; verkleinert wird über den Modellmaßstab von Laser Create.",
+    "decision": "Ersetzt am 26.09.2026 – der Plan liegt jetzt in Rhino in Modellgröße (siehe dort). Vorher: Modell 1:1 in echten Metern; verkleinert wird über den Modellmaßstab von Laser Create.",
     "date": "2026-09-22",
     "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
     "created": "2026-09-25T13:39:26+02:00"
@@ -209,7 +209,7 @@
   {
     "id": "dfea93922",
     "project": "swtolaser",
-    "decision": "Die Übergabe setzt den Modellmaßstab mit – Feld „Model 1 : N“, vorbelegt mit dem Planmaßstab oder 1:1000.",
+    "decision": "Ersetzt am 26.09.2026 – der Plan liegt jetzt in Rhino in Modellgröße (siehe dort). Vorher: Die Übergabe setzt den Modellmaßstab mit – Feld „Model 1 : N“, vorbelegt mit dem Planmaßstab oder 1:1000.",
     "date": "2026-09-24",
     "source": "Schwarzplan-Konzept, getroffene Entscheidungen",
     "created": "2026-09-25T13:39:26+02:00"
@@ -364,30 +364,383 @@
   },
   {
     "id": "d35341565",
-    "project": null,
     "question": "Vertriebsweg: direkt per Mail und Überweisung, eigener Shop oder food4Rhino?",
     "source": "Hub-Konzept, Punkt 29",
     "created": "2026-09-25T13:39:26+02:00"
   },
   {
     "id": "d6b2b742f",
-    "project": null,
     "question": "Rechnung und Steuer selbst machen oder über einen Anbieter, der als Verkäufer auftritt (z. B. Paddle, Lemon Squeezy)?",
     "source": "Hub-Konzept, Punkt 29",
     "created": "2026-09-25T13:39:26+02:00"
   },
   {
     "id": "dc5861be3",
-    "project": null,
     "question": "Was kosten die Plugins – Kauf, vielleicht ein Preis für Studierende?",
     "source": "Planung",
     "created": "2026-09-25T13:39:26+02:00"
   },
   {
     "id": "d8cd542d8",
-    "project": null,
     "question": "Nur Windows wie bisher, oder soll es die Plugins auch für Rhino auf dem Mac geben?",
+    "decision": "Am besten natürlich auch auf Mac. Was ist hier der Unterschied? Wie leicht wäre die Umsetzung?",
+    "date": "2026-09-25",
     "source": "Schwarzplan-Konzept §6 F4",
     "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "dcd75705e",
+    "project": "laser",
+    "decision": "Das Feld „Edge margin“ hat keinen leeren Zustand: Es zeigt immer den Rand, der gilt – anfangs so groß wie der Teileabstand.",
+    "date": "2026-09-25",
+    "source": "Deine Test-Notizen zu v44, Auswahl-Dialog",
+    "created": "2026-09-25T17:34:24+02:00"
+  },
+  {
+    "id": "d710a8450",
+    "project": "laser",
+    "decision": "Kombinieren nimmt Teileabstand und Randabstand aus dem Create-Tab, nicht mehr die größten Werte der Ausgangsplatten.",
+    "date": "2026-09-25",
+    "source": "Deine Test-Notizen zu v44, Auswahl-Dialog",
+    "created": "2026-09-25T17:34:24+02:00"
+  },
+  {
+    "id": "dd4b16bfa",
+    "project": "laser",
+    "decision": "Ein Update fragt nach, wenn der Create-Tab inzwischen andere Abstände zeigt als die, mit denen der Satz gemacht wurde.",
+    "date": "2026-09-25",
+    "source": "Deine Test-Notizen zu v44, Auswahl-Dialog",
+    "created": "2026-09-25T17:34:24+02:00"
+  },
+  {
+    "id": "d67513231",
+    "project": "laser",
+    "decision": "Beim Aktualisieren bleiben Teile, die ein Satz doppelt hatte (kombiniert aus zwei Läufen desselben Modells), doppelt – jedes mit eigener Nummer.",
+    "date": "2026-09-25",
+    "source": "Deine Test-Notizen zu v44, Auswahl-Dialog",
+    "created": "2026-09-25T17:34:24+02:00"
+  },
+  {
+    "id": "d751152fa",
+    "project": "hub",
+    "decision": "Code-Anfragen stehen im Tab Mails ganz oben, dazu als Hinweis in der Übersicht, in der Seitenleiste und im Tab-Titel. Der Hub liest das Postfach des Mailkontos alle zwei Minuten, nur lesend.",
+    "date": "2026-09-25",
+    "source": "Deine Anfrage: „im sinnvollsten Reiter eine Meldung“",
+    "created": "2026-09-25T17:47:57+02:00"
+  },
+  {
+    "id": "d0997c734",
+    "project": "swtolaser",
+    "decision": "Die Import-Seite zeigt beide Maßstäbe untereinander: unter Size den der Datei („Real size“ oder „Drawn to scale“ mit „Drawn at 1 : N“), darunter „Model 1 : N“ mit der Größe des Lasermodells. Der Modellmaßstab gehört zum Plan und steht beim Übergeben unter Plans schon drin; dort bleibt er änderbar.",
+    "date": "2026-09-25",
+    "source": "Deine Test-Notiz an „Gebäude und Regionen mit Live-Vorschau“, Auswahl-Dialog",
+    "created": "2026-09-25T18:31:34+02:00"
+  },
+  {
+    "id": "d51249688",
+    "project": "swtolaser",
+    "decision": "Unter Size steht, wie groß ein typisches Gebäude ist (der Median). Unter 15 m² oder über 5000 m² steht es rot, mit der Frage, ob der Maßstab stimmt.",
+    "date": "2026-09-25",
+    "source": "Deine Test-Notiz an „Gebäude und Regionen mit Live-Vorschau“, Auswahl-Dialog",
+    "created": "2026-09-25T18:31:34+02:00"
+  },
+  {
+    "id": "d41c1cd3f",
+    "project": "swtolaser",
+    "decision": "Ändert sich die Größe des Plans, bietet Regions „Adjust to the new scale“ an: Gap und Smallest werden mitgerechnet, sodass dieselben Gebäude bleiben. Nur auf Klick – nach dem Korrigieren eines falschen Maßstabs stimmen die Werte, wie sie sind.",
+    "date": "2026-09-25",
+    "source": "Deine Test-Notiz an „Gebäude und Regionen mit Live-Vorschau“, Auswahl-Dialog",
+    "created": "2026-09-25T18:31:34+02:00"
+  },
+  {
+    "id": "d6a058e25",
+    "project": "hub",
+    "decision": "Der Hub ist vom Handy aus über Tailscale erreichbar (tailscale serve): nur im eigenen Tailnet, nur für das eigene Konto – nicht über das Heim-WLAN und nicht öffentlich.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Hub vom Handy aus)",
+    "created": "2026-09-26T02:01:13+02:00"
+  },
+  {
+    "id": "de212da63",
+    "project": "hub",
+    "decision": "Vom Handy aus geht alles außer Schlüsseln, Backups, Releases, Bauen, Hochladen zu GitHub und Dateien auf dem PC.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Hub vom Handy aus)",
+    "created": "2026-09-26T02:01:13+02:00"
+  },
+  {
+    "id": "dc88154f2",
+    "project": "hub",
+    "decision": "Ist der Handy-Zugang an, startet der Hub mit Windows und beendet sich nicht mehr nach drei Minuten.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Hub vom Handy aus)",
+    "created": "2026-09-26T02:01:13+02:00"
+  },
+  {
+    "id": "d070a18cf",
+    "project": "hub",
+    "decision": "Auf dem Handy wird die Seitenleiste zu einer schmalen Leiste mit Menü-Knopf; das Planungs-Board zeigt eine Spalte pro Bildschirmbreite.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Hub vom Handy aus)",
+    "created": "2026-09-26T02:01:13+02:00"
+  },
+  {
+    "id": "d89253e77",
+    "project": "hub",
+    "decision": "Nach einem Neustart richtet der Hub die Tailscale-Weitergabe selbst wieder ein – 10 Sekunden nach dem Start und dann jede Minute, nur für denselben PC und dasselbe Konto. Die Handy-Karte zeigt, ob Tailscale schon beim Windows-Start verbindet, und schaltet „Run unattended“ per Knopf ein.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "d397b0a6e",
+    "project": "hub",
+    "decision": "Solange der Hub läuft, steht sein Symbol im Infobereich neben der Uhr: Klick öffnet ihn, Rechtsklick „Hub öffnen“ und „Hub beenden“ (mit Rückfrage, wenn der Handy-Zugang an ist).",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "deba74439",
+    "project": "hub",
+    "decision": "Seitenleiste dunkler, Inhalt heller. Jeder Reiter hat eine eigene Farbe: sein Symbol in der Leiste, die Markierung des offenen Reiters, ein Streifen über der Seite, die Kachel am Titel und die Symbole der Karten. Warnungen bleiben rot, Knöpfe orange.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "db73d96d4",
+    "decision": "Rhino-Pakete (.yak): Jedes Release baut eins neben dem ZIP. In den Package Manager kommt es erst per Knopf unter Releases, nach Rückfrage und einmaliger Anmeldung mit dem Rhino-Konto. Autor ist der Anbieter aus den Einstellungen – derselbe Name wie in den Lizenzbedingungen.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "d480ad531",
+    "project": "laser",
+    "decision": "LaserInspect erklärt Teile, die einen Blick brauchen: übergroße (rot unter den Platten), Objekte ohne Teil (ERROR-Punkt) und CHECK-Teile sind anklickbar, zeigen den Grund und ihr Objekt im Modell (bei CHECK die Fläche); ◀ ▶ springt von einem zum nächsten.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "d770293ae",
+    "project": "laser",
+    "decision": "LaserMovePlate greift eine Platte immer am linken unteren Eck (bei Restplatten am Eck ihres Randes), damit sie per Objektfang Ecke an Ecke liegen.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "df102b1d0",
+    "project": "swtolaser",
+    "decision": "Der Plan liegt in Rhino in Modellgröße: SW to Laser baut ihn bei „Model 1 : N“ N-mal kleiner als in echt, und Laser Create schneidet ihn mit „Cut at 1 : 1“. Ein Maßstab 1 : N bezieht sich immer auf die Geometrie, wie sie in Rhino liegt. Unter Plans skaliert ein neuer Maßstab den Plan mit; Pläne von vorher bekommen „Bring to model size“.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "d9ece023b",
+    "project": "swtolaser",
+    "decision": "SW to Laser hat eine Symbolleiste mit einem Knopf „Import“ (SiteImport: Panel auf Import, fragt gleich nach der Datei). Das Panel dockt beim ersten Mal in der Seitenleiste neben dem Laser-Panel an, danach öffnet es sich dort, wo es zuletzt war.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "d2cdd1f4a",
+    "decision": "Zahlenfelder in beiden Plugins übernehmen den Wert bei Enter und bei einem Klick daneben – ins Panel oder in den Viewport.",
+    "date": "2026-09-26",
+    "source": "Deine Wahl im Auswahl-Dialog (Fehlerbericht Handy und die acht entschiedenen Karten)",
+    "created": "2026-09-26T14:46:05+02:00"
+  },
+  {
+    "id": "df1c8c5f7",
+    "project": "website",
+    "decision": "Die Website ist nur auf Englisch.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Website)",
+    "created": "2026-10-01T13:12:43.4718455+02:00"
+  },
+  {
+    "id": "df91c5a4a",
+    "project": "website",
+    "decision": "Die Website tritt als „AutoCreate“ auf; ins Impressum kommt trotzdem der echte Name.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Website)",
+    "created": "2026-10-01T13:12:43.4908545+02:00"
+  },
+  {
+    "id": "d40db5f27",
+    "project": "website",
+    "decision": "Erste Version der Website: Schaufenster und Testcode – Startseite, je Plugin eine Seite, Testcode per Mail wie bisher. Kaufen ist vorbereitet und wird erst mit Gewerbe und Zahlungsanbieter eingeschaltet.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Website)",
+    "created": "2026-10-01T13:12:43.5116204+02:00"
+  },
+  {
+    "id": "d9863da49",
+    "project": "website",
+    "decision": "Look der Website: hell, Grafit und Orange wie die Plugin-Symbole – später leicht änderbar, alle Farben und Schriften in css/theme.css.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Website)",
+    "created": "2026-10-01T13:12:43.5304049+02:00"
+  },
+  {
+    "id": "d91a5b7be",
+    "project": "website",
+    "question": "Hosting: Wo soll die Website liegen – in einem Webhosting-Paket bei einem EU-Anbieter (Domain, Webspace und Mailadressen in einem, ein paar Euro im Monat) oder kostenlos bei Cloudflare Pages oder GitHub Pages, mit der Domain extra?",
+    "source": "Plan „Website live schalten“, Stufe 1",
+    "created": "2026-10-01T13:51:33.1871828+02:00"
+  },
+  {
+    "id": "d2100bde8",
+    "project": "website",
+    "question": "Domain: Welche Adresse soll es sein, z. B. autocreate.at oder autocreate.com? Vorher prüfen, ob sie frei ist und ob es den Namen schon als Marke gibt.",
+    "source": "Plan „Website live schalten“, Stufe 1",
+    "created": "2026-10-01T13:51:33.2063722+02:00"
+  },
+  {
+    "id": "de8620b7c",
+    "project": "website",
+    "question": "Zahlungsanbieter: Wer verkauft als „Merchant of Record“ (Zahlung, Rechnung, Umsatzsteuer in allen Ländern), z. B. Paddle oder FastSpring – rund 5 % plus ein paar Cent je Verkauf?",
+    "source": "Plan „Website live schalten“, Stufe 2",
+    "created": "2026-10-01T13:51:33.2300541+02:00"
+  },
+  {
+    "id": "d9a4c4124",
+    "project": "website",
+    "question": "Kauf-Code: Kommt er vom Hub (Schlüssel bleibt am PC, Code kommt, sobald der Hub läuft – Claudes Empfehlung) oder sofort über eine Funktion beim Hoster (Schlüssel liegt dann dort)?",
+    "source": "Plan „Website live schalten“, Stufe 2",
+    "created": "2026-10-01T13:51:33.2605165+02:00"
+  },
+  {
+    "id": "db102560d",
+    "project": "website",
+    "question": "Preise: Was kosten Laser Create und SW to Laser – einzeln und zusammen?",
+    "source": "Plan „Website live schalten“, Stufe 2",
+    "created": "2026-10-01T13:51:33.2915621+02:00"
+  },
+  {
+    "id": "ddc638986",
+    "project": "website",
+    "question": "Mailadresse: Bleibt support.autocreate@gmail.com, oder kommt eine eigene Adresse wie support@<deine Domain>? Der Hub würde dann über das neue Postfach lesen und schreiben.",
+    "source": "Plan „Website live schalten“, Stufe 3",
+    "created": "2026-10-01T13:51:33.3220661+02:00"
+  },
+  {
+    "id": "df500ceb7",
+    "project": "website",
+    "decision": "Die Website ist im Hub ein eigenes Projekt („Website“) mit Plan, offenen Fragen, Dokumenten, Dateien und dem Knopf „Website ansehen“.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Website im Hub)",
+    "created": "2026-10-01T13:51:33.3525671+02:00"
+  },
+  {
+    "id": "d3f0e25f4",
+    "project": "website",
+    "decision": "Der Hub zeigt die Website unter /website/ – am PC und über den Handy-Zugang, nur zum Ansehen.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Website im Hub)",
+    "created": "2026-10-01T13:51:33.3715585+02:00"
+  },
+  {
+    "id": "d83fa2d9e",
+    "project": "website",
+    "decision": "„Website ansehen“ öffnet die Seite in einem neuen Browser-Tab, so wie Kunden sie sehen.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Website im Hub)",
+    "created": "2026-10-01T13:51:33.3853266+02:00"
+  },
+  {
+    "id": "d2318907f",
+    "project": "website",
+    "question": "Testphase zum Release: Wie lang soll sie sein? Jetzt stehen 30 Tage als Platzhalter – in den Hub-Einstellungen (Testdauer) und in den Website-Texten („30-day free trial“ auf Startseite, Testcode-, Support- und Kaufseite). Beim Release beides anpassen.",
+    "source": "Dein Hinweis am 01.10.2026: bei Release die Test-Zeiträume anpassen",
+    "created": "2026-10-01T14:28:01.2462918+02:00"
+  },
+  {
+    "id": "d99eaf280",
+    "project": "hub",
+    "decision": "Der Tab „Statistik“ zeigt Verkäufe und Umsatz, Testphasen mit dem Kauf danach und die Code-Anfragen – Kunden-Zahlen nicht.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Statistik-Tab)",
+    "created": "2026-10-01T14:58:23.013903+02:00"
+  },
+  {
+    "id": "d66fd737a",
+    "project": "hub",
+    "decision": "Der Verkaufsweg („Per Mail“ / „Online“) ist eine Einstellung; jeder neue Code merkt sich ihn, die Statistik zeigt beide Wege getrennt, bisherige Codes zählen als „Per Mail“.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Statistik-Tab)",
+    "created": "2026-10-01T14:58:23.013903+02:00"
+  },
+  {
+    "id": "d829f4370",
+    "project": "hub",
+    "decision": "Website-Aufrufe: Der Tab hat den Bereich und die Einstellungen den Schalter „Website-Statistik: Aus“ – die Quelle kommt mit dem Hosting.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Statistik-Tab)",
+    "created": "2026-10-01T14:58:23.013903+02:00"
+  },
+  {
+    "id": "db901e60b",
+    "project": "hub",
+    "decision": "Darstellung der Statistik: Kennzahlen oben, darunter Säulen je Monat, umschaltbar zwischen 12 Monaten und allem.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (Statistik-Tab)",
+    "created": "2026-10-01T14:58:23.013903+02:00"
+  },
+  {
+    "id": "d2ea80445",
+    "decision": "Jetzt umgesetzt (v53): „Keine erneuten Codes“, „Code-Anfragen Verbesserungen“ und „Platten generelle Verbesserungen“. Die Mac-Version ist jetzt nicht dabei.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (entschiedene Punkte, 01.10.2026)",
+    "created": "2026-10-01T19:03:11.4579549+02:00"
+  },
+  {
+    "id": "db72f6dd1",
+    "decision": "Aktivierungsfenster mit gültigem Code: „✓ Activated“ zuerst, Code-Feld und Geräte-ID erst über „Enter another code …“. Eine Testphase bietet es nur einem PC an, der nie einen Code hatte.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (entschiedene Punkte, 01.10.2026)",
+    "created": "2026-10-01T19:03:11.4852857+02:00"
+  },
+  {
+    "id": "d245b0f15",
+    "decision": "Code-Anfragen: erst zwei Knöpfe – „Request a free trial“ und „Buy a license“, die Mail kommt angekreuzt. Später, wenn die Website online ist, führt ein Knopf auf die Website.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (entschiedene Punkte, 01.10.2026)",
+    "created": "2026-10-01T19:03:11.5003354+02:00"
+  },
+  {
+    "id": "d953991a3",
+    "decision": "„Buy a license“ steht im Aktivierungsfenster immer, solange ein Code mit Enddatum läuft.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (entschiedene Punkte, 01.10.2026)",
+    "created": "2026-10-01T19:03:11.5163254+02:00"
+  },
+  {
+    "id": "d6ae94761",
+    "project": "laser",
+    "decision": "Plattenbeschriftung: schwarzer Text unter jeder Platte, 2,5 % der Plattenhöhe, nie breiter als die Platte – das Feld „Label size“ entfällt.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (entschiedene Punkte, 01.10.2026)",
+    "created": "2026-10-01T19:03:11.5318163+02:00"
+  },
+  {
+    "id": "de4944e19",
+    "project": "laser",
+    "decision": "Platten im Modell im Raster: „Plates per row“ im Create-Tab, Standard 5; jeder Satz merkt sich seinen Wert.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (entschiedene Punkte, 01.10.2026)",
+    "created": "2026-10-01T19:03:11.5477746+02:00"
+  },
+  {
+    "id": "d4f095b3c",
+    "project": "laser",
+    "decision": "„Keines fehlt“ prüfbar machen: Die Zusammenfassung von Laser Create zählt die Teile selbst nach.",
+    "date": "2026-10-01",
+    "source": "Deine Wahl im Auswahl-Dialog (entschiedene Punkte, 01.10.2026)",
+    "created": "2026-10-01T19:03:11.5630464+02:00"
   }
 ]

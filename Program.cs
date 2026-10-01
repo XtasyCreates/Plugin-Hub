@@ -70,6 +70,7 @@ builder.Services.AddSingleton<RepoBackup>();
 builder.Services.AddSingleton<YakPackages>();
 builder.Services.AddSingleton<Releases>();
 builder.Services.AddSingleton<Status>();
+builder.Services.AddSingleton<Stats>();
 builder.Services.AddSingleton<IdleWatch>();
 
 var app = builder.Build();
@@ -82,6 +83,7 @@ app.UseStaticFiles(new StaticFileOptions
     // The page is edited in place while the hub runs - always hand out the current file
     OnPrepareResponse = c => c.Context.Response.Headers.CacheControl = "no-store"
 });
+Website.Serve(app, paths);
 app.MapHubApi();
 
 try

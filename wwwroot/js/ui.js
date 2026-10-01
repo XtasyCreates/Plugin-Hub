@@ -53,6 +53,8 @@ const ICONS = {
   board: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="M15 4v16"/>',
   arrowRight: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
   external: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z"/>',
+  chart: '<path d="M4 20h16"/><path d="M7 16v-4"/><path d="M12 16V7"/><path d="M17 16v-7"/>',
   bug: '<rect x="7.5" y="8" width="9" height="12" rx="4.5"/><path d="M12 12v8"/><path d="M9.5 5.5L11 8"/><path d="M14.5 5.5L13 8"/><path d="M3.5 13.5h4"/><path d="M16.5 13.5h4"/><path d="M4.5 8.5l3 2"/><path d="M19.5 8.5l-3 2"/><path d="M4.5 19l3-2"/><path d="M19.5 19l-3-2"/>',
   flag: '<path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5"/>',
   question: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.4c-.7.4-1.2 1-1.2 1.8v.5"/><path d="M12 17v.2"/>',

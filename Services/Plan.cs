@@ -248,9 +248,15 @@ public sealed class Plan
         var counts = Stages.ToDictionary(s => s, s => mine.Count(x => x.Stage == s));
         int problems = mine.Count(HasProblem);
         int questions = decisions.Count(d => d.Project == project && d.Decision == null);
-        // Plug-ins and their library are tried in Rhino; the hub itself in the browser
+        // Plug-ins and their library are tried in Rhino; the hub itself and the website in the browser
         string kind = _config.Current.Projects.FirstOrDefault(p => p.Id == project)?.Kind ?? "";
-        string test = kind is "plugin" or "library" ? "In Rhino testen" : kind == "tool" ? "Im Hub ausprobieren" : "Testen";
+        string test = kind switch
+        {
+            "plugin" or "library" => "In Rhino testen",
+            "tool"                => "Im Hub ausprobieren",
+            "website"             => "Im Browser ansehen",
+            _                     => "Testen"
+        };
         return new PlanSummary(counts, problems, questions, Next(project, mine, test));
     }
 

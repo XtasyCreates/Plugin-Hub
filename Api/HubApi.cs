@@ -46,6 +46,7 @@ public static class HubApi
 
         // ── Overview, projects, files ─────────────────────────────────────────
         app.MapGet("/api/overview", (Status status) => status.Overview());
+        app.MapGet("/api/stats", (Stats stats) => stats.View());
         app.MapGet("/api/projects/{id}", (string id, Status status) => status.ProjectDetail(id));
         app.MapPost("/api/open", (OpenRequest request, Config config, HubPaths paths) =>
         {

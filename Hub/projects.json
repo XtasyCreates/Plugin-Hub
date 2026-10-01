@@ -93,6 +93,22 @@
         { "id": "hub-vscode", "label": "In VS Code",  "kind": "vscode", "path": "PluginHub" },
         { "id": "hub-readme", "label": "README",      "kind": "file",   "path": "PluginHub/README.md" }
       ]
+    },
+    {
+      "id": "website",
+      "name": "Website",
+      "kind": "website",
+      "icon": "globe",
+      "folder": "Website",
+      "note": "Die Website „AutoCreate“ für Kunden – noch Vorschau, nicht im Netz. „Website ansehen“ öffnet sie aus dem Hub, am Handy über den Handy-Zugang. Der Plan bis zum Live-Gang steht im Dokument „Website Plan“ und als Karten unter Planung.",
+      "sources": ["Website"],
+      "links": [
+        { "id": "web-folder", "label": "Ordner",                         "kind": "folder", "path": "Website" },
+        { "id": "web-code",   "label": "In VS Code",                     "kind": "vscode", "path": "Website" },
+        { "id": "web-plan",   "label": "Plan: Website live schalten",    "kind": "file",   "path": "Website Plan 01_10_26.md" },
+        { "id": "web-theme",  "label": "Aussehen (theme.css) in VS Code", "kind": "vscode", "path": "Website/css/theme.css" },
+        { "id": "web-config", "label": "Einstellungen (config.js) in VS Code", "kind": "vscode", "path": "Website/js/config.js" }
+      ]
     }
   ],
   "links": [

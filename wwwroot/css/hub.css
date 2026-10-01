@@ -48,6 +48,16 @@
   --c-schluessel: #B07F0A;
   --c-einstellungen: #667085;
   --c-projekt: #4C5FD0;
+  --c-statistik: #648C1C;
+
+  /* Statistik: series colours (dataviz palette, slots 1-3 - checked for colour-blind separation on
+     this surface), a quiet grey for "the rest", and the chart's hairlines */
+  --series-1: #2A78D6;
+  --series-2: #EB6834;
+  --series-3: #1BAF7A;
+  --series-rest: #C9C9D1;
+  --chart-grid: #E3E3E8;
+  --chart-base: #B4B4BE;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -91,6 +101,14 @@
     --c-schluessel: #E6B84A;
     --c-einstellungen: #A3ADC2;
     --c-projekt: #8C98F2;
+    --c-statistik: #A6CF63;
+
+    --series-1: #3987E5;
+    --series-2: #D95926;
+    --series-3: #199E70;
+    --series-rest: #5C5C66;
+    --chart-grid: #3F3F47;
+    --chart-base: #5A5A64;
   }
 }
 
@@ -107,6 +125,7 @@
 [data-tab="schluessel"]    { --tab: var(--c-schluessel); }
 [data-tab="einstellungen"] { --tab: var(--c-einstellungen); }
 [data-tab="projekt"]       { --tab: var(--c-projekt); }
+[data-tab="statistik"]     { --tab: var(--c-statistik); }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -720,7 +739,8 @@ body.phone [data-change-remote], body.phone [data-remote-form], body.phone [data
 }
 
 @media (max-width: 860px) {
-  .app { grid-template-columns: 1fr; }
+  /* The page row takes the free height - else a short page stretched the bar on top */
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
 
   /* The side bar becomes a narrow bar on top: the hub, the page, and a menu button that
      unfolds the navigation over the page */
@@ -761,4 +781,87 @@ body.phone [data-change-remote], body.phone [data-remote-form], body.phone [data
   .form-grid.three, .docs, .dec, .ver, .rej { grid-template-columns: minmax(0, 1fr); }
   .doc-list { position: static; }
   .card.doc { padding: 18px 16px; }
+}
+
+/* ── Statistik ─────────────────────────────────────────────────────────── */
+
+/* One filter row on top - it scopes every figure and chart below it */
+.stats-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.stats .card + .card { margin-top: 16px; }
+.stats .empty .center-actions { justify-content: center; margin-top: 12px; }
+
+/* The figures of a card: label, the number, a quiet note */
+.figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px 22px; margin-bottom: 18px; }
+.figure .label { font-size: 12px; color: var(--muted); }
+.figure .value { font-size: 24px; font-weight: 600; margin-top: 2px; line-height: 1.2; }   /* proportional figures */
+.figure .note { font-size: 12px; color: var(--faint); margin-top: 2px; }
+
+/* A column chart: thin columns from one baseline, 4px round tops, 2px of card between stacked parts */
+.vchart { --plot: 170px; }
+.vchart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.vchart-title { font-size: 13px; font-weight: 600; }
+.vlegend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.vlegend span { display: inline-flex; align-items: center; gap: 6px; }
+.vlegend .key { width: 10px; height: 10px; border-radius: 2px; }
+.vempty { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
+
+.vplot { position: relative; height: var(--plot); margin-left: 34px; border-bottom: 1px solid var(--chart-base); }
+.vgrid { position: absolute; inset: 0; pointer-events: none; }
+.vtick { position: absolute; left: 0; right: 0; border-top: 1px solid var(--chart-grid); }
+.vtick span {
+  position: absolute; right: calc(100% + 8px); top: -8px; font-size: 11px; color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.vtick:first-child { border-top: 0; }   /* the baseline draws itself */
+.vcols { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.vcol { position: relative; height: 100%; border-radius: 6px; outline-offset: -2px; cursor: default; }
+.vcol:hover, .vcol:focus-visible { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.vbar {
+  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: min(24px, 64%); min-height: 2px;
+  display: flex; flex-direction: column-reverse; gap: 2px;
+  border-radius: 4px 4px 0 0; overflow: hidden;
+}
+.vseg { display: block; flex-basis: 0; min-height: 1px; }
+.vcol:hover .vbar, .vcol:focus-visible .vbar { filter: brightness(1.1); }
+.vcap {
+  position: absolute; left: 0; right: 0; text-align: center; font-size: 11px; font-weight: 600;
+  color: var(--muted); font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.vx { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); margin: 6px 0 0 34px; }
+.vx span { font-size: 11px; color: var(--faint); text-align: center; white-space: nowrap; overflow: visible; }
+
+.vchart .s1 { background: var(--series-1); }
+.vchart .s2 { background: var(--series-2); }
+.vchart .s3 { background: var(--series-3); }
+.vchart .rest { background: var(--series-rest); }
+
+/* The tooltip: the month, then each series - value first, a short line as the key */
+.vtip {
+  position: absolute; top: 4px; z-index: 5; min-width: 150px; padding: 9px 11px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow);
+  font-size: 12px; pointer-events: none;
+}
+.vtip-head { font-weight: 600; margin-bottom: 5px; }
+.vtip-row { display: grid; grid-template-columns: 14px auto 1fr; align-items: center; gap: 7px; }
+.vtip-row + .vtip-row { margin-top: 2px; }
+.vtip-row .line { height: 3px; border-radius: 2px; }
+.vtip-row b { font-variant-numeric: tabular-nums; }
+.vtip-row span { color: var(--muted); }
+.vtip-extra { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line-soft); color: var(--muted); }
+
+/* Every value without hovering: the table */
+.vtable { margin-top: 12px; font-size: 13px; }
+.vtable summary { cursor: pointer; color: var(--muted); }
+.vtable .table-wrap { overflow-x: auto; margin-top: 8px; }
+.vtable table { border-collapse: collapse; min-width: 100%; }
+.vtable th, .vtable td { padding: 5px 10px; text-align: right; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
+.vtable td { font-variant-numeric: tabular-nums; }
+.vtable th[scope="row"], .vtable thead th:first-child { text-align: left; font-weight: 500; }
+.vtable thead th { color: var(--muted); font-weight: 500; }
+
+@media (max-width: 860px) {
+  .vchart { --plot: 150px; }
+  /* Narrow: every other month name, so they never run into each other */
+  .vx span:nth-child(even):not(:last-child) { visibility: hidden; }
 }

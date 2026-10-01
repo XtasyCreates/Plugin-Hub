@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace PluginHub.Services;
 
 /// <summary>
-/// Code requests from customers - "Request a code" in the activation window, or a mail of their
+/// Code requests from customers - "Request a free trial" or "Buy a license" in the activation window, or a mail of their
 /// own with the device id - arrive in the mailbox of the hub's mail account, the contact address.
 /// The hub reads that mailbox over IMAP with the same login it sends with, and only reads:
 /// nothing in the mailbox is marked, moved or deleted. A mail counts as a request when it carries
@@ -238,8 +238,8 @@ public sealed class Inbox
 
     /// <summary>
     /// A mail with a device id that is not a reply. The plug-in's request names the product in
-    /// its subject, ticks "a free trial" or "a full license" when the customer marks one, and
-    /// gives the version in brackets.
+    /// its subject, ticks "a free trial" or "a full license" - the button the customer clicked,
+    /// or what they marked in an older plug-in's mail - and gives the version in brackets.
     /// </summary>
     internal static CodeRequest? Recognize(IncomingMail mail, List<ProjectDef> plugins)
     {

@@ -26,13 +26,18 @@ Die Daten für die Weck-App:
 1. Den Laptop ans Netzteil und ans LAN-Kabel hängen. Über WLAN lässt er sich nicht wecken.
 2. Auf dem Handy eine Wake-on-LAN-App installieren, z. B. „Wake On Lan“ (Android) oder „Mocha WOL“
    (iPhone), und den PC mit den Daten oben anlegen. Das Handy muss dabei im Heim-WLAN sein.
-3. Am PC: Start → Ein/Aus → **Energie sparen**. Nicht herunterfahren. Eine Minute warten.
+3. Am PC: Start → Ein/Aus → **Energie sparen**. Nicht herunterfahren. Eine Minute warten und dabei Maus
+   und Tastatur nicht berühren – sie dürfen den PC ebenfalls wecken, und dann sagt der Test nichts.
 4. In der App den PC wecken. Nach etwa 10 Sekunden wacht der Laptop auf: Lüfter oder Tastaturbeleuchtung
    gehen an, der Bildschirm kann aus bleiben oder den Sperrbildschirm zeigen.
 5. Innerhalb von zwei Minuten auf dem Handy `https://gustavs-legion.tail03edd2.ts.net` öffnen. Nach
    10–30 Sekunden ist der Hub da, und der PC bleibt wach, solange die Seite offen ist.
+6. Das Gleiche noch einmal nach einer Nacht: abends Energie sparen, morgens wecken. Am Netzteil legt
+   Windows den schlafenden Laptop nach etwa zwei Stunden in den Ruhezustand – bist du unterwegs, ist das
+   der Normalfall. Dein LAN-Adapter meldet, dass er auch daraus wecken kann; ob es wirklich klappt, zeigt
+   nur dieser Test. Das Aufwachen dauert dann etwas länger.
 
-Hat es geklappt, hake im Hub die Aufgabe „Wake-on-LAN testen“ ab.
+Haben beide Tests geklappt, hake im Hub die Aufgabe „Wake-on-LAN testen“ ab.
 
 ## Wenn der PC nicht aufwacht
 
@@ -53,17 +58,16 @@ Heimserver oder der durchlaufende PC.
 ## Von unterwegs (später)
 
 Ein Wecksignal kommt nicht über das Internet, es muss aus dem Heimnetz kommen. Dafür braucht es ein Gerät,
-das immer an ist:
-
-- deinen Router, wenn seine App oder seine Oberfläche (<http://192.168.0.1>) „Wake on LAN“ anbietet, oder
-- einen kleinen Raspberry Pi mit Tailscale (ab etwa 20 €, 2–3 W), den du vom Handy aus bittest, den PC
-  zu wecken.
+das immer an ist. Dein Router, die Magenta Home Box Fiber, kann das nicht: Laut Magentas Anleitungen bietet
+er kein „Wake on LAN“. Bleibt ein kleiner Raspberry Pi mit Tailscale (mit LAN-Anschluss, Netzteil und
+Speicherkarte rund 70–100 €, etwa 3 W), den du vom Handy aus bittest, den PC zu wecken.
 
 Das richten wir ein, sobald der Test im Heimnetz geklappt hat.
 
 ## Gut zu wissen
 
-- **Energie sparen statt herunterfahren:** Nach einem Neustart startet der Hub erst, wenn du dich an
-  Windows anmeldest.
+- **Energie sparen statt herunterfahren:** Aus dem ausgeschalteten Zustand kann dein LAN-Adapter den PC
+  nicht wecken, nur aus Standby und Ruhezustand. Und nach einem Neustart startet der Hub erst, wenn du
+  dich an Windows anmeldest.
 - In den Energieeinstellungen kann der PC bei Netzbetrieb nach z. B. 30 Minuten von selbst in den
   Standby gehen. Das passt dazu.

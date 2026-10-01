@@ -101,6 +101,7 @@ const NEXT_ICON = { problem: 'alert', test: 'flask', work: 'hammer', build: 'fla
 export function kindLine(p) {
   if (p.kind === 'library') return 'Bibliothek';
   if (p.kind === 'tool') return 'Werkzeug';
+  if (p.kind === 'website') return 'Website · Vorschau im Hub';
   return [p.build?.productVersion && `Build ${p.build.productVersion}`, p.version].filter(Boolean).join(' · ') || 'noch nicht gebaut';
 }
 

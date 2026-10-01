@@ -36,8 +36,9 @@
       "target": "#/einstellungen?feld=contact",
       "label": "Zur Kontakt-Adresse"
     },
-    "done": false,
-    "created": "2026-09-25T00:30:00+02:00"
+    "done": true,
+    "created": "2026-09-25T00:30:00+02:00",
+    "doneAt": "2026-09-25T15:06:15.6075153+02:00"
   },
   {
     "id": "t4a8e6b37",
@@ -75,8 +76,9 @@
       "target": "#/schluessel?feld=git-remote",
       "label": "Zur Git-Sicherung"
     },
-    "done": false,
-    "created": "2026-09-25T00:30:00+02:00"
+    "done": true,
+    "created": "2026-09-25T00:30:00+02:00",
+    "doneAt": "2026-09-25T15:15:24.8981852+02:00"
   },
   {
     "id": "te9c1fa2b",
@@ -91,5 +93,49 @@
     },
     "done": false,
     "created": "2026-09-25T13:39:26+02:00"
+  },
+  {
+    "id": "t132c2992",
+    "title": "+ Aufgabe Test",
+    "note": "Test",
+    "priority": "niedrig",
+    "project": "hub",
+    "goto": {
+      "kind": "route",
+      "target": "#/planung",
+      "label": "Zur Roadmap"
+    },
+    "done": true,
+    "created": "2026-09-25T15:08:05.9995423+02:00",
+    "doneAt": "2026-09-25T15:08:14.1219405+02:00"
+  },
+  {
+    "id": "t492a5ba4",
+    "title": "Wake-on-LAN testen",
+    "note": "PC schlafen legen und vom Handy aus wecken – erst im Heimnetz. Die Anleitung mit MAC-Adresse und Weck-App steht unter Planung → Dokumente.",
+    "priority": "mittel",
+    "project": "hub",
+    "goto": {
+      "kind": "route",
+      "target": "#/planung/dokumente?datei=Wake-on-LAN%20Anleitung%2026_09_26.md",
+      "label": "Zur Anleitung"
+    },
+    "done": true,
+    "created": "2026-09-26T02:34:05.1870011+02:00",
+    "doneAt": "2026-09-26T14:49:25.1135159+02:00"
+  },
+  {
+    "id": "te29a18ae",
+    "title": "Website: Plan bis zum Live-Gang",
+    "note": "Erst das Rechtliche (Stufe 0: Gewerbe, Impressum, Datenschutz, Lizenz), dann Stufe 1 im Plan. Die offenen Fragen beantwortest du im Auswahl-Dialog, wenn du so weit bist.",
+    "priority": "mittel",
+    "project": "website",
+    "goto": {
+      "kind": "route",
+      "target": "#/planung/dokumente?datei=Website%20Plan%2001_10_26.md",
+      "label": "Zum Plan"
+    },
+    "done": false,
+    "created": "2026-10-01T13:51:33.4183232+02:00"
   }
 ]

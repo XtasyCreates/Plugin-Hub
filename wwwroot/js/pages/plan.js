@@ -291,7 +291,7 @@ async function cardDialog(o, data, item, defaults = {}) {
   const name = namer(o);
   const done = x.tests.filter((t) => t.done).length;
   const kind = o.projects.find((p) => p.id === x.project)?.kind;
-  const testWhere = kind === 'tool' ? 'Test im Hub' : kind ? 'Test in Rhino' : 'Test';
+  const testWhere = kind === 'tool' ? 'Test im Hub' : kind === 'website' ? 'Test im Browser' : kind ? 'Test in Rhino' : 'Test';
   let warned = false;
 
   const saved = await dialog({

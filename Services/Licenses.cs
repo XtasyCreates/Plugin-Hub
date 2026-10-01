@@ -44,6 +44,7 @@ public sealed class Licenses
         license.Trial      = request.Trial && end != null;
         license.Price      = price;
         license.Paid       = request.Paid;
+        license.Channel    = _settings.Shared.SalesChannel;
         license.Note       = request.Note?.Trim() ?? "";
         license = _register.AddLicense(license);
 
@@ -64,6 +65,7 @@ public sealed class Licenses
         license.Trial      = request.Trial && end != null;
         license.Price      = Prices.Parse(request.Price);
         license.Paid       = request.Paid;
+        license.Channel    = _settings.Shared.SalesChannel;
         license.Note       = request.Note?.Trim() ?? "";
         license = _register.AddExtension(old.Id, license);
 

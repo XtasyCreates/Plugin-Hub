@@ -12,6 +12,9 @@ export async function render(main, { args }) {
   const [, detail] = await Promise.all([loadOverview(), api(`/api/projects/${encodeURIComponent(id)}`)]);
   const p = detail.project;
   const isPlugin = p.kind === 'plugin';
+  const isWebsite = p.kind === 'website';
+  // The hub hands out the website folder under /website/ - on the phone through Tailscale too
+  const site = '/website/';
 
   main.innerHTML = `
     <div class="page">
@@ -20,10 +23,11 @@ export async function render(main, { args }) {
           <div class="picon" style="width:44px;height:44px">${icon(p.icon)}</div>
           <div>
             <h1>${esc(p.name)}</h1>
-            <p class="sub">${esc(isPlugin ? (p.released ? `Release ${p.released}` : 'noch kein Release') : p.kind === 'tool' ? 'Werkzeug' : 'Bibliothek')}${p.version ? ` · intern ${esc(p.version)}` : ''} · Ordner ${esc(p.folder)}</p>
+            <p class="sub">${esc(isPlugin ? (p.released ? `Release ${p.released}` : 'noch kein Release') : p.kind === 'tool' ? 'Werkzeug' : isWebsite ? 'Website' : 'Bibliothek')}${p.version ? ` · intern ${esc(p.version)}` : ''} · Ordner ${esc(p.folder)}</p>
           </div>
         </div>
         ${isPlugin ? `<button class="btn primary" data-build="${esc(p.id)}">${icon('hammer')} Bauen</button>` : ''}
+        ${isWebsite ? `<a class="btn primary" href="${site}" target="_blank" rel="noopener">${icon('external')} Website ansehen</a>` : ''}
       </header>
 
       ${p.note ? `<div class="card" style="margin-bottom:16px"><p>${esc(p.note)}</p></div>` : ''}
@@ -38,6 +42,9 @@ export async function render(main, { args }) {
             <div class="fact"><span>Datei</span><span class="mono">${esc(p.build.rhp)}${p.build.productVersion ? ` · Version ${esc(p.build.productVersion)}` : ''}</span></div>
             <div class="fact"><span>Rhino lädt</span><span>${rhinoBadges(p.rhino)}</span></div>
             <div class="fact"><span>Aktivierung</span><span>Befehle <span class="mono">${esc(p.startCommand ?? '–')}</span>, <span class="mono">${esc(p.activationCommand ?? '–')}</span></span></div>` : ''}
+          ${isWebsite ? `
+            <div class="fact"><span>Vorschau</span><span><a href="${site}" target="_blank" rel="noopener">${esc(location.host)}${site}</a> – ${document.body.classList.contains('phone') ? 'hier über den Handy-Zugang' : 'am PC und über den Handy-Zugang'}</span></div>
+            <div class="fact"><span>Im Netz</span><span>noch nicht – der Plan dazu steht unter Planung</span></div>` : ''}
           <div class="fact"><span>Git</span><span>${p.changes ? `${plural(p.changes, 'Änderung', 'Änderungen')} nicht committed` : 'alles committed'}</span></div>
         </div>
         ${p.toolbarCache.length ? `

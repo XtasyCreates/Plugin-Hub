@@ -36,6 +36,7 @@ Kachel am Titel und die Symbole der Karten. Die Seitenleiste ist eine Stufe dunk
 | Lizenzbedingungen (Entwurf, DE + EN) | `Hub\legal\` | ja |
 | Kundenpakete (ZIP und Rhino-Paket .yak) und ihre Manifeste | `Releases\<Plugin>\<Version>\` | ja |
 | Was im Package Manager von Rhino ist | `Hub\packages.json` | ja |
+| Website für Kunden (statisch, Vorschau unter `/website/`) | `Website\` | ja |
 | Private Schlüssel (DPAPI-verschlüsselt) | `%LOCALAPPDATA%\PluginHub\keys\` | **nein** |
 | Kundenregister mit Mail-Protokoll | `%LOCALAPPDATA%\PluginHub\register.json` | **nein** |
 | Code-Anfragen aus dem Postfach | `%LOCALAPPDATA%\PluginHub\inbox.json` | **nein** |
@@ -52,6 +53,31 @@ dessen Passwort sind sie verloren. Das Mail-Passwort ist nicht im Backup.
 Ändert der Hub Dateien in Git (Einstellungen, Aufgaben, Planung, Vorlagen, `Activation.cs`, die
 Dokumente oben im Ordner), zeigt die Übersicht „Änderungen des Hubs nicht committed“ mit einem
 Knopf, der genau diese Dateien committet. Sonst committet der Hub nur beim Release.
+
+## Statistik
+
+Der Tab „Statistik“ zählt Verkäufe und Umsatz, Testphasen mit dem Anteil, der danach gekauft hat,
+und die Code-Anfragen aus dem Postfach – je Monat, gefiltert nach Zeitraum (12 Monate / alles) und
+Plugin. `GET /api/stats` (`Services\Stats.cs`) gibt dafür nur anonyme Zeilen aus (Monat, Plugin,
+Weg, Betrag), nie Namen, Adressen oder Geräte-IDs; die Seite rechnet sie zusammen. Regeln: Ein Kauf
+ist eine unbefristete Lizenz, die neu ist oder aus einer Testphase wird – ein Code, der nur einen
+gekauften ersetzt, zählt nicht. Eine Testphase zählt je Gerät einmal, auch verlängert; „gekauft“,
+wenn ihre Kette in einer Lizenz endet oder dieselbe Person oder dasselbe Gerät das Plugin danach kauft.
+
+Der **Verkaufsweg** („Per Mail“ / „Online“) steht in `Hub\settings.json` (`salesChannel`) und wird in
+den Einstellungen umgestellt. Jeder neue Code merkt sich ihn (`channel` in register.json; alte ohne
+gelten als „Per Mail“). `siteStats` ist die Quelle der Website-Aufrufe – „off“, bis die Seite online
+ist; der Tab hat den Bereich dafür schon.
+
+## Website
+
+Die Website für Kunden liegt in `Website\` und ist im Hub ein eigenes Projekt (Art `website`,
+Weltkugel). Der Hub gibt den Ordner unter `/website/` aus – am PC und, mit Handy-Zugang, am Handy.
+„Website ansehen“ auf der Projektseite öffnet sie in einem neuen Tab. Ausgegeben werden nur
+Website-Dateien (HTML, CSS, Skripte, Bilder, Schriften); die README im Ordner bleibt unsichtbar.
+`/website` ohne Schrägstrich leitet relativ weiter, damit das Handy bei https bleibt
+(`Services\Website.cs`). Der Plan bis zum Live-Gang: `Website Plan 01_10_26.md` und die Karten
+des Projekts.
 
 ## Planung
 
@@ -85,7 +111,7 @@ Ziele listet `PluginHub\Services\Places.cs`.
 
 ## Code-Anfragen
 
-Schickt ein Kunde über „Request a code“ (oder mit einer eigenen Mail samt Geräte-ID) eine Anfrage
+Schickt ein Kunde über „Request a free trial“ oder „Buy a license“ (oder mit einer eigenen Mail samt Geräte-ID) eine Anfrage
 an die Kontakt-Adresse, erscheint sie im Tab **Mails** unter „Code-Anfragen“, als Hinweis in der
 Übersicht, als Zahl in der Seitenleiste und im Titel des Browser-Tabs. Der Hub liest dafür das
 Postfach seines Mailkontos per IMAP (`imap.gmail.com:993`, dasselbe App-Passwort wie beim

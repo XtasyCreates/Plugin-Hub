@@ -32,7 +32,7 @@ export async function render(main) {
         <div class="form-grid">
           <label class="field"><span>Kontakt-Adresse für Kunden</span>
             <input type="email" name="contact" value="${esc(s.contact)}" placeholder="name@beispiel.de">
-            <span class="hint">Steht im Plugin („Request a code“), in der Anleitung und als Antwort-Adresse der Mails. Im Plugin wirkt eine Änderung ab dem nächsten Build.</span></label>
+            <span class="hint">Steht im Plugin („Request a free trial“, „Buy a license“), in der Anleitung und als Antwort-Adresse der Mails. Im Plugin wirkt eine Änderung ab dem nächsten Build.</span></label>
           <label class="field"><span>Unterschrift unter Mails</span>
             <input type="text" name="signature" value="${esc(s.signature)}"></label>
           <label class="field"><span>Anbieter (Name oder Firma)</span>
@@ -52,6 +52,30 @@ export async function render(main) {
               <option value="de" ${s.defaultLanguage === 'de' ? 'selected' : ''}>Deutsch</option>
               <option value="en" ${s.defaultLanguage === 'en' ? 'selected' : ''}>English</option>
             </select></label>
+        </div>
+        <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Speichern</button></div>
+      </form>
+
+      <form class="card" id="channel" data-place="verkaufsweg">
+        <div class="card-head"><h3>${icon('chart')} Verkaufsweg und Website</h3></div>
+        <p class="card-note">Wenn die Website online geht und du dort verkaufst, stellst du hier um – sonst nichts. Jeder neue Code merkt sich
+          den Weg, die Statistik zeigt beide getrennt; bisherige Codes zählen als „Per Mail“.</p>
+        <div class="form-grid">
+          <div class="field">
+            <span>Verkaufsweg</span>
+            <div class="seg" role="radiogroup" aria-label="Verkaufsweg">
+              <button type="button" role="radio" aria-checked="${s.salesChannel !== 'online'}" class="${s.salesChannel !== 'online' ? 'on' : ''}" data-channel="mail">${icon('mail')} Per Mail</button>
+              <button type="button" role="radio" aria-checked="${s.salesChannel === 'online'}" class="${s.salesChannel === 'online' ? 'on' : ''}" data-channel="online">${icon('globe')} Online</button>
+            </div>
+            <input type="hidden" name="salesChannel" value="${esc(s.salesChannel ?? 'mail')}">
+            <span class="hint">Per Mail: Anfrage per Mail, Code aus dem Hub. Online: Website und Zahlungsanbieter.</span>
+          </div>
+          <label class="field" data-place="website-statistik"><span>Website-Statistik <em>Quelle der Aufrufe</em></span>
+            <select name="siteStats">
+              <option value="off" selected>Aus – die Website ist noch nicht online</option>
+              <option disabled>Zähler des Webspace – kommt mit dem Hosting</option>
+            </select>
+            <span class="hint">Die Quelle kommt dazu, wenn Hosting und Domain entschieden sind (offene Fragen im Projekt Website).</span></label>
         </div>
         <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Speichern</button></div>
       </form>
@@ -114,15 +138,28 @@ export async function render(main) {
   main.oninput = null;
   main.onchange = null;
 
+  // Both cards save the whole of settings.json - each sends the other's values as they are
+  const sharedBody = (changes) => ({
+    contact: s.contact, signature: s.signature, seller: s.seller, sellerAddress: s.sellerAddress,
+    trialDays: s.trialDays, followUpDays: s.followUpDays, endingSoonDays: s.endingSoonDays, defaultLanguage: s.defaultLanguage,
+    salesChannel: s.salesChannel ?? 'mail', siteStats: s.siteStats ?? 'off',
+    ...changes,
+  });
+
   main.querySelector('#shared').onsubmit = (e) => save(e, () => {
     const f = new FormData(e.target);
-    return put('/api/settings/shared', {
+    return put('/api/settings/shared', sharedBody({
       contact: f.get('contact'), signature: f.get('signature'), seller: f.get('seller'), sellerAddress: f.get('sellerAddress'),
       trialDays: Number(f.get('trialDays')), followUpDays: Number(f.get('followUpDays')),
       endingSoonDays: Number(f.get('endingSoonDays')), defaultLanguage: f.get('defaultLanguage'),
-    });
+    }));
   }, s.contact !== new FormData(e.target).get('contact')
     ? 'Gespeichert. Die neue Kontakt-Adresse kommt mit dem nächsten Build ins Plugin.' : 'Gespeichert');
+
+  main.querySelector('#channel').onsubmit = (e) => save(e, () => {
+    const f = new FormData(e.target);
+    return put('/api/settings/shared', sharedBody({ salesChannel: f.get('salesChannel'), siteStats: f.get('siteStats') }));
+  }, 'Gespeichert – neue Codes merken sich diesen Verkaufsweg');
 
   // One "Speichern" for address and password: two buttons meant saving one and forgetting the other
   main.querySelector('#mail').onsubmit = (e) => save(e, async () => {
@@ -148,6 +185,16 @@ export async function render(main) {
 
   main.onclick = async (e) => {
     if (await sharedClick(e)) return;
+    const channel = e.target.closest('[data-channel]');
+    if (channel) {
+      const form = channel.closest('form');
+      form.querySelector('[name=salesChannel]').value = channel.dataset.channel;
+      for (const b of form.querySelectorAll('[data-channel]')) {
+        b.classList.toggle('on', b === channel);
+        b.setAttribute('aria-checked', String(b === channel));
+      }
+      return;
+    }
     const test = e.target.closest('[data-test]');
     if (test) {
       const result = await busy(test, () => post('/api/mails/test'));

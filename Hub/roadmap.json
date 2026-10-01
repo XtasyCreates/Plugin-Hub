@@ -1,193 +1,243 @@
 [
   {
+    "id": "r972c00bf",
+    "project": "laser",
+    "title": "Randabstand zur Plattenkante einstellbar",
+    "note": "Einstellung im Create-Tab, anfangs so groß wie der Teileabstand (ein leeres Feld gibt es nicht). Auf Restplatten gilt er nur an der äußeren Blattkante, an Ausschnitten bleibt der Teileabstand. Kombinieren nimmt Rand und Teileabstand aus dem Create-Tab; ein Update fragt, wenn sie abweichen (v49).",
+    "stage": "getestet",
+    "kind": "funktion",
+    "built": "v49",
+    "tests": [
+      {
+        "text": "Im Create-Tab einen Randabstand von z. B. 10 mm eintragen und erzeugen – die Teile halten 10 mm Abstand zur Kante",
+        "done": true
+      },
+      {
+        "text": "Randabstand z. B. auf 5 mm stellen und mit „Optimal“ erzeugen – der Rand ist jetzt knapp 5 mm (höchstens etwa 0,7 mm mehr), nicht mehr 1–2 mm zu groß",
+        "done": true
+      },
+      {
+        "text": "Im Create-Tab einen anderen Randabstand einstellen und zwei Platten kombinieren – die kombinierte Platte hat den Rand aus dem Create-Tab, die Zusammenfassung sagt es",
+        "done": true
+      },
+      {
+        "text": "Rand im Create-Tab ändern, dann einen Satz aktualisieren (Kreispfeil) – Rhino fragt, ob der Rand des Satzes oder der aus dem Create-Tab gelten soll",
+        "done": true
+      },
+      {
+        "text": "Auf einer Restplatte: an der Blattkante gilt der Randabstand, an der Schnittkante der Teileabstand",
+        "done": true
+      }
+    ],
+    "source": "Claudes Notizen, Stand v45",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-10-01T11:01:02.3418369+02:00",
+    "stageAt": "2026-10-01T11:01:02.3417642+02:00"
+  },
+  {
     "id": "r0cd26a2c",
     "project": "laser",
     "title": "Rest-Pfeil folgt den Platten live",
     "note": "Der Pfeil von einer Platte zu ihrer Restplatte wird live gezeichnet statt als Objekt im Modell. Alte Pfeil-Objekte aus v43 werden beim Öffnen einmal gelöscht.",
-    "stage": "gebaut",
+    "stage": "getestet",
     "kind": "funktion",
     "built": "v44",
     "tests": [
       {
         "text": "Eine geschnittene Platte mit „Use rest“ weiterverwenden – der Pfeil zeigt von der Platte zur Restplatte",
-        "done": false
+        "done": true
       },
       {
         "text": "Eine Platte am Griff verschieben – der Pfeil folgt sofort",
-        "done": false
+        "done": true
       },
       {
         "text": "Eine Datei aus v43 öffnen – die alten Pfeil-Objekte sind weg, der neue Pfeil ist da",
-        "done": false
+        "done": true
       }
     ],
     "source": "Claudes Notizen, Stand v45",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-24T12:00:00+02:00"
-  },
-  {
-    "id": "r972c00bf",
-    "project": "laser",
-    "title": "Randabstand zur Plattenkante einstellbar",
-    "note": "Einstellung im Create-Tab; leer heißt: so groß wie der Teileabstand. Auf Restplatten gilt er nur an der äußeren Blattkante, an Ausschnitten bleibt der Teileabstand.",
-    "stage": "gebaut",
-    "kind": "funktion",
-    "built": "v44",
-    "tests": [
-      {
-        "text": "Im Create-Tab einen Randabstand von z. B. 10 mm eintragen und erzeugen – die Teile halten 10 mm Abstand zur Kante",
-        "done": false
-      },
-      {
-        "text": "Das Feld leeren – der Rand ist so groß wie der Teileabstand",
-        "done": false
-      },
-      {
-        "text": "Auf einer Restplatte: an der Blattkante gilt der Randabstand, an der Schnittkante der Teileabstand",
-        "done": false
-      }
-    ],
-    "source": "Claudes Notizen, Stand v45",
-    "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-24T12:00:00+02:00"
+    "changed": "2026-09-26T02:28:32.6925691+02:00",
+    "stageAt": "2026-09-25T13:50:56.8530062+02:00"
   },
   {
     "id": "re43ec283",
     "project": "laser",
     "title": "Nummerierung „None“",
     "note": "Keine Nummern auf den Platten, im Modell und im DXF. Die Nummern bleiben als User-Text an den Teilen.",
-    "stage": "gebaut",
+    "stage": "getestet",
     "kind": "funktion",
     "built": "v44",
     "tests": [
       {
         "text": "Nummerierung auf „None“ stellen und erzeugen – auf den Platten stehen keine Nummern",
-        "done": false
+        "done": true
       },
       {
         "text": "DXF exportieren – auch dort keine Nummern",
-        "done": false
+        "done": true
       },
       {
         "text": "Ein Teil anklicken – die Nummer steht noch im User-Text",
-        "done": false
+        "done": true
       }
     ],
     "source": "Claudes Notizen, Stand v45",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-24T12:00:00+02:00"
+    "changed": "2026-09-25T14:24:16.7785163+02:00",
+    "stageAt": "2026-09-25T14:24:16.7785148+02:00"
   },
   {
     "id": "rf108fe69",
     "project": "laser",
     "title": "Restplatten robuster",
     "note": "Eine Familie von Platten pro Blatt, die Blattecke relativ gespeichert, ein Update lässt eine Restplatte eine Restplatte, Umbenennen nimmt den Lauf mit.",
-    "stage": "gebaut",
+    "stage": "getestet",
     "kind": "funktion",
-    "built": "v44",
+    "built": "v49",
     "tests": [
       {
         "text": "Eine Restplatte erzeugen, dann den Satz aktualisieren (Kreispfeil) – sie bleibt eine Restplatte mit orangem Rand",
-        "done": false
+        "done": true
       },
       {
         "text": "Den Satz umbenennen – die Restplatte gehört weiter zum selben Lauf",
-        "done": false
+        "done": true
       },
       {
         "text": "Speichern, schließen, wieder öffnen – Restplatten und Pfeil sind unverändert",
-        "done": false
+        "done": true
+      },
+      {
+        "text": "Zwei Platten mit gleichem Inhalt kombinieren, als geschnitten markieren, die Geometrie ändern und den Satz aktualisieren („Create a new set“) – der neue Satz hat wieder alle Teile, jedes doppelte mit eigener Nummer",
+        "done": true
       }
     ],
     "source": "Claudes Notizen, Stand v45",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-24T12:00:00+02:00"
+    "changed": "2026-10-01T11:04:19.3787391+02:00",
+    "stageAt": "2026-10-01T11:04:19.3787369+02:00"
   },
   {
     "id": "r22317c91",
     "project": "laser",
     "title": "Plattenrahmen im Modell anklicken markiert die Platte im Panel",
     "note": "Rahmen, Kantenschleifen oder Beschriftung auswählen: Das Panel wechselt zu „Plates“, klappt auf und scrollt zur Karte. Teile bleiben Sache von LaserInspect.",
-    "stage": "gebaut",
+    "stage": "getestet",
     "kind": "funktion",
     "built": "v45",
     "tests": [
       {
         "text": "Im Viewport den Rahmen einer Platte anklicken – das Panel wechselt zu Plates und markiert die Karte",
-        "done": false
+        "done": true
       },
       {
         "text": "Die Beschriftung einer Platte anklicken – dasselbe",
-        "done": false
+        "done": true
       },
       {
         "text": "Ein Teil anklicken – das Panel reagiert nicht (das bleibt LaserInspect)",
-        "done": false
+        "done": true
       }
     ],
     "source": "Claudes Notizen, Stand v45",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-24T12:00:00+02:00"
+    "changed": "2026-09-25T15:47:39.5145803+02:00",
+    "stageAt": "2026-09-25T15:47:39.5145772+02:00"
   },
   {
     "id": "r31b6f817",
     "project": "laser",
     "title": "Aktivierung mit Testphasen und „Request a code“",
-    "note": "Eigener Schlüssel pro Plugin (v46), Codes mit Enddatum (v47): ab 7 Tagen vor dem Ende einmal täglich eine Zeile in der Befehlszeile, danach das Aktivierungsfenster. Neuer Befehl LaserActivation. „Request a code“ erscheint, sobald eine Kontakt-Adresse eingetragen und das Plugin neu gebaut ist. Wird die Uhr um mehr als einen Tag zurückgestellt, sperrt das Plugin.",
-    "stage": "gebaut",
+    "note": "Eigener Schlüssel pro Plugin (v46), Codes mit Enddatum (v47): ab 7 Tagen vor dem Ende einmal täglich eine Zeile in der Befehlszeile, danach das Aktivierungsfenster. Neuer Befehl LaserActivation. „Request a code“ erscheint, sobald eine Kontakt-Adresse eingetragen und das Plugin neu gebaut ist. Seit v48 nennt das Fenster die Uhrzeit: „Activated until 23:59 on …“ – ein Code gilt bis zum Ende seines letzten Tages. Wird die Uhr um mehr als einen Tag zurückgestellt, sperrt das Plugin.",
+    "stage": "getestet",
     "kind": "funktion",
-    "built": "v47",
+    "built": "v48",
     "tests": [
       {
         "text": "Im Hub unter Verkauf und Export für „Dieser PC“ einen Testcode für Laser Create erzeugen, der in 2 Tagen endet",
-        "done": false
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/verkauf?feld=code-card&produkt=laser&tage=2&geraet=dieser-pc",
+          "label": "Testcode vorbereiten"
+        }
       },
       {
-        "text": "In Rhino LaserActivation ausführen und den Code eingeben – das Fenster nimmt ihn an",
-        "done": false
+        "text": "In Rhino LaserActivation ausführen und den Testcode noch einmal eingeben – die Meldung sagt „Activated until 23:59 on <Enddatum>. Thank you!“",
+        "done": true
       },
       {
         "text": "Rhino neu starten und LaserCreate ausführen – in der Befehlszeile steht, dass der Code in 2 Tagen endet",
-        "done": false
+        "done": true
       },
       {
-        "text": "LaserActivation → „Request a code“ – dein Mailprogramm öffnet eine Mail mit Produkt, Version und Geräte-ID (erst nach Kontakt-Adresse und neuem Build)",
-        "done": false
+        "text": "Morgen noch einmal LaserCreate ausführen – die Zeile in der Befehlszeile nennt jetzt die Uhrzeit („… ends tomorrow, at 23:59 on …“; sie kommt nur einmal am Tag)",
+        "done": true
+      },
+      {
+        "text": "LaserActivation öffnen – oben steht „Activated until 23:59 on <Enddatum>.“, neben der Geräte-ID der Knopf „Request a code“",
+        "done": true
+      },
+      {
+        "text": "„Request a code“ klicken – dein Mailprogramm öffnet eine Mail an deine Kontakt-Adresse mit Produkt, Version und Geräte-ID",
+        "done": true
       },
       {
         "text": "Zum Schluss einen unbegrenzten Code für „Dieser PC“ erzeugen und mit LaserActivation eingeben",
-        "done": false
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/verkauf?feld=code-card&produkt=laser&art=kauf&geraet=dieser-pc",
+          "label": "Code vorbereiten"
+        }
       }
     ],
     "source": "Plugin Hub, Stufe 2",
     "created": "2026-09-25T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-25T12:00:00+02:00"
+    "changed": "2026-10-01T11:04:31.1665419+02:00",
+    "stageAt": "2026-10-01T11:04:31.1665396+02:00"
   },
   {
     "id": "r7b0b4d3c",
     "project": "swtolaser",
     "title": "Gebäude und Regionen mit Live-Vorschau",
-    "note": "Import-Seite: Gebäude nach Layer, Gruppe oder Farbe auswählen, Regionen mit Mindestfläche, Innenhöfen und „Merge touching“. Die Vorschau im Viewport zeigt orange, was bleibt, und rot gepunktet, was wegfällt.",
+    "note": "Import-Seite: unter Size, wie die Datei gemessen ist („Real size“ oder „Drawn to scale“ mit „Drawn at 1 : N“), darunter der Modellmaßstab mit der Größe des Lasermodells. „Buildings: typically …“ zeigt, ob der Maßstab stimmt. Gebäude nach Layer, Gruppe oder Farbe; Regionen mit Mindestfläche, Innenhöfen und „Merge touching“. Ändert sich die Größe des Plans, rechnet „Adjust to the new scale“ Gap und Smallest um. Die Vorschau im Viewport zeigt orange, was bleibt, und rot gepunktet, was wegfällt.",
     "stage": "gebaut",
     "kind": "funktion",
-    "built": "v46",
+    "built": "v50",
     "tests": [
       {
-        "text": "SiteLaser öffnen und eine Datei importieren, z. B. den Meran-DXF",
+        "text": "In Rhino SiteLaser öffnen und den Meran-DXF (Schwarzplan Plugin Test 1.dxf) importieren – unter Size ist „Real size“ gewählt, darunter steht „Buildings: typically 215 m²“ in normaler Schrift",
         "done": false
       },
       {
         "text": "Unter Buildings die Klasse wählen (Layer, Gruppe oder Farbe) – die Vorbelegung trifft die Gebäude",
+        "done": true
+      },
+      {
+        "text": "Im neuen Abschnitt Model den Maßstab auf 5000 stellen – „Model size“ zeigt etwa 303 mm × 273 mm, die Vorschau im Viewport bleibt, wie sie ist, und unter Regions steht, wie groß Gap und Smallest auf dem Modell sind",
+        "done": false
+      },
+      {
+        "text": "Unter Size auf „Drawn to scale“ wechseln und „Drawn at“ auf 100 stellen – „Buildings“ wird rot („far too small … Is the scale right?“), die Vorschau rot gepunktet, und unter Regions erscheint ein orangefarbener Streifen mit „Adjust to the new scale“",
+        "done": false
+      },
+      {
+        "text": "Im Streifen auf „Adjust to the new scale“ klicken – Gap wird 0,005 m, Smallest 0,1 m², der Streifen verschwindet, und die Vorschau zeigt wieder dieselben Gebäude in Orange (wieder 565 blocks)",
+        "done": false
+      },
+      {
+        "text": "„Drawn at“ zurück auf 1000 stellen – der Streifen sagt „10 × larger“, und ein Klick bringt Gap und Smallest auf 0,05 m und 10 m² zurück. Tippst du stattdessen selbst einen Wert ein, verschwindet der Streifen",
         "done": false
       },
       {
         "text": "Unter Regions Mindestfläche und „Merge touching“ ändern – die Vorschau folgt sofort",
+        "done": false
+      },
+      {
+        "text": "Build klicken und in den Reiter Plans wechseln – bei „Model“ steht der Maßstab aus dem Import, darunter die „Model size“",
         "done": false
       },
       {
@@ -197,8 +247,8 @@
     ],
     "source": "Schwarzplan-Konzept und Claudes Notizen",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-24T12:00:00+02:00"
+    "changed": "2026-09-25T18:31:34+02:00",
+    "stageAt": "2026-09-25T18:31:34+02:00"
   },
   {
     "id": "rd6ac15b2",
@@ -238,7 +288,7 @@
     "tests": [
       {
         "text": "Im Reiter Plans steht der gebaute Plan",
-        "done": false
+        "done": true
       },
       {
         "text": "Datei speichern und wieder öffnen – der Plan ist noch da",
@@ -247,7 +297,7 @@
     ],
     "source": "Schwarzplan-Konzept und Claudes Notizen",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
+    "changed": "2026-10-01T12:35:18.049582+02:00",
     "stageAt": "2026-09-24T12:00:00+02:00"
   },
   {
@@ -261,11 +311,11 @@
     "tests": [
       {
         "text": "Im Reiter Plans die Übergabe als Floors starten – Laser Create zeigt die Ebene mit dem Plannamen",
-        "done": false
+        "done": true
       },
       {
         "text": "Dasselbe als Contour mit einer Höhe – ohne Höhe verweigert die Übergabe",
-        "done": false
+        "done": true
       },
       {
         "text": "Im Laser-Panel steht der Modellmaßstab aus „Model 1 : N“",
@@ -278,148 +328,191 @@
     ],
     "source": "Schwarzplan-Konzept und Claudes Notizen",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
+    "changed": "2026-10-01T12:29:08.1701618+02:00",
     "stageAt": "2026-09-24T12:00:00+02:00"
   },
   {
     "id": "r7c91c68c",
     "project": "swtolaser",
     "title": "Aktivierung mit Testphasen und „Request a code“",
-    "note": "Eigener Schlüssel pro Plugin (v46), Codes mit Enddatum (v47): ab 7 Tagen vor dem Ende einmal täglich eine Zeile in der Befehlszeile, danach das Aktivierungsfenster. Neuer Befehl SiteActivation. „Request a code“ erscheint, sobald eine Kontakt-Adresse eingetragen und das Plugin neu gebaut ist. Wird die Uhr um mehr als einen Tag zurückgestellt, sperrt das Plugin.",
-    "stage": "gebaut",
+    "note": "Eigener Schlüssel pro Plugin (v46), Codes mit Enddatum (v47): ab 7 Tagen vor dem Ende einmal täglich eine Zeile in der Befehlszeile, danach das Aktivierungsfenster. Neuer Befehl SiteActivation. „Request a code“ erscheint, sobald eine Kontakt-Adresse eingetragen und das Plugin neu gebaut ist. Seit v48 nennt das Fenster die Uhrzeit: „Activated until 23:59 on …“ – ein Code gilt bis zum Ende seines letzten Tages. Wird die Uhr um mehr als einen Tag zurückgestellt, sperrt das Plugin.",
+    "stage": "getestet",
     "kind": "funktion",
-    "built": "v47",
+    "built": "v48",
     "tests": [
       {
         "text": "Im Hub unter Verkauf und Export für „Dieser PC“ einen Testcode für SW to Laser erzeugen, der in 2 Tagen endet",
-        "done": false
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/verkauf?feld=code-card&produkt=swtolaser&tage=2&geraet=dieser-pc",
+          "label": "Testcode vorbereiten"
+        }
       },
       {
-        "text": "In Rhino SiteActivation ausführen und den Code eingeben – das Fenster nimmt ihn an",
-        "done": false
+        "text": "In Rhino SiteActivation ausführen und den Code eingeben – die Meldung sagt „Activated until 23:59 on <Enddatum>. Thank you!“",
+        "done": true
       },
       {
-        "text": "Rhino neu starten und SiteLaser ausführen – in der Befehlszeile steht, dass der Code in 2 Tagen endet",
-        "done": false
+        "text": "Rhino neu starten und SiteLaser ausführen – in der Befehlszeile steht „… ends in 2 days, at 23:59 on <Enddatum>“",
+        "done": true
       },
       {
-        "text": "SiteActivation → „Request a code“ – dein Mailprogramm öffnet eine Mail mit Produkt, Version und Geräte-ID (erst nach Kontakt-Adresse und neuem Build)",
-        "done": false
+        "text": "SiteActivation öffnen – oben steht „Activated until 23:59 on <Enddatum>.“, neben der Geräte-ID der Knopf „Request a code“",
+        "done": true
+      },
+      {
+        "text": "„Request a code“ klicken – dein Mailprogramm öffnet eine Mail an deine Kontakt-Adresse mit Produkt, Version und Geräte-ID",
+        "done": true
       },
       {
         "text": "Zum Schluss einen unbegrenzten Code für „Dieser PC“ erzeugen und mit SiteActivation eingeben",
-        "done": false
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/verkauf?feld=code-card&produkt=swtolaser&art=kauf&geraet=dieser-pc",
+          "label": "Code vorbereiten"
+        }
       }
     ],
     "source": "Plugin Hub, Stufe 2",
     "created": "2026-09-25T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-25T12:00:00+02:00"
+    "changed": "2026-10-01T12:35:02.1374404+02:00",
+    "stageAt": "2026-10-01T12:35:02.1374381+02:00"
   },
   {
     "id": "r68162435",
     "project": "rhinokit",
     "title": "RhinoKit als Quellcode in beiden Plugins",
     "note": "Früher eine gemeinsame DLL – dabei überschrieb die Lizenzprüfung des einen Plugins die des anderen. Jetzt kompiliert jedes Plugin seine eigene Kopie.",
-    "stage": "gebaut",
+    "stage": "getestet",
     "kind": "funktion",
     "built": "v46",
     "tests": [
       {
         "text": "Beide Plugins in einer Rhino-Sitzung laden – beide Panels öffnen sich",
-        "done": false
+        "done": true
       },
       {
         "text": "Jedes Plugin verlangt seinen eigenen Code – einer für Laser Create schaltet SW to Laser nicht frei",
-        "done": false
+        "done": true
       }
     ],
     "source": "Schwarzplan-Konzept und Claudes Notizen",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-24T12:00:00+02:00"
+    "changed": "2026-09-25T15:18:17.376291+02:00",
+    "stageAt": "2026-09-25T15:18:17.3762892+02:00"
   },
   {
     "id": "r748a541d",
     "project": "hub",
     "title": "Planung: Roadmap, Entscheidungen, Versionen, Dokumente",
     "note": "Neuer Tab „Planung“. Die Karten und Entscheidungen liegen in Hub\\roadmap.json und Hub\\decisions.json, in Git – Claude liest und schreibt dieselben Listen.",
-    "stage": "gebaut",
+    "stage": "getestet",
     "kind": "funktion",
     "tests": [
       {
         "text": "Eine Karte von „Idee“ nach „Entschieden“ ziehen und wieder zurück",
-        "done": false
+        "done": true
       },
       {
         "text": "An einer Karte in „Gebaut“ einen Test-Schritt abhaken – das Häkchen bleibt nach F5",
-        "done": false
+        "done": true
       },
       {
         "text": "Eine offene Frage beantworten – sie steht danach unter Entscheidungen",
-        "done": false
+        "done": true
       },
       {
         "text": "Ein Dokument öffnen, bearbeiten und speichern",
-        "done": false
+        "done": true
       }
     ],
     "source": "Plugin Hub, Stufe 3",
     "created": "2026-09-25T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-25T12:00:00+02:00"
+    "changed": "2026-09-25T14:51:47.662172+02:00",
+    "stageAt": "2026-09-25T14:51:47.6621701+02:00"
   },
   {
     "id": "rceaf10cf",
     "project": "hub",
     "title": "Aufgaben mit Knopf „Hingehen“",
     "note": "Jede Aufgabe kann ein Ziel haben: eine Stelle im Hub, eine Datei, einen Build oder eine Webseite. Kommst du so auf eine Hub-Seite, steht die Aufgabe oben mit „Erledigt“.",
-    "stage": "gebaut",
+    "stage": "getestet",
     "kind": "funktion",
     "tests": [
       {
-        "text": "Bei „Eigene Kontakt-Adresse für Kunden festlegen“ auf „Zur Kontakt-Adresse“ klicken – das Feld leuchtet auf und hat den Cursor",
-        "done": false
+        "text": "Links auf „Aufgaben“ gehen: bei „Eigene Kontakt-Adresse für Kunden festlegen“ rechts auf „Zur Kontakt-Adresse“ klicken – in den Einstellungen leuchtet das Feld auf und hat den Cursor",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/aufgaben?feld=task-t3c5f1a96",
+          "label": "Zur Aufgabe"
+        }
       },
       {
-        "text": "Oben in der Leiste „Erledigt“ klicken – die Aufgabe ist abgehakt",
-        "done": false
+        "text": "Adresse eintragen, „Speichern“, dann oben in der orangen Leiste „Erledigt“ klicken – die Aufgabe ist abgehakt",
+        "done": true
       },
       {
-        "text": "Eine eigene Aufgabe anlegen und unter „Wo erledigst du das?“ ein Ziel wählen",
-        "done": false
+        "text": "Unter „Aufgaben“ mit „+ Aufgabe“ eine eigene anlegen und unter „Wo erledigst du das?“ ein Ziel wählen – ihr Knopf führt dorthin",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/aufgaben",
+          "label": "Zu den Aufgaben"
+        }
       }
     ],
     "source": "Plugin Hub, Stufe 3",
     "created": "2026-09-25T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-25T12:00:00+02:00"
+    "changed": "2026-09-25T15:08:34.9239598+02:00",
+    "stageAt": "2026-09-25T15:08:34.923863+02:00"
   },
   {
     "id": "rf1f02bd5",
     "project": "hub",
     "title": "Repository auf GitHub sichern",
     "note": "Schlüssel und Backup → Repository sichern: Adresse eines privaten GitHub-Repositorys eintragen, „Hochladen“. Danach zeigt die Übersicht, wenn Commits noch nicht oben sind.",
-    "stage": "gebaut",
+    "stage": "getestet",
     "kind": "funktion",
     "tests": [
       {
-        "text": "Die Adresse eintragen und „Verbinden“",
-        "done": false
+        "text": "Links auf „Aufgaben“ gehen: bei „Repository außerhalb dieses PCs sichern“ auf „Zur Git-Sicherung“ klicken – das Adressfeld hat den Cursor",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/aufgaben?feld=task-t6f0b3d58",
+          "label": "Zur Aufgabe"
+        }
       },
       {
-        "text": "„Hochladen“ – beim ersten Mal öffnet Git ein Fenster zum Anmelden bei GitHub",
-        "done": false
+        "text": "Über den Link auf der Seite bei GitHub ein privates, leeres Repository anlegen, die Adresse eintragen und „Verbinden“",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/schluessel?feld=git-remote",
+          "label": "Zur Git-Sicherung"
+        }
+      },
+      {
+        "text": "„Hochladen“ – beim ersten Mal öffnet Git ein Fenster zum Anmelden bei GitHub (es kann hinter dem Browser liegen)",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/schluessel?feld=git-remote",
+          "label": "Zur Git-Sicherung"
+        }
       },
       {
         "text": "Auf GitHub nachsehen: die Commits und die Versionen v1 bis v47 sind da",
-        "done": false
+        "done": true
       }
     ],
     "source": "Plugin Hub, Stufe 3",
     "created": "2026-09-25T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-25T12:00:00+02:00"
+    "changed": "2026-09-25T15:16:11.899605+02:00",
+    "stageAt": "2026-09-25T15:16:11.899603+02:00"
   },
   {
     "id": "r8149dfba",
@@ -526,6 +619,19 @@
     "stageAt": "2026-09-24T12:00:00+02:00"
   },
   {
+    "id": "r099a980a",
+    "project": "laser",
+    "title": "Schnittreihenfolge: Löcher vor der Außenkontur",
+    "note": "Sonst kann das Teil verrutschen, bevor seine Löcher geschnitten sind.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Code Review 24.08.2026",
+    "created": "2026-08-24T12:00:00+02:00",
+    "changed": "2026-09-25T15:44:33.389208+02:00",
+    "stageAt": "2026-08-24T12:00:00+02:00"
+  },
+  {
     "id": "r5c6d6a37",
     "project": "laser",
     "title": "Gekrümmte Wände abwickeln",
@@ -537,19 +643,6 @@
     "created": "2026-08-18T12:00:00+02:00",
     "changed": "2026-09-25T13:39:26+02:00",
     "stageAt": "2026-08-18T12:00:00+02:00"
-  },
-  {
-    "id": "r099a980a",
-    "project": "laser",
-    "title": "Schnittreihenfolge: Löcher vor der Außenkontur",
-    "note": "Sonst kann das Teil verrutschen, bevor seine Löcher geschnitten sind.",
-    "stage": "idee",
-    "kind": "funktion",
-    "tests": [],
-    "source": "Code Review 24.08.2026",
-    "created": "2026-08-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-08-24T12:00:00+02:00"
   },
   {
     "id": "re7050877",
@@ -587,8 +680,8 @@
     "tests": [],
     "source": "Schwarzplan-Konzept §7 „später“",
     "created": "2026-09-22T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-22T12:00:00+02:00"
+    "changed": "2026-09-29T17:41:09.4766296+02:00",
+    "stageAt": "2026-09-29T17:41:09.4766218+02:00"
   },
   {
     "id": "rab2dfc1f",
@@ -633,18 +726,6 @@
     "id": "r87a55223",
     "title": "Verkaufsunterlagen pro Plugin",
     "note": "Beschreibung auf Deutsch und Englisch, Screenshots oder GIF, Preis und Funktionsliste – jeweils mit Stand „fehlt“ oder „fertig“.",
-    "stage": "idee",
-    "kind": "funktion",
-    "tests": [],
-    "source": "Hub-Konzept, Stufe 4",
-    "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T13:39:26+02:00",
-    "stageAt": "2026-09-24T12:00:00+02:00"
-  },
-  {
-    "id": "re3ef4e0a",
-    "title": "Rhino-Paket (.yak) für den Package Manager",
-    "note": "Installieren über Rhinos eigenen Paketmanager.",
     "stage": "idee",
     "kind": "funktion",
     "tests": [],
@@ -732,5 +813,861 @@
     "created": "2026-09-24T12:00:00+02:00",
     "changed": "2026-09-25T13:39:26+02:00",
     "stageAt": "2026-09-24T12:00:00+02:00"
+  },
+  {
+    "id": "re3ef4e0a",
+    "title": "Rhino-Paket (.yak) für den Package Manager",
+    "note": "Installieren über Rhinos eigenen Paketmanager. Jedes Release baut neben dem ZIP ein Rhino-Paket (.yak, mit Yak aus Rhino 8): .rhp, Symbolleiste, Anleitung, Lizenzbedingungen, Symbol und Beschreibung; Autor ist der Anbieter aus den Einstellungen. Hochgeladen wird erst per Knopf unter Releases, nach einer Rückfrage und einmaliger Anmeldung mit deinem Rhino-Konto – danach ist es öffentlich im Package Manager. „Probepaket bauen“ packt den aktuellen Build zum Ansehen. Das Paket gilt ab Rhino 8.35, weil gegen dein installiertes Rhino gebaut wird (Dateiname „rh8_35“).",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "Im Hub unter Releases bei Laser Create „Probepaket bauen“ – unten läuft „Probepaket Laser Create …“, danach öffnet sich der Explorer mit lasercreate-1.0.0-test-rh8_35-win.yak",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/releases?feld=release-laser",
+          "label": "Zum Release Laser Create"
+        }
+      },
+      {
+        "text": "Die .yak kopieren, die Kopie in .zip umbenennen und öffnen: LaserExportPlugin.rhp und .rui, icon.png, manifest.yml, Anleitung, Guide, Lizenzbedingungen, License und Changes sind drin",
+        "done": false
+      },
+      {
+        "text": "Dasselbe bei SW to Laser – swtolaser-1.0.0-test-rh8_35-win.yak mit SwToLaserPlugin.rhp und .rui",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/releases?feld=release-swtolaser",
+          "label": "Zum Release SW to Laser"
+        }
+      },
+      {
+        "text": "Beim ersten echten Release: danach steht unter „Package Manager“ „ist gebaut, aber noch nicht hochgeladen“, und „Bei Rhino anmelden“ öffnet den Browser für dein Rhino-Konto",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/releases",
+          "label": "Zu den Releases"
+        }
+      },
+      {
+        "text": "Nur wenn du veröffentlichen willst: „Zum Package Manager hochladen …“, Rückfrage bestätigen – in Rhino unter Tools → Package Manager findet die Suche „LaserCreate“ das Paket",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/releases",
+          "label": "Zu den Releases"
+        }
+      }
+    ],
+    "source": "Hub-Konzept, Stufe 4",
+    "created": "2026-09-24T12:00:00+02:00",
+    "changed": "2026-09-26T14:45:21+02:00",
+    "stageAt": "2026-09-26T14:45:21+02:00"
+  },
+  {
+    "id": "r851063cb",
+    "project": "laser",
+    "title": "Ankerpunkt PlateMove nicht Zentriert",
+    "note": "Ankerpunkt für verschieben einer Platte nicht zentriert, sondern am linken unteren Eck der Platte. Führt zu leichterem anordnen von mehreren Platten.\n\nv52: LaserMovePlate greift die Platte immer an der linken unteren Ecke, egal wo du sie anklickst – mit dem Objektfang rastet die Ecke an der Ecke einer anderen Platte ein. Bei einer Restplatte ist es die linke untere Ecke ihres Randes.",
+    "stage": "getestet",
+    "kind": "funktion",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "In Rhino mit Platten im Modell LaserMovePlate starten (Symbol mit dem Kreuz) und eine Platte in der Mitte anklicken – die grüne Vorschau hängt am linken unteren Eck der Platte, nicht an der Klickstelle",
+        "done": true
+      },
+      {
+        "text": "Mit Objektfang „Endpunkt“ das Eck an das rechte untere Eck einer anderen Platte setzen – die beiden Platten liegen bündig nebeneinander",
+        "done": true
+      },
+      {
+        "text": "Eine Restplatte verschieben – der Griff sitzt am linken unteren Eck ihres Randes",
+        "done": true
+      }
+    ],
+    "created": "2026-09-25T14:43:05.2250835+02:00",
+    "changed": "2026-10-01T11:06:03.1929041+02:00",
+    "stageAt": "2026-10-01T11:06:03.1929019+02:00"
+  },
+  {
+    "id": "rd4074103",
+    "project": "hub",
+    "title": "Code-Anfragen aus dem Postfach",
+    "note": "Mails mit Geräte-ID an die Kontakt-Adresse erscheinen unter Mails → Code-Anfragen, in der Übersicht, in der Seitenleiste und im Tab-Titel. Der Hub liest das Postfach alle zwei Minuten, nur lesend. „Testcode senden …“ erzeugt den Code aus der Anfrage und antwortet im selben Gespräch.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "tests": [
+      {
+        "text": "Hub starten, Mails öffnen und bei „Code-Anfragen“ auf „Jetzt prüfen“ klicken – deine Test-Anfrage von heute aus „Request a code“ steht dort, mit Plugin, Wunsch und Geräte-ID",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/mails?feld=anfragen",
+          "label": "Zu den Anfragen"
+        }
+      },
+      {
+        "text": "In Rhino noch einmal „Request a code“ senden – spätestens nach zwei Minuten meldet der Hub „Neue Code-Anfrage“, und im Tab-Titel steht die Zahl",
+        "done": true
+      },
+      {
+        "text": "Bei der Anfrage „Testcode senden …“ – das Formular ist ausgefüllt; Code erzeugen und die Mail senden. Sie kommt in Gmail als Antwort auf die Anfrage an",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/mails?feld=anfragen",
+          "label": "Zu den Anfragen"
+        }
+      },
+      {
+        "text": "„Mail lesen“, „Ohne Code ablegen“ und unter „Erledigt“ „Wieder öffnen“ ausprobieren",
+        "done": false
+      }
+    ],
+    "source": "Deine Anfrage vom 25.09.2026",
+    "created": "2026-09-25T17:47:57+02:00",
+    "changed": "2026-10-01T12:36:26.9777451+02:00",
+    "stageAt": "2026-09-25T17:47:57+02:00"
+  },
+  {
+    "id": "re65b7e4c",
+    "project": "laser",
+    "title": "Große Pläne: Nesting in Sekunden, mit Fortschritt und Esc",
+    "note": "Nach der Übergabe des Meran-Plans mit 2505 Gebäuden hing Rhino bei 1:1000 über sieben Minuten und musste beendet werden. Das „Optimal“-Nesting prüfte für jedes Teil jede Stelle jeder Platte, auch für Teile, die nicht mehr passten, und der Vergleich mit „Fast“ kam noch dazu. Jetzt schließen zwei schnelle Vorprüfungen fast alle Stellen aus, und die Teile liegen genau wie vorher: Optimal 2,6 s statt 286 s, Fast 2,2 s statt 50 s. LaserCreate zeigt unten einen Fortschrittsbalken und bricht mit Esc ab, bevor etwas ins Modell kommt.\n\nv53, nach deinem Hinweis „Ob keines fehlt, kann ich schlecht testen, da es 2505 Teile sind“: Die Zusammenfassung zählt jetzt selbst nach – wie viele Teile ins Nesting gingen, wie viele auf den Platten liegen, wie viele zu groß sind und ob eines unterwegs verloren ging. Combine zählt genauso.",
+    "stage": "getestet",
+    "kind": "fehler",
+    "built": "v53",
+    "tests": [
+      {
+        "text": "In Rhino SiteLaser öffnen, „Schwarzplan Plugin Test Multiple Layers.dxf“ importieren, bauen und im Reiter Plans als Floors an Laser übergeben",
+        "done": true
+      },
+      {
+        "text": "Im Laser-Panel (Create) 1:1000, Optimal und 1000 × 700 mm lassen und „Create“ klicken – unten in der Statusleiste laufen „Preparing parts“ und „Nesting“, Rhino bleibt ansprechbar, und nach wenigen Sekunden bis etwa einer halben Minute fragt Rhino nach dem Basispunkt",
+        "done": true
+      },
+      {
+        "text": "Die Platten erzeugen lassen – in der Zusammenfassung steht unter „Finished“ „✓ All 2505 parts are on the plates.“ Fehlt eines, sagt die Zeile rot, wie viele auf den Platten liegen und wo die anderen sind",
+        "done": true
+      },
+      {
+        "text": "Für den Esc-Test den Plan in SW to Laser als Contour mit 10 m Höhe übergeben (rund 7500 Scheiben), „Create“ klicken und während der Balken läuft Esc drücken – die Befehlszeile meldet „cancelled with Esc – nothing was created“, im Modell kommt nichts dazu",
+        "done": true
+      }
+    ],
+    "source": "Deine Meldung vom 25.09.2026: Rhino hing nach der Übergabe an Laser Create",
+    "created": "2026-09-25T19:13:01+02:00",
+    "changed": "2026-10-01T19:40:45.1002409+02:00",
+    "stageAt": "2026-10-01T19:40:45.1002393+02:00"
+  },
+  {
+    "id": "r1f04baf4",
+    "project": "laser",
+    "title": "Oversized / Ambigous Laser Inspect",
+    "note": "Teile die mit Warnungen, oder ähnlichem erstellt wurden nach Laser Create sollen ab jetzt auch per LaserInspect verstanden werden können. So kann der Nutzer schauen welches Teil im Modell genau der Fehler war\n\nv52: Die roten übergroßen Teile unter den Platten, die ERROR-Punkte (Objekte, aus denen kein Teil wurde) und die CHECK-Teile lassen sich wie Teile auf der Platte anklicken. LaserInspect nennt unter „Problem“ den Grund und markiert das Objekt im Modell – bei CHECK genau die Fläche, aus der das Teil geschnitten wurde. Mit ◀ ▶ oben im Fenster springst du von einem zum nächsten, die Ansicht zoomt auf das Objekt. Die Gründe stehen an den Objekten und bleiben nach dem Speichern erhalten.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "In Rhino einen Quader 2000 × 1500 × 10 mm zeichnen, im Laser-Panel als Floors zuordnen und „Create“ – er liegt rot unter den Platten, LaserInspect öffnet sich und zeigt oben „1 part needs a look“",
+        "done": true
+      },
+      {
+        "text": "Die rote Kontur anklicken – unter „Problem“ steht, dass 2000 mm × 1500 mm nicht auf die Platte passen, „Plate“ sagt „none – it lies below the plates“, und der Quader ist im Modell magenta markiert",
+        "done": true
+      },
+      {
+        "text": "Umgekehrt den Quader im Modell anklicken – jetzt ist seine rote Kontur unter den Platten markiert",
+        "done": true
+      },
+      {
+        "text": "Eine offene Polyfläche (z. B. einen Quader ohne Deckel) als Contour zuordnen und erzeugen – unter den Platten steht ein ERROR-Punkt; angeklickt nennt LaserInspect den Grund (offene Polyfläche) und markiert das Objekt",
+        "done": false
+      },
+      {
+        "text": "Mit ◀ ▶ oben im Inspektor zwischen den Problem-Teilen springen – „2 of 2“ usw., die Ansicht zoomt jeweils auf das Objekt im Modell",
+        "done": true
+      },
+      {
+        "text": "Wenn du ein CHECK-Teil hast (gelb, mit CHECK-Punkt): den CHECK-Punkt anklicken – der Grund steht da, und markiert ist genau die Fläche des Körpers, aus der dieses Teil geschnitten wurde",
+        "done": false
+      },
+      {
+        "text": "Datei speichern, Rhino neu starten, die Datei öffnen und LaserInspect – die Gründe sind noch da",
+        "done": false
+      }
+    ],
+    "created": "2026-09-25T19:20:02.0606583+02:00",
+    "changed": "2026-10-01T19:41:16.7674076+02:00",
+    "stageAt": "2026-09-26T14:45:21+02:00"
+  },
+  {
+    "id": "r0cda69d7",
+    "project": "swtolaser",
+    "title": "Maßstab funktioniert Falschherum",
+    "note": "Beim einstellen des Maßstabes wird scheinbar falsch herum gerechnet. Beim einstellen eines höheren Maßstabes (z.b. 1:1000) würde der Nutzer denken, dass die Teile auf der Platte dann 1000 mal kleiner sind wie in der Ursprungsgeometrie. Dies muss behoben werden!\n\nv52, nach deiner Wahl: SW to Laser baut den Plan in Rhino gleich in Modellgröße – bei „Model 1 : 1000“ ist ein 20 m langes Gebäude in Rhino 20 mm lang, wie in deiner importierten DXF. Laser Create schneidet ihn mit „Cut at 1 : 1“, also so groß, wie er in Rhino liegt. Die Vorschau zeigt schon die Modellgröße. Ein neuer Maßstab unter Plans skaliert den Plan in Rhino mit (Strg+Z macht es rückgängig). Pläne von vorher liegen in echter Größe und bekommen einen Knopf „Bring to model size“.",
+    "stage": "gebaut",
+    "kind": "fehler",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "In Rhino (Dokument in mm) auf das neue Import-Symbol klicken und „Schwarzplan Plugin Test Multiple Layers.dxf“ wählen – bei Model 1 : 1000 zeigt die orange Vorschau den Plan in Modellgröße (etwa 3,3 m breit, nicht 3,3 km)",
+        "done": false
+      },
+      {
+        "text": "Model auf 1 : 500 stellen und Enter – die Vorschau wird doppelt so groß, die Ansicht folgt, „Model size“ zeigt die neue Größe",
+        "done": false
+      },
+      {
+        "text": "„Build outlines“ – der Plan liegt in Rhino so groß wie die Vorschau; unter Plans steht „1 : 500 in Rhino“",
+        "done": false
+      },
+      {
+        "text": "Unter Plans bei Model 1 : 1000 eingeben und Enter – der Plan in Rhino wird halb so groß; Strg+Z macht es rückgängig",
+        "done": false
+      },
+      {
+        "text": "In „Schwarzplan Plugin Test.3dm“ den alten Plan „Multiple Layers 2“ wählen – er zeigt „real size in Rhino“ und „Bring to model size“; der Knopf verkleinert ihn auf den eingestellten Maßstab",
+        "done": false
+      }
+    ],
+    "created": "2026-09-25T19:22:07.9812115+02:00",
+    "changed": "2026-09-26T14:45:21+02:00",
+    "stageAt": "2026-09-26T14:45:21+02:00"
+  },
+  {
+    "id": "r1e7eff5e",
+    "project": "laser",
+    "title": "Maßstab funktioniert Falschherum LC",
+    "note": "Beim einstellen des Maßstabes wird scheinbar falsch herum gerechnet. Beim einstellen eines höheren Maßstabes (z.b. 1:1000) würde der Nutzer denken, dass die Teile auf der Platte dann 1000 mal kleiner sind wie in der Ursprungsgeometrie. Dies muss behoben werden!\n\nv52: Laser Create rechnete schon so: „Cut at 1 : N“ macht die Teile N-mal kleiner, als die Geometrie in Rhino liegt. Groß wurden sie, weil SW to Laser den Plan in echter Größe gebaut hatte (siehe die Karte „Maßstab funktioniert Falschherum“). Jetzt übergibt SW to Laser mit „Cut at 1 : 1“, und unter dem Feld steht, was der Maßstab macht: „1000 mm in Rhino become 100 mm on the sheet“.",
+    "stage": "gebaut",
+    "kind": "fehler",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "Einen neuen Plan aus SW to Laser als Floors übergeben – im Laser-Panel steht „Cut at 1 : 1“ und darunter „Parts are cut as large as they are in Rhino“",
+        "done": false
+      },
+      {
+        "text": "„Create“ – die Teile auf der Platte sind so groß wie die Gebäude im Plan in Rhino (mit dem Maßband nachmessen)",
+        "done": false
+      },
+      {
+        "text": "„Cut at“ auf 10 und Enter – darunter steht „10 times smaller … 1000 mm in Rhino become 100 mm on the sheet“; neu erzeugt sind die Teile zehnmal kleiner als im Plan",
+        "done": false
+      }
+    ],
+    "created": "2026-09-25T19:22:32.2317287+02:00",
+    "changed": "2026-10-01T19:41:20.5194422+02:00",
+    "stageAt": "2026-09-26T14:45:21+02:00"
+  },
+  {
+    "id": "r8d49e607",
+    "project": "laser",
+    "title": "Eingabefelder Anpassungen",
+    "note": "Wenn in Eingabefeldern etwas geändert wurde, soll mit entweder einem klick außerhalb des Feldes, oder per Drücken von Enter die Einstellung angenommen werden.\n\nv52: Jedes Zahlenfeld übernimmt den Wert bei Enter und bei einem Klick daneben – ins leere Panel, auf eine Beschriftung, einen Knopf oder in den Viewport. Das Feld sitzt in RhinoKit, also gilt es in Laser Create und SW to Laser. Plattenname und Planname lassen bei Enter los.",
+    "stage": "gebaut",
+    "kind": "fehler",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "Im Laser-Panel (Create) bei „Width“ eine neue Zahl tippen und Enter – sie wird übernommen (formatiert, die Teile-Schätzung unten ändert sich)",
+        "done": true
+      },
+      {
+        "text": "Eine Zahl tippen und in eine leere Stelle des Panels klicken – übernommen",
+        "done": true
+      },
+      {
+        "text": "Eine Zahl tippen und in den Viewport klicken – übernommen",
+        "done": true
+      },
+      {
+        "text": "In SW to Laser bei Gap eine Zahl tippen und Enter – die orange Vorschau folgt",
+        "done": true
+      }
+    ],
+    "created": "2026-09-25T19:24:56.3804209+02:00",
+    "changed": "2026-10-01T19:50:16.1268877+02:00",
+    "stageAt": "2026-09-26T14:45:21+02:00"
+  },
+  {
+    "id": "re57c46ef",
+    "project": "hub",
+    "title": "Farbanpassungen Interface",
+    "note": "Das Interface soll:\n- Visuell zwischen den Reitern und dem Inhalt des Reiters unterscheiden. Reiter generell etwas dunkler, Inhalt etwas heller.\n- Visuell mehr zwischen den Unterschiedlichen Reiter-Inhalten unterscheiden. Beim Nutzen soll man irgendwie leichter erkennen können in welchem Reiter man gerade ist.\n\nv52, nach deiner Wahl: Die Seitenleiste ist eine Stufe dunkler, der Inhalt eine heller – hell wie dunkel. Jeder Reiter hat eine Farbe (Übersicht blau, Aufgaben grün, Planung violett, Verkauf orange, Kunden türkis, Mails hellblau, Releases rosa, Schlüssel gold, Einstellungen grau, Projekte indigo): sein Symbol in der Leiste, die Markierung des offenen Reiters, ein Streifen oben über der Seite, die Kachel am Titel und die Symbole der Karten. Warnungen bleiben rot, Knöpfe orange.",
+    "stage": "getestet",
+    "kind": "funktion",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "Im Hub durch die Reiter klicken – die Seitenleiste ist dunkler als der Inhalt; jeder Reiter zeigt seine Farbe in der Leiste, als Markierung, als Streifen oben und als Kachel am Titel",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/",
+          "label": "Zur Übersicht"
+        }
+      },
+      {
+        "text": "Windows auf dunkel stellen (oder den Browser) – dieselbe Aufteilung: dunkle Leiste, hellerer Inhalt",
+        "done": true
+      },
+      {
+        "text": "Auf dem Handy – der Balken oben hat unten einen Strich in der Farbe des Reiters",
+        "done": true
+      }
+    ],
+    "created": "2026-09-25T19:28:03.2630393+02:00",
+    "changed": "2026-10-01T12:35:49.8292737+02:00",
+    "stageAt": "2026-10-01T12:35:49.8292717+02:00"
+  },
+  {
+    "id": "r7d73c72e",
+    "project": "swtolaser",
+    "title": "Icons Implementieren",
+    "note": "Es soll Icons für SW to Laser geben. Es soll auch genauso funktionieren wie LaserCreate -> das starten des Befehls soll auch direkt das Panel in der Seitenleiste öffnen.\n\nv52, nach deiner Wahl: SW to Laser hat eine Symbolleiste mit einem Knopf „Import“ (hell und dunkel, im Stil der Laser-Symbole). Er startet den neuen Befehl SiteImport: Das Panel öffnet sich auf „Import“ und fragt gleich nach der Datei. Beim ersten Mal dockt das Panel in der Seitenleiste neben dem Laser-Panel an (sonst neben Eigenschaften oder Ebenen), danach öffnet es sich dort, wo du es zuletzt hattest – auch mit SiteLaser.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "Rhino 9 neu starten – die Symbolleiste „SW to Laser“ mit dem Import-Symbol erscheint (sonst: Werkzeuge → Symbolleisten → SW to Laser)",
+        "done": false
+      },
+      {
+        "text": "Auf das Import-Symbol klicken – das Panel öffnet sich in der Seitenleiste neben dem Laser-Panel, auf „Import“, und fragt gleich nach der Datei",
+        "done": false
+      },
+      {
+        "text": "Das Panel schließen und SiteLaser eintippen – es öffnet sich wieder an derselben Stelle",
+        "done": false
+      },
+      {
+        "text": "Rhino auf hell und dunkel ansehen – das Symbol ist in beiden gut zu erkennen",
+        "done": false
+      }
+    ],
+    "created": "2026-09-25T19:29:50.1134561+02:00",
+    "changed": "2026-09-26T14:45:21+02:00",
+    "stageAt": "2026-09-26T14:45:21+02:00"
+  },
+  {
+    "id": "r821ece0e",
+    "project": "hub",
+    "title": "Hub vom Handy aus (Tailscale)",
+    "note": "Einstellungen → Handy-Zugang: Tailscale reicht die Anfragen deines Handys an den Hub weiter, unter https://<pc>.<tailnet>.ts.net, verschlüsselt und nur für deine Geräte. Herein kommt nur dein Tailscale-Konto. Vom Handy aus geht alles außer Schlüsseln, Backups, Releases, Bauen, Hochladen und Dateien auf dem PC. Mit Handy-Zugang startet der Hub mit Windows und läuft weiter. Auf dem Handy wird die Seitenleiste zu einer Leiste mit Menü.\n\nv52, nach deinem Fehlerbericht: Der Hub war nach dem Neustart gestartet (12:58:57, aus dem Autostart) – Tailscale verband sich aber erst mit seiner App nach dem Anmelden (12:59:35). Jetzt schaut der Hub 10 Sekunden nach dem Start und dann jede Minute nach und richtet die Weitergabe selbst wieder ein. Die Karte zeigt, ob Tailscale schon beim Windows-Start verbindet, und schaltet das auf Klick ein („Run unattended“). Neben der Uhr steht jetzt das Hub-Symbol, solange der Hub läuft.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v52",
+    "tests": [
+      {
+        "text": "Tailscale auf diesem PC installieren und anmelden, dann auf dem Handy die Tailscale-App mit demselben Konto anmelden",
+        "done": true,
+        "goto": {
+          "kind": "url",
+          "target": "https://tailscale.com/download",
+          "label": "Tailscale laden"
+        }
+      },
+      {
+        "text": "Im Hub unter Einstellungen → Handy-Zugang „Erneut prüfen“, dann „Einschalten“. Fragt Tailscale nach einer Freigabe: den Link öffnen, bestätigen und noch einmal „Einschalten“",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?feld=handy",
+          "label": "Zum Handy-Zugang"
+        }
+      },
+      {
+        "text": "Auf dem Handy die angezeigte Adresse (https://….ts.net) öffnen – die Übersicht erscheint mit einer schmalen Leiste oben und einem Menü-Knopf; im Menü steht unten „Vom Handy über Tailscale“",
+        "done": true
+      },
+      {
+        "text": "Auf dem Handy eine Aufgabe abhaken oder eine Code-Anfrage beantworten – das klappt. Unter „Schlüssel und Backup“ und „Releases“ steht „Auf dem Handy nur zum Ansehen“, Knöpfe zum Bauen und Hochladen fehlen",
+        "done": true
+      },
+      {
+        "text": "Auf dem Handy in der Planung das Board seitlich wischen – jede Spalte füllt den Bildschirm",
+        "done": true
+      },
+      {
+        "text": "Am PC unter Einstellungen → Handy-Zugang „Ausschalten“ – das Handy kommt nicht mehr herein",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?feld=handy",
+          "label": "Zum Handy-Zugang"
+        }
+      },
+      {
+        "text": "Nach dem Update den Hub über die Desktop-Verknüpfung „Plugin Hub“ starten – neben der Uhr erscheint das Hub-Symbol (evtl. unter dem Pfeil ^); ein Klick darauf öffnet den Hub im Browser",
+        "done": false
+      },
+      {
+        "text": "Im Hub unter Einstellungen → Handy-Zugang: „Nach einem Neustart“ sagt „Tailscale verbindet erst nach dem Anmelden“ – „Tailscale vor dem Anmelden verbinden“ klicken; die Zeile wechselt auf „schon beim Windows-Start“",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?feld=handy",
+          "label": "Zum Handy-Zugang"
+        }
+      },
+      {
+        "text": "Den PC neu starten und anmelden, ohne den Hub zu starten – das Hub-Symbol erscheint neben der Uhr, und das Handy öffnet die Adresse (nach spätestens einer Minute)",
+        "done": false
+      },
+      {
+        "text": "Wieder am PC: Die Karte Handy-Zugang zeigt „Weitergabe an den Hub ✓ aktiv“ – hat der Hub sie selbst reparieren müssen, steht darunter „Weitergabe selbst repariert“ mit der Uhrzeit",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?feld=handy",
+          "label": "Zum Handy-Zugang"
+        }
+      },
+      {
+        "text": "Rechtsklick auf das Hub-Symbol → „Hub beenden“ – Windows fragt nach, weil das Handy den Hub dann nicht mehr erreicht; „Abbrechen“ lässt ihn laufen",
+        "done": false
+      }
+    ],
+    "source": "Deine Frage vom 25.09.2026: den Hub auch vom Handy aus erreichen",
+    "created": "2026-09-26T02:01:13+02:00",
+    "changed": "2026-09-26T14:45:21+02:00",
+    "stageAt": "2026-09-26T14:45:21+02:00"
+  },
+  {
+    "id": "r933becb8",
+    "title": "Testpersonen!",
+    "note": "Werbung Schalten um 5-10 Testpersonen zu bekommen. Diese kriegen dann von mir das Plugin mit einem zeitlich begrenzen Schlüssel (Hierfür muss erst sicher getestet sein, dass Schlüssel nach Probezeit auch sicher nicht mehr funktionieren!). Sie können dann am Ende Feedback senden und Vorschläge liefern. Wenn ein Nutzer damit fertig ist kriegt er, und eine Person seiner Wahl, einen kostenlosen Schlüssel für 1 Jahr, oder unbegrenzt)",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "created": "2026-09-26T13:58:17.1652475+02:00",
+    "changed": "2026-09-26T13:58:17.1652475+02:00",
+    "stageAt": "2026-09-26T13:58:17.1652475+02:00"
+  },
+  {
+    "id": "r5ec5ba25",
+    "title": "Mac Implementierung?",
+    "note": "Am besten natürlich auch auf Mac. Was ist hier der Unterschied? Wie leicht wäre die Umsetzung?\n\nAntwort von Claude (01.10.2026): Die Oberfläche beider Plugins ist mit Eto gebaut, das es auch auf dem Mac gibt. Anders gebaut werden müssten die Windows-Feinheiten der Fenster (Titelleiste, Feldrahmen), die Geräte-ID (sie liest heute eine Windows-Kennung; auf dem Mac käme die Hardware-Kennung – Codes für Windows bleiben gültig), ein zweiter Build ohne Windows-Teile und ein Mac-Paket für den Package Manager; Werkzeugleisten und Symbole wären auf dem Mac zu prüfen. Bauen: etwa ein bis zwei Sitzungen. Der Haken: Testen geht nur auf einem Mac mit Rhino 8 – ohne Mac würde blind gebaut. Am 01.10.2026 hast du sie nicht für jetzt gewählt.",
+    "stage": "entschieden",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Entscheidung vom 25.09.2026",
+    "created": "2026-09-25T14:07:38.7530679+02:00",
+    "changed": "2026-10-01T19:03:47.8088467+02:00",
+    "stageAt": "2026-09-27T18:02:38.4627995+02:00"
+  },
+  {
+    "id": "r376da3da",
+    "title": "Farbanpassungen Free-Trial und Buy",
+    "note": "Überall dort wo der Nutzer entscheiden kann zwischen dem Kauf des/der Plugins soll, sobald das kaufen möglich ist, der \"Buy\" button in orange sein (und vorgehoben sein) und der \"Free-Trial\" button nicht.",
+    "stage": "entschieden",
+    "kind": "funktion",
+    "tests": [],
+    "created": "2026-10-01T19:14:59.5246579+02:00",
+    "changed": "2026-10-01T19:15:04.5143839+02:00",
+    "stageAt": "2026-10-01T19:15:04.5143798+02:00"
+  },
+  {
+    "id": "rdea08123",
+    "project": "laser",
+    "title": "Platten generelle Verbesserungen",
+    "note": "- Die teilweise sehr großen Text dots sollen verschwinden. Es soll jetzt einfach unter jede Platte ein Fester Text geschrieben werden. Dieser soll Schwarz sein.\n- Plattennamen soll man im Plates Tab suchen können. \n- Die cut duration soll (solange eingestellt beim erstellen) unter jede platte geschrieben werden im plates tab.\n- Beim Platzieren von Platten, soll man eine sehr einfache vorschau (Nur die Plattenrahmen) bekommen, damit man sieht wo alle hinkommen.\n- Platten sollen nicht mehr bis in die unendlichkeit nur neben einander platziert werden, sondern in einem Grid. Hier könnte man z.B. 5 Spalten und X Zeilen nehmen.\n\nv53, deine Wahl: Unter jeder Platte steht ihr Name als schwarzer Text im Modell – 2,5 % der Plattenhöhe (rund 18 mm unter 1000 × 700), nie breiter als die Platte; „Label size“ fällt weg. Die Platten liegen im Raster: „Plates per row“ im Create-Tab (Standard 5), Platte 1 am Basispunkt, die Reihen laufen nach unten; jeder Satz merkt sich seinen Wert, ein Update baut ihn genauso wieder auf. Beim Klicken des Basispunkts folgen die Plattenrahmen der Maus – auch bei Combine. Im Plates-Tab sucht „Search“ nach Satz- und Plattennamen („Meran“ den ganzen Satz, „Meran 3“ seine Platte 3), und unter jeder Platte steht ihre Schneidezeit – mit der Geschwindigkeit, mit der sie erzeugt wurde.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v53",
+    "tests": [
+      {
+        "text": "Im Laser-Panel (Create) unter „Cutting sheet“ steht „Plates per row 5“; das Feld „Label size“ gibt es nicht mehr",
+        "done": false
+      },
+      {
+        "text": "Einen Satz mit mehr als 5 Platten erzeugen (z. B. den Meran-Plan aus SW to Laser als Floors): beim Klicken des Basispunkts folgen orange Plattenrahmen der Maus – 5 nebeneinander, die weiteren Reihen darunter",
+        "done": false
+      },
+      {
+        "text": "Nach dem Klick: Platte 1 liegt am Basispunkt, die Reihen laufen nach unten, und unter jeder Platte steht ihr Name schwarz als Text (z. B. „Meran 3  [1000 × 700 mm] …“) – keine großen Text-Dots mehr. Beim Zoomen wächst und schrumpft der Text mit der Platte",
+        "done": false
+      },
+      {
+        "text": "Im Laser-Panel (Plates) steht unter jeder Platte „Cutting ≈ … min“. Ins Feld „Search“ „Meran 3“ tippen: nur Platte 3 von Meran bleibt, oben steht „1 of … plates match“. „Meran“ zeigt den ganzen Satz, Esc leert das Feld",
+        "done": false
+      },
+      {
+        "text": "„Plates per row“ auf 3 stellen und einen zweiten Satz mit anderem Plattennamen erzeugen: 3 Platten pro Reihe",
+        "done": false
+      },
+      {
+        "text": "Im Plates-Tab beim ersten Satz auf den Stift klicken und ihn umbenennen: der schwarze Text unter seinen Platten trägt den neuen Namen",
+        "done": false
+      },
+      {
+        "text": "Zwei Platten markieren und „Combine“: beim Basispunkt folgen die Rahmen der neuen Platten der Maus",
+        "done": false
+      }
+    ],
+    "created": "2026-09-26T15:10:17.0876858+02:00",
+    "changed": "2026-10-01T19:03:11.3615808+02:00",
+    "stageAt": "2026-10-01T19:03:11.361579+02:00"
+  },
+  {
+    "id": "r85cc1700",
+    "title": "Code-Anfragen Verbesserungen",
+    "note": "E-Mail soll entweder eine bessere auswahl des angefragten codes erhalten, oder direkt eine andere art bekommen wie der Kunde den Code erhält/anfragt\n\nv53, deine Wahl: zwei Knöpfe statt „Request a code“. „Request a free trial“ und „Buy a license“ öffnen die Mail schon richtig angekreuzt („[x] a free trial“ oder „[x] a full license“, Betreff „Free trial of …“ bzw. „License for …“), der Hub erkennt den Wunsch sicher. „Request a free trial“ steht nur da, solange der PC nie einen Code hatte; „Buy a license“ steht immer da, solange ein Code mit Enddatum läuft oder abgelaufen ist. Die Testcode-Seite der Website schreibt dieselbe Mail. Später, wenn die Website online ist, führt ein Knopf auf die Website (Karte im Projekt Website).",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v53",
+    "tests": [
+      {
+        "text": "Im Hub unter Verkauf und Export einen Testcode für „Dieser PC“ und Laser Create erzeugen (2 Tage). In Rhino LaserActivation → „Enter another code …“ → Code einfügen → „Activate“. Danach LaserActivation noch einmal: „✓ Activated until 23:59 on <Enddatum>.“, darunter „That is in 2 days – to keep using Laser Create after that, buy a license.“ und nur der Knopf „Buy a license“, kein „Request a free trial“",
+        "done": false
+      },
+      {
+        "text": "„Buy a license“ klicken: dein Mailprogramm öffnet eine Mail an support.autocreate@gmail.com, Betreff „License for Laser Create“, im Text Version und Geräte-ID und „[x] a full license“. Die Mail senden",
+        "done": false
+      },
+      {
+        "text": "Im Hub links „Mails“ → Code-Anfragen → „Jetzt prüfen“: die Anfrage steht mit Laser Create und „möchte kaufen“, hervorgehoben ist „Kauf-Code senden …“. Dann „Ohne Code ablegen“ – es war nur ein Test",
+        "done": false
+      },
+      {
+        "text": "Im Hub links „Website“ → „Website ansehen“ → „Free trial“: Geräte-ID einfügen – die Mail-Vorschau zeigt „Subject: Free trial of Laser Create“ und „[x] a free trial“, denselben Aufbau wie „Request a free trial“ im Plugin",
+        "done": false
+      },
+      {
+        "text": "Zum Schluss im Hub wieder einen unbegrenzten Code für „Dieser PC“ und Laser Create erzeugen und in Rhino mit LaserActivation → „Enter a new code …“ eingeben – sonst endet Laser Create in 2 Tagen",
+        "done": false
+      }
+    ],
+    "created": "2026-10-01T12:33:27.1373338+02:00",
+    "changed": "2026-10-01T19:03:11.3455969+02:00",
+    "stageAt": "2026-10-01T19:03:11.3455946+02:00"
+  },
+  {
+    "id": "r08162901",
+    "title": "Keine erneuten Codes",
+    "note": "Wenn ein Nutzer bereits einen funktionierenden code hat, sollen beide activation-dialoge dies direkt sagen. Sie sollen nicht mehr so aussehen, als bräuchte der Nutzer noch einen Code. Mein Postfach soll nicht mit anfragen voll werden, die der Nutzer nicht braucht.\n\nv53: Das Aktivierungsfenster beider Plugins (LaserActivation, SiteActivation – es sitzt in RhinoKit) sagt mit gültigem Code zuerst, dass alles passt: unbegrenzt „✓ Activated – thank you!“ und „You don't need a code“, mit Enddatum „✓ Activated until 23:59 on …“ und „You don't need a new code until then“ – ab 7 Tagen vor dem Ende steht dort, wann es endet und dass ein Kauf es verlängert. Geräte-ID und Code-Feld klappt erst „Enter another code …“ auf. Eine Testphase bietet das Fenster nur einem PC an, der noch nie einen Code hatte; danach nur „Buy a license“. Bei zurückgestellter Uhr bietet es keine Anfrage an, nur das Code-Feld.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "v53",
+    "tests": [
+      {
+        "text": "In Rhino LaserActivation ausführen (dieser PC hat den unbegrenzten Code): oben steht „✓ Activated – thank you!“ und „Laser Create is activated on this computer. You don't need a code.“ – kein Code-Feld, kein Anfrage-Knopf, nur „Enter another code …“ und „Close“",
+        "done": false
+      },
+      {
+        "text": "„Enter another code …“ klicken: Geräte-ID mit „Copy“, „Paste the code you received:“, das Feld und „Activate“ klappen auf. Mit „Close“ schließen",
+        "done": false
+      },
+      {
+        "text": "In Rhino SiteActivation ausführen: dasselbe Fenster für SW to Laser („SW to Laser is activated on this computer …“)",
+        "done": false
+      }
+    ],
+    "created": "2026-10-01T12:54:17.2562014+02:00",
+    "changed": "2026-10-01T19:03:11.3165233+02:00",
+    "stageAt": "2026-10-01T19:03:11.3164634+02:00"
+  },
+  {
+    "id": "r6d9e783b",
+    "project": "website",
+    "title": "Website „AutoCreate“ – Schaufenster mit Testcode",
+    "note": "Statische Seite im Ordner Website/ (nur Englisch): Startseite, je Plugin eine Seite mit echtem Panel-Bild, Testcode anfordern, Support/FAQ, Kaufen vorbereitet (js/config.js: shopOpen = false), Impressum, Datenschutz und Lizenz als Entwürfe mit markierten Feldern.\n\nDas Testcode-Formular schreibt dieselbe Mail wie „Request a code“ im Plugin, damit der Hub sie im Postfach erkennt. Aussehen nur in css/theme.css – dort auch zwei fertige Varianten (dunkel wie Rhino, schwarz-weiß). Vor dem Start: Checkliste in Website/README.md. Noch nicht committet und nicht online.",
+    "stage": "getestet",
+    "kind": "funktion",
+    "built": "Website 1",
+    "tests": [
+      {
+        "text": "Im Explorer: Plugins Rhino → Website → index.html doppelklicken. Die Startseite öffnet im Browser: oben „AutoCreate“, rechts die Zeichnung vom Schwarzplan zur Laserplatte",
+        "done": true
+      },
+      {
+        "text": "Auf der Seite oben „Laser Create“ und „SW to Laser“ anklicken: je eine Seite mit dem echten Panel rechts, den Funktionen, „What you need“ und „Price to be announced“",
+        "done": true
+      },
+      {
+        "text": "Oben auf „Free trial“: rechts „SW to Laser“ wählen und die Geräte-ID aus dem Aktivierungsfenster einfügen – darunter steht die fertige Mail; „Write the email“ öffnet dein Mailprogramm damit (absenden musst du nicht)",
+        "done": true
+      },
+      {
+        "text": "Das Browserfenster ganz schmal ziehen: das Menü rutscht unter das Logo, alles bleibt lesbar, nichts muss seitlich gescrollt werden",
+        "done": true
+      },
+      {
+        "text": "Ganz unten „Legal notice“, „Privacy“ und „License terms“ öffnen: oben steht jeweils „Draft“, die orange markierten Felder füllst du später aus",
+        "done": true
+      },
+      {
+        "text": "Alle Texte lesen: Stimmt, was über die Plugins steht? Was fehlt oder soll anders klingen? Als Problem an diese Karte schreiben",
+        "done": true
+      }
+    ],
+    "source": "Dein Wunsch am 01.10.2026: „Baue mir zuerst eine Website“",
+    "created": "2026-10-01T13:12:43.4382064+02:00",
+    "changed": "2026-10-01T14:26:33.4648873+02:00",
+    "stageAt": "2026-10-01T14:26:33.4647993+02:00"
+  },
+  {
+    "id": "r896a0aa0",
+    "project": "website",
+    "title": "Website im Hub: eigenes Projekt und Vorschau",
+    "note": "Die Website ist im Hub ein eigenes Projekt (Weltkugel in der Seitenleiste) mit Plan, offenen Fragen, Dokumenten und Dateien. Der Hub zeigt den Ordner Website unter /website/ – am PC und über den Handy-Zugang, nur zum Ansehen. „Website ansehen“ öffnet sie in einem neuen Tab. Notizen wie die README bleiben dabei unsichtbar.",
+    "stage": "getestet",
+    "kind": "funktion",
+    "built": "Hub, 01.10.2026",
+    "tests": [
+      {
+        "text": "Links in der Seitenleiste „Website“ (Weltkugel) anklicken: oben steht „Website“ mit dem Knopf „Website ansehen“, unter „Stand“ die Zeilen „Vorschau“ und „Im Netz: noch nicht“",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/projekt/website",
+          "label": "Zum Projekt Website"
+        }
+      },
+      {
+        "text": "Auf der Projektseite „Website ansehen“ klicken: in einem neuen Tab öffnet sich die Startseite von AutoCreate unter …/website/",
+        "done": true,
+        "goto": {
+          "kind": "url",
+          "target": "/website/",
+          "label": "Website ansehen"
+        }
+      },
+      {
+        "text": "Am Handy den Hub öffnen, im Menü „Website“ und dort „Website ansehen“: die Seite öffnet sich über deine Tailscale-Adresse, schmal und ohne seitliches Scrollen",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/projekt/website",
+          "label": "Zum Projekt Website"
+        }
+      },
+      {
+        "text": "Auf der Projektseite bei „Planung“ auf die offenen Fragen klicken: Hosting, Domain, Zahlungsanbieter, Kauf-Code, Preise und Mailadresse stehen dort",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/planung/entscheidungen?projekt=website",
+          "label": "Zu den offenen Fragen"
+        }
+      },
+      {
+        "text": "Unter Planung → Dokumente „Website Plan 01_10_26“ öffnen: die Stufen 0 bis 3 mit Tabellen, wer was macht",
+        "done": true,
+        "goto": {
+          "kind": "route",
+          "target": "#/planung/dokumente?datei=Website%20Plan%2001_10_26.md",
+          "label": "Zum Plan"
+        }
+      }
+    ],
+    "source": "Dein Wunsch am 01.10.2026: „auf die Website zugreifen können über den Hub“",
+    "created": "2026-10-01T13:51:33.0292575+02:00",
+    "changed": "2026-10-01T14:33:09.4007684+02:00",
+    "stageAt": "2026-10-01T14:33:09.4007662+02:00"
+  },
+  {
+    "id": "rea567524",
+    "project": "website",
+    "title": "Website veröffentlichen per Knopf",
+    "note": "Ein Knopf im Projekt Website lädt den Ordner Website auf den Webspace. Vorher prüft der Hub: keine orangen Platzhalter mehr in Impressum, Datenschutz und Lizenz, robots.txt erlaubt Suchmaschinen, der Kaufen-Schalter passt zum Stand. Wie hochgeladen wird, hängt am Hosting (offene Frage). Teil des Plans „Website live schalten“, Stufe 1.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Plan „Website live schalten“, 01.10.2026",
+    "created": "2026-10-01T13:51:33.0599256+02:00",
+    "changed": "2026-10-01T13:51:33.0599256+02:00",
+    "stageAt": "2026-10-01T13:51:33.0599256+02:00"
+  },
+  {
+    "id": "r52444e42",
+    "project": "website",
+    "title": "Bestellungen: Kauf-Code automatisch nach der Zahlung",
+    "note": "Der Zahlungsanbieter meldet eine bezahlte Bestellung – als Mail ins Postfach, das der Hub schon liest, oder über seine Schnittstelle. Der Hub legt den Kunden an, macht den Kauf-Code für die Geräte-ID und schickt ihn, automatisch oder mit einem Klick. Der private Schlüssel bleibt am PC. Hängt an den offenen Fragen Zahlungsanbieter und Kauf-Code. Teil des Plans, Stufe 2.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Plan „Website live schalten“, 01.10.2026",
+    "created": "2026-10-01T13:51:33.0936106+02:00",
+    "changed": "2026-10-01T13:51:33.0936106+02:00",
+    "stageAt": "2026-10-01T13:51:33.0936106+02:00"
+  },
+  {
+    "id": "rf23070d2",
+    "project": "website",
+    "title": "Website-Einstellungen im Hub: Preise, Kaufen an/aus, Bezahl-Link",
+    "note": "Statt js/config.js von Hand zu ändern, stellst du Preise, den Kaufen-Schalter und den Bezahl-Link im Projekt Website ein; der Hub schreibt die Datei. Teil des Plans, Stufe 2.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Plan „Website live schalten“, 01.10.2026",
+    "created": "2026-10-01T13:51:33.1228854+02:00",
+    "changed": "2026-10-01T13:51:33.1228854+02:00",
+    "stageAt": "2026-10-01T13:51:33.1228854+02:00"
+  },
+  {
+    "id": "r62a0f00d",
+    "project": "website",
+    "title": "Website nach einem Release nachziehen",
+    "note": "Nach einem Release die Versionsnummer, die Neuerungen und die Mindestversion von Rhino auf der Website aktualisieren – beim nächsten Veröffentlichen mit hochgeladen. Teil des Plans, Stufe 3.",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Plan „Website live schalten“, 01.10.2026",
+    "created": "2026-10-01T13:51:33.1558942+02:00",
+    "changed": "2026-10-01T13:51:33.1558942+02:00",
+    "stageAt": "2026-10-01T13:51:33.1558942+02:00"
+  },
+  {
+    "id": "r444991f5",
+    "project": "website",
+    "title": "Beispiel-Videos auf der Website",
+    "note": "Kurze Videos, die die Plugins in Rhino zeigen, sollen auf der Website abspielbar sein – etwa auf der Startseite und den Plugin-Seiten. Zum Release mit einplanen. Offen: Videos selbst hosten (z. B. MP4, ohne Cookies) oder über YouTube/Vimeo einbetten (dann ein Hinweis im Datenschutz und eventuell eine Zustimmung nötig).",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Dein Wunsch am 01.10.2026: Beispiel-Videos auf der Website abspielen – bei Release nicht vergessen",
+    "created": "2026-10-01T14:28:01.253056+02:00",
+    "changed": "2026-10-01T14:28:01.253056+02:00",
+    "stageAt": "2026-10-01T14:28:01.253056+02:00"
+  },
+  {
+    "id": "r6e4f2ab8",
+    "project": "hub",
+    "title": "Tab „Statistik“: Verkäufe, Testphasen, Code-Anfragen",
+    "note": "Neuer Tab unter „Verkauf und Export“: Verkäufe und Umsatz, Testphasen mit dem Anteil, der danach gekauft hat, und die Code-Anfragen – je Monat als Säulen, darüber die Kennzahlen, umschaltbar 12 Monate / alles und je Plugin. Jede Säule zeigt beim Drüberfahren alle Zahlen, „Als Tabelle“ listet sie.\n\nVerkaufsweg „Per Mail / Online“ ist eine Einstellung (Einstellungen → Verkaufsweg und Website); jeder neue Code merkt sich ihn, die Statistik trennt beide, bisherige Codes zählen als „Per Mail“. Für die Website-Aufrufe gibt es den Bereich und den Schalter „Website-Statistik: Aus“ – die Quelle kommt mit dem Hosting.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Hub, 01.10.2026",
+    "tests": [
+      {
+        "text": "Links in der Seitenleiste „Statistik“ (Säulen-Symbol, olivgrün) anklicken: oben die Filter „12 Monate / Alles“ und die Plugins, darunter Verkäufe und Umsatz, Testphasen, Code-Anfragen und Website-Aufrufe",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/statistik",
+          "label": "Zur Statistik"
+        }
+      },
+      {
+        "text": "Mit der Maus über eine Säule fahren (am Handy antippen): ein Kästchen zeigt den Monat und jede Zahl. Unter einem Diagramm „Als Tabelle“ öffnen: alle Monate als Liste",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/statistik",
+          "label": "Zur Statistik"
+        }
+      },
+      {
+        "text": "Oben „Laser Create“ und dann „Alles“ wählen: alle Kennzahlen und Säulen passen sich gemeinsam an",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/statistik",
+          "label": "Zur Statistik"
+        }
+      },
+      {
+        "text": "Einstellungen → Karte „Verkaufsweg und Website“: „Per Mail“ ist gewählt, Website-Statistik „Aus“. „Online“ wählen und speichern – in der Statistik steht oben „Verkaufsweg jetzt: Online“. Danach wieder „Per Mail“ einstellen und speichern",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?feld=verkaufsweg",
+          "label": "Zur Einstellung"
+        }
+      },
+      {
+        "text": "Unter „Verkauf und Export“ einen Testcode für diesen PC erzeugen (2 Tage): in der Statistik zählt „Testphasen begonnen“ im aktuellen Monat eins mehr",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/verkauf?feld=code-card&produkt=laser&tage=2&geraet=dieser-pc",
+          "label": "Zum Code-Formular"
+        }
+      },
+      {
+        "text": "Am Handy über den Handy-Zugang die Statistik öffnen: Kennzahlen und Säulen passen auf den Bildschirm, nichts muss seitlich gescrollt werden",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/statistik",
+          "label": "Zur Statistik"
+        }
+      }
+    ],
+    "source": "Dein Wunsch am 01.10.2026: Statistik-Tab für Verkauf und später Website-Aufrufe, Verkaufsweg per kleiner Einstellung",
+    "created": "2026-10-01T14:58:23.013903+02:00",
+    "changed": "2026-10-01T14:58:23.013903+02:00",
+    "stageAt": "2026-10-01T14:58:23.013903+02:00"
+  },
+  {
+    "id": "r11ae5468",
+    "project": "website",
+    "title": "Aktivierungsfenster: ein Knopf führt auf die Website",
+    "note": "Entschieden am 01.10.2026: Sobald die Website online ist, ersetzt ein Knopf die beiden Mail-Knöpfe „Request a free trial“ und „Buy a license“. Er öffnet die Testcode-Seite – ab Stufe 2 des Website-Plans auch die Kaufseite – mit eingetragener Geräte-ID. Dafür braucht es einen neuen Build beider Plugins mit der Adresse der Website. Bis dahin schreiben die zwei Knöpfe die Mail (v53).",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "source": "Deine Wahl im Auswahl-Dialog am 01.10.2026: „Später soll dann einfach auf die Website weitergeleitet werden mit einem Button“",
+    "created": "2026-10-01T19:03:11.4242075+02:00",
+    "changed": "2026-10-01T19:03:11.4242075+02:00",
+    "stageAt": "2026-10-01T19:03:11.4242075+02:00"
+  },
+  {
+    "id": "raaf961c3",
+    "project": "laser",
+    "title": "Bessere Plattennutzungs-Anzeige",
+    "note": "Aktuell sieht es bei einem Vergleich der Platte-Use so aus, als würden Fast und Optimal die gleiche Menge an Material verbrauchen (vlg. Meran dxf. Beide Nestings zeigen am Ende im Plates tab eine Nutzung von 49% an). Fast nesting scheint sogar optisch mehr Material zu sparen??!! Hier muss noch draufgeschaut werden wie man das besser berechnen kann.",
+    "stage": "entschieden",
+    "kind": "funktion",
+    "tests": [],
+    "created": "2026-10-01T19:31:34.2915239+02:00",
+    "changed": "2026-10-01T19:31:34.2915239+02:00",
+    "stageAt": "2026-10-01T19:31:34.2916917+02:00"
+  },
+  {
+    "id": "r12135f55",
+    "project": "laser",
+    "title": "Berechnung der Optimalen Laser Zeit?",
+    "note": "Kann man das Nesting dahingehend optimieren, dass die geometrie schneller gelasert werden kann? Wenn ja; wie?",
+    "stage": "idee",
+    "kind": "funktion",
+    "tests": [],
+    "created": "2026-10-01T19:33:49.98573+02:00",
+    "changed": "2026-10-01T19:33:49.98573+02:00",
+    "stageAt": "2026-10-01T19:33:49.98573+02:00"
+  },
+  {
+    "id": "r7e7feeee",
+    "project": "swtolaser",
+    "title": "Setzen des Ursprungs",
+    "note": "Eine Vorschau für einen Import soll an einen bestimmten Punkt platziert werden können. Bisher nur automatisch Ursprung. Auch die erstellte Geometrie soll dann am gleichen Punkt erzeugt werden. Hilft bei Import von mehreren Dateien.",
+    "stage": "entschieden",
+    "kind": "funktion",
+    "tests": [],
+    "created": "2026-10-01T19:47:24.4892401+02:00",
+    "changed": "2026-10-01T19:47:24.4892401+02:00",
+    "stageAt": "2026-10-01T19:47:24.4895576+02:00"
+  },
+  {
+    "id": "r51310665",
+    "project": "swtolaser",
+    "title": "Gruppierung Von Import Geometrie",
+    "note": "Nach dem Import erstellte Geometrie soll grundsätzlich Gruppiert werden.",
+    "stage": "entschieden",
+    "kind": "funktion",
+    "tests": [],
+    "created": "2026-10-01T19:47:38.3813157+02:00",
+    "changed": "2026-10-01T19:48:12.2779756+02:00",
+    "stageAt": "2026-10-01T19:47:38.3816957+02:00"
   }
 ]

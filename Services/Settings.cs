@@ -49,7 +49,14 @@ public sealed class Settings
         settings.Seller          = settings.Seller.Trim();
         settings.SellerAddress   = settings.SellerAddress.Trim();
         settings.DefaultLanguage = settings.DefaultLanguage == "en" ? "en" : "de";
+        // Empty from a page that does not know them yet: keep the defaults
+        settings.SalesChannel = string.IsNullOrWhiteSpace(settings.SalesChannel) ? "mail" : settings.SalesChannel.Trim();
+        settings.SiteStats    = string.IsNullOrWhiteSpace(settings.SiteStats) ? "off" : settings.SiteStats.Trim();
 
+        if (!HubSettings.SalesChannels.Contains(settings.SalesChannel))
+            throw new HubError("Verkaufsweg: „Per Mail“ oder „Online“.");
+        if (!HubSettings.SiteStatsSources.Contains(settings.SiteStats))
+            throw new HubError("Für die Website-Aufrufe gibt es diese Quelle noch nicht.");
         if (settings.Contact.Length > 0 && !MailAddress.IsMatch(settings.Contact))
             throw new HubError($"„{settings.Contact}“ ist keine E-Mail-Adresse.");
         if (settings.TrialDays is < 1 or > 365) throw new HubError("Die Testdauer muss zwischen 1 und 365 Tagen liegen.");
@@ -117,7 +124,7 @@ public sealed class HubSettings
 {
     /// <summary>The name under mails and reply texts.</summary>
     public string Signature { get; set; } = "";
-    /// <summary>Where customers write: "Request a code" in the plug-ins, reply-to of mails, the guide.</summary>
+    /// <summary>Where customers write: the request buttons in the plug-ins, reply-to of mails, the guide.</summary>
     public string Contact { get; set; } = "";
     /// <summary>Who grants the licence - name and address, used in the licence terms.</summary>
     public string Seller { get; set; } = "";
@@ -129,6 +136,18 @@ public sealed class HubSettings
     /// <summary>From how many days before its end a code counts as "läuft bald ab".</summary>
     public int EndingSoonDays { get; set; } = 7;
     public string DefaultLanguage { get; set; } = "de";
+
+    public static readonly string[] SalesChannels = { "mail", "online" };
+    /// <summary>"off" until the website is online - the source of its visit numbers joins this list then.</summary>
+    public static readonly string[] SiteStatsSources = { "off" };
+
+    /// <summary>
+    /// How codes are sold now: "mail" (requested by mail, made in the hub) or "online" (website and
+    /// payment provider). Every new code remembers it, so the statistics keep both ways apart.
+    /// </summary>
+    public string SalesChannel { get; set; } = "mail";
+    /// <summary>Where the website's visit numbers come from - "off" while the site is not online.</summary>
+    public string SiteStats { get; set; } = "off";
 }
 
 /// <summary>mail.json in the private folder - the account the hub sends from (password apart).</summary>

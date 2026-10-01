@@ -270,6 +270,11 @@ public sealed class License
     public bool Trial { get; set; }
     public decimal? Price { get; set; }
     public bool Paid { get; set; }
+    /// <summary>
+    /// How it was sold: "mail" or "online" - the Verkaufsweg in the settings when the code was made.
+    /// Older codes have none and count as "mail".
+    /// </summary>
+    public string? Channel { get; set; }
     public string Note { get; set; } = "";
     /// <summary>The code this one extends, and the one that extended it.</summary>
     public string? Replaces { get; set; }

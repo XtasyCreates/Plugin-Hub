@@ -5,7 +5,7 @@ namespace PluginHub.Services;
 
 /// <summary>
 /// The plug-in side of activation: Activation.cs in the plug-in's folder holds the public half of
-/// its key pair and the contact address for "Request a code". The hub writes that file - when it
+/// its key pair and the contact address the request buttons write to. The hub writes that file - when it
 /// makes a key pair, and when the contact changes - and reads it (and the built .rhp) back to
 /// check that plug-in and hub still belong together.
 /// </summary>
@@ -69,7 +69,7 @@ public static class PluginActivationFile
             "    /// Written by the Plugin Hub - change it there, not here.",
             $"    /// PublicKey: the public half of {project.Name}'s activation key; every code is checked against",
             "    /// it, the private half lives only in the hub. A new key pair makes every earlier code invalid.",
-            "    /// Contact: where \"Request a code\" in the activation window writes to; empty hides the button.",
+            "    /// Contact: where \"Request a free trial\" and \"Buy a license\" in the activation window write to; empty hides them.",
             "    /// </summary>",
             "    internal static class Activation",
             "    {",
