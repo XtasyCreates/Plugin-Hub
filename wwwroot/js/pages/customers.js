@@ -101,7 +101,7 @@ function summary(views, productName) {
   const counts = {};
   views.forEach((v) => { counts[v.license.product] = (counts[v.license.product] ?? 0) + 1; });
   return Object.entries(counts)
-    .map(([product, n]) => `<span class="badge accent">${esc(productName(product))}${n > 1 ? ` × ${n}` : ''}</span>`)
+    .map(([product, n]) => `<span class="tag">${esc(productName(product))}${n > 1 ? ` × ${n}` : ''}</span>`)
     .join(' ');
 }
 

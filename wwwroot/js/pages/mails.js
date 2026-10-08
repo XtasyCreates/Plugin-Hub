@@ -2,7 +2,7 @@
 // that are due, and everything sent so far. Nothing goes out without a click here.
 
 import { api, post } from '../api.js';
-import { changed, loadOverview } from '../store.js';
+import { changed, loadOverview, productSettings } from '../store.js';
 import { isoDate, mailDialog, sharedClick } from '../parts.js';
 import { busy, confirmDialog, dialog, esc, fmtDate, fmtDateTime, fmtWhen, icon, notice, plural, toast } from '../ui.js';
 
@@ -259,7 +259,7 @@ async function answerRequest(o, settings, view, kind) {
           <input type="text" name="customerName" value="${esc(view.customerName ?? r.fromName)}" ${view.customerId ? 'readonly' : ''}></label>
         <label class="field"><span>E-Mail</span><input type="email" name="email" value="${esc(r.fromEmail)}" ${view.customerId ? 'readonly' : ''}></label>
         ${trial
-          ? `<label class="field"><span>Gültig bis <em>einschließlich</em></span><input type="date" name="end" value="${inDays(settings.shared.trialDays)}" min="${isoDate(new Date())}"></label>`
+          ? `<label class="field"><span>Gültig bis <em>einschließlich</em></span><input type="date" name="end" value="${inDays(productSettings(settings.shared, r.product).trialDays)}" min="${isoDate(new Date())}"></label>`
           : '<label class="field"><span>Preis <em>optional</em></span><input type="text" name="price" inputmode="decimal" placeholder="49,00 €"></label>'}
         <label class="field"><span>Sprache der Antwort</span>
           <select name="language"><option value="de" ${language === 'de' ? 'selected' : ''}>Deutsch</option><option value="en" ${language === 'en' ? 'selected' : ''}>English</option></select></label>

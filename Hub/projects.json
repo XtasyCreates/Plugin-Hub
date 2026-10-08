@@ -109,6 +109,25 @@
         { "id": "web-theme",  "label": "Aussehen (theme.css) in VS Code", "kind": "vscode", "path": "Website/css/theme.css" },
         { "id": "web-config", "label": "Einstellungen (config.js) in VS Code", "kind": "vscode", "path": "Website/js/config.js" }
       ]
+    },
+    {
+      "id": "tiss",
+      "name": "TISS Bot",
+      "kind": "extra",
+      "icon": "calendar",
+      "folder": "../TISS Bot",
+      "note": "Meldet in TISS (TU Wien) für Lehrveranstaltungen, Gruppen und Prüfungen an, sobald die Anmeldung öffnet, und zeigt deine Termine als Kalender. Ein eigenes Projekt – mit den Plugins hat es nichts zu tun, sein Ordner „TISS Bot“ liegt neben „Plugins Rhino“. Seine Daten (TU-Login, Plan, Kalender) liegen unter %LOCALAPPDATA%\\TissBot, nie in Git.",
+      "url": "http://127.0.0.1:51740/",
+      "urlLabel": "Bot öffnen",
+      "phonePort": 8443,
+      "sources": ["../TISS Bot"],
+      "links": [
+        { "id": "tiss-folder", "label": "Quellordner",            "kind": "folder", "path": "../TISS Bot" },
+        { "id": "tiss-code",   "label": "In VS Code",             "kind": "vscode", "path": "../TISS Bot" },
+        { "id": "tiss-readme", "label": "README",                 "kind": "file",   "path": "../TISS Bot/README.md" },
+        { "id": "tiss-exe",    "label": "Programm (TissBot.exe)", "kind": "select", "path": "../TISS Bot/bin/Release/TissBot.exe" },
+        { "id": "tiss-zip",    "label": "ZIP zum Weitergeben",    "kind": "select", "path": "../TISS Bot/Weitergabe/TISS Bot.zip" }
+      ]
     }
   ],
   "links": [

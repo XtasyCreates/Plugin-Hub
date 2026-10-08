@@ -2,7 +2,7 @@
 // latest commits.
 
 import { api, post } from '../api.js';
-import { loadOverview } from '../store.js';
+import { loadOverview, projectUrl } from '../store.js';
 import { buildBadge, buildLine, issueList, linkChips, rhinoBadges, sharedClick } from '../parts.js';
 import { busy, confirmDialog, esc, fmtDate, icon, plural, toast } from '../ui.js';
 import { STAGES } from './plan.js';
@@ -15,6 +15,10 @@ export async function render(main, { args }) {
   const isWebsite = p.kind === 'website';
   // The hub hands out the website folder under /website/ - on the phone through Tailscale too
   const site = '/website/';
+  // A project that runs a page of its own - the TISS Bot does
+  const own = projectUrl(p);
+  const kind = isPlugin ? (p.released ? `Release ${p.released}` : 'noch kein Release')
+    : p.kind === 'tool' ? 'Werkzeug' : isWebsite ? 'Website' : p.kind === 'extra' ? 'Eigenes Projekt' : 'Bibliothek';
 
   main.innerHTML = `
     <div class="page">
@@ -23,11 +27,12 @@ export async function render(main, { args }) {
           <div class="picon" style="width:44px;height:44px">${icon(p.icon)}</div>
           <div>
             <h1>${esc(p.name)}</h1>
-            <p class="sub">${esc(isPlugin ? (p.released ? `Release ${p.released}` : 'noch kein Release') : p.kind === 'tool' ? 'Werkzeug' : isWebsite ? 'Website' : 'Bibliothek')}${p.version ? ` · intern ${esc(p.version)}` : ''} · Ordner ${esc(p.folder)}</p>
+            <p class="sub">${esc(kind)}${p.version ? ` · intern ${esc(p.version)}` : ''} · Ordner ${esc(p.folder)}</p>
           </div>
         </div>
         ${isPlugin ? `<button class="btn primary" data-build="${esc(p.id)}">${icon('hammer')} Bauen</button>` : ''}
         ${isWebsite ? `<a class="btn primary" href="${site}" target="_blank" rel="noopener">${icon('external')} Website ansehen</a>` : ''}
+        ${own ? `<a class="btn primary" href="${esc(own)}" target="_blank" rel="noopener">${icon('external')} ${esc(p.urlLabel ?? 'Öffnen')}</a>` : ''}
       </header>
 
       ${p.note ? `<div class="card" style="margin-bottom:16px"><p>${esc(p.note)}</p></div>` : ''}

@@ -59,9 +59,14 @@ public sealed class Settings
             throw new HubError("Für die Website-Aufrufe gibt es diese Quelle noch nicht.");
         if (settings.Contact.Length > 0 && !MailAddress.IsMatch(settings.Contact))
             throw new HubError($"„{settings.Contact}“ ist keine E-Mail-Adresse.");
-        if (settings.TrialDays is < 1 or > 365) throw new HubError("Die Testdauer muss zwischen 1 und 365 Tagen liegen.");
-        if (settings.FollowUpDays is < 0 or > 60) throw new HubError("Die Nachfrage muss 0 bis 60 Tage vor dem Ende liegen.");
-        if (settings.EndingSoonDays is < 1 or > 60) throw new HubError("„Läuft bald ab“ muss zwischen 1 und 60 Tagen liegen.");
+        Check(settings.TrialDays, settings.FollowUpDays, settings.EndingSoonDays, null);
+
+        // Values of their own only for plug-ins there are - a product that is gone takes its values along
+        var plugins = _config.Current.Projects.Where(p => p.IsPlugin).ToDictionary(p => p.Id, p => p.Name);
+        settings.Products = (settings.Products ?? new()).Where(p => plugins.ContainsKey(p.Key) && p.Value != null)
+            .ToDictionary(p => p.Key, p => p.Value);
+        foreach (var (id, own) in settings.Products)
+            Check(own.TrialDays, own.FollowUpDays, own.EndingSoonDays, plugins[id]);
 
         lock (_gate)
         {
@@ -74,6 +79,14 @@ public sealed class Settings
                     PluginActivationFile.WriteContact(_paths, project, settings.Contact);
         }
         return settings;
+    }
+
+    private static void Check(int trialDays, int followUpDays, int endingSoonDays, string? product)
+    {
+        string who = product == null ? "" : product + ": ";
+        if (trialDays is < 1 or > 365) throw new HubError(who + "Die Testdauer muss zwischen 1 und 365 Tagen liegen.");
+        if (followUpDays is < 0 or > 60) throw new HubError(who + "Die Nachfrage muss 0 bis 60 Tage vor dem Ende liegen.");
+        if (endingSoonDays is < 1 or > 60) throw new HubError(who + "„Läuft bald ab“ muss zwischen 1 und 60 Tagen liegen.");
     }
 
     public MailSettings SaveMail(MailSettings mail)
@@ -137,6 +150,18 @@ public sealed class HubSettings
     public int EndingSoonDays { get; set; } = 7;
     public string DefaultLanguage { get; set; } = "de";
 
+    /// <summary>
+    /// The three numbers above, per plug-in (by project id). A plug-in without an entry uses
+    /// the ones above - which is what they all did before each could have its own.
+    /// </summary>
+    public Dictionary<string, ProductSettings> Products { get; set; } = new();
+
+    /// <summary>Trial length, follow-up and "läuft bald ab" as they apply to one plug-in.</summary>
+    public ProductSettings For(string? product) =>
+        product != null && Products.TryGetValue(product, out var own)
+            ? own
+            : new ProductSettings { TrialDays = TrialDays, FollowUpDays = FollowUpDays, EndingSoonDays = EndingSoonDays };
+
     public static readonly string[] SalesChannels = { "mail", "online" };
     /// <summary>"off" until the website is online - the source of its visit numbers joins this list then.</summary>
     public static readonly string[] SiteStatsSources = { "off" };
@@ -148,6 +173,14 @@ public sealed class HubSettings
     public string SalesChannel { get; set; } = "mail";
     /// <summary>Where the website's visit numbers come from - "off" while the site is not online.</summary>
     public string SiteStats { get; set; } = "off";
+}
+
+/// <summary>What one plug-in may set for itself (Hub\settings.json, "products").</summary>
+public sealed class ProductSettings
+{
+    public int TrialDays { get; set; } = 30;
+    public int FollowUpDays { get; set; } = 3;
+    public int EndingSoonDays { get; set; } = 7;
 }
 
 /// <summary>mail.json in the private folder - the account the hub sends from (password apart).</summary>

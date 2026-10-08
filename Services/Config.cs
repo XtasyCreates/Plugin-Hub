@@ -74,11 +74,25 @@ public sealed class ProjectDef
 {
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
-    /// <summary>"plugin" (built, sold, activated) or "library" (compiled into the plug-ins).</summary>
+    /// <summary>
+    /// "plugin" (built, sold, activated), "library" (compiled into the plug-ins), "tool" (the hub
+    /// itself), "website" - or "extra": a project of its own, in this folder or next to it
+    /// ("../TISS Bot"). An extra project stands in the side bar and has its planning; the
+    /// overview, its notices and everything about selling leave it out.
+    /// </summary>
     public string Kind { get; set; } = "plugin";
     public string Icon { get; set; } = "";
     public string Folder { get; set; } = "";
     public string? Note { get; set; }
+    /// <summary>A page the project runs itself - its project page in the hub offers to open it.</summary>
+    public string? Url { get; set; }
+    /// <summary>What the button to that page says.</summary>
+    public string? UrlLabel { get; set; }
+    /// <summary>
+    /// The HTTPS port under this PC's Tailscale name that leads to the same page - how the
+    /// phone gets there. None: the phone is not offered the page.
+    /// </summary>
+    public int? PhonePort { get; set; }
     public string? Project { get; set; }
     public string? Output { get; set; }
     public string? PluginGuid { get; set; }
@@ -106,6 +120,7 @@ public sealed class ProjectDef
     public List<LinkDef> Links { get; set; } = new();
 
     [JsonIgnore] public bool IsPlugin => Kind == "plugin";
+    [JsonIgnore] public bool IsExtra => Kind == "extra";
 }
 
 public sealed class LinkDef

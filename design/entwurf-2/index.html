@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plugin Hub</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/hub.css">
+  <script>
+    // The look chosen on this device (Einstellungen → Aussehen, kept by js/look.js) - on before the first paint
+    (function () {
+      try {
+        var look = JSON.parse(localStorage.getItem('hub.look') || 'null');
+        if (!look) return;
+        if (look.theme === 'light' || look.theme === 'dark') document.documentElement.dataset.theme = look.theme;
+        if (typeof look.classes === 'string') document.documentElement.className = look.classes;
+      } catch (e) { /* a private window: the rule applies */ }
+    })();
+  </script>
+</head>
+<body>
+  <div class="app">
+    <aside class="side" id="side" aria-label="Navigation"></aside>
+    <main class="main" id="main" tabindex="-1"><p class="loading">Lädt …</p></main>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="offline" id="offline" hidden>
+    <div class="card">
+      <h3 id="offline-title">Der Hub antwortet nicht</h3>
+      <p class="muted" id="offline-text">Er hat sich beendet, weil drei Minuten lang keine Seite offen war – oder er wurde geschlossen. Starte ihn über die Desktop-Verknüpfung „Plugin Hub“ neu.</p>
+      <button class="btn" id="offline-retry">Erneut verbinden</button>
+    </div>
+  </div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

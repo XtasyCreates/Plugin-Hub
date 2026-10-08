@@ -210,7 +210,7 @@
     "tests": [
       {
         "text": "In Rhino SiteLaser öffnen und den Meran-DXF (Schwarzplan Plugin Test 1.dxf) importieren – unter Size ist „Real size“ gewählt, darunter steht „Buildings: typically 215 m²“ in normaler Schrift",
-        "done": false
+        "done": true
       },
       {
         "text": "Unter Buildings die Klasse wählen (Layer, Gruppe oder Farbe) – die Vorbelegung trifft die Gebäude",
@@ -218,27 +218,27 @@
       },
       {
         "text": "Im neuen Abschnitt Model den Maßstab auf 5000 stellen – „Model size“ zeigt etwa 303 mm × 273 mm, die Vorschau im Viewport bleibt, wie sie ist, und unter Regions steht, wie groß Gap und Smallest auf dem Modell sind",
-        "done": false
+        "done": true
       },
       {
         "text": "Unter Size auf „Drawn to scale“ wechseln und „Drawn at“ auf 100 stellen – „Buildings“ wird rot („far too small … Is the scale right?“), die Vorschau rot gepunktet, und unter Regions erscheint ein orangefarbener Streifen mit „Adjust to the new scale“",
-        "done": false
+        "done": true
       },
       {
         "text": "Im Streifen auf „Adjust to the new scale“ klicken – Gap wird 0,005 m, Smallest 0,1 m², der Streifen verschwindet, und die Vorschau zeigt wieder dieselben Gebäude in Orange (wieder 565 blocks)",
-        "done": false
+        "done": true
       },
       {
         "text": "„Drawn at“ zurück auf 1000 stellen – der Streifen sagt „10 × larger“, und ein Klick bringt Gap und Smallest auf 0,05 m und 10 m² zurück. Tippst du stattdessen selbst einen Wert ein, verschwindet der Streifen",
-        "done": false
+        "done": true
       },
       {
         "text": "Unter Regions Mindestfläche und „Merge touching“ ändern – die Vorschau folgt sofort",
-        "done": false
+        "done": true
       },
       {
         "text": "Build klicken und in den Reiter Plans wechseln – bei „Model“ steht der Maßstab aus dem Import, darunter die „Model size“",
-        "done": false
+        "done": true
       },
       {
         "text": "Einmal in Rhino 8 wiederholen – bisher nur in Rhino 9 geprüft",
@@ -247,7 +247,7 @@
     ],
     "source": "Schwarzplan-Konzept und Claudes Notizen",
     "created": "2026-09-24T12:00:00+02:00",
-    "changed": "2026-09-25T18:31:34+02:00",
+    "changed": "2026-10-01T20:35:26.8791207+02:00",
     "stageAt": "2026-09-25T18:31:34+02:00"
   },
   {
@@ -1262,8 +1262,8 @@
     "tests": [],
     "source": "Entscheidung vom 25.09.2026",
     "created": "2026-09-25T14:07:38.7530679+02:00",
-    "changed": "2026-10-01T19:03:47.8088467+02:00",
-    "stageAt": "2026-09-27T18:02:38.4627995+02:00"
+    "changed": "2026-10-08T12:18:36.1680567+02:00",
+    "stageAt": "2026-10-08T12:18:36.168052+02:00"
   },
   {
     "id": "r376da3da",
@@ -1669,5 +1669,501 @@
     "created": "2026-10-01T19:47:38.3813157+02:00",
     "changed": "2026-10-01T19:48:12.2779756+02:00",
     "stageAt": "2026-10-01T19:47:38.3816957+02:00"
+  },
+  {
+    "id": "raacb2a11",
+    "project": "tiss",
+    "title": "Anmelden zur Öffnung: LVA, Gruppen und Prüfungen",
+    "note": "Du suchst im Bot eine Lehrveranstaltung, tippst deine Wünsche in der gewünschten Reihenfolge an und planst die Anmeldung. Zur Öffnung fragt der Bot TISS rund um den Beginn ohne Pause ab und meldet an, sobald der Knopf da ist – den ersten Wunsch mit freiem Platz, sonst die Warteliste. Er richtet sich nach der Uhr von TISS. Im Verlauf steht, wann der Knopf gesehen wurde und wann die Anmeldung fertig war.\n\nEine echte Prüfungsanmeldung hat am 05.10.2026 geklappt (Abruf 41 ms, Anmelden und Bestätigen 98 ms). Eine geplante Öffnung am echten TISS steht noch aus.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "TISS Bot, 05.10.2026",
+    "tests": [
+      {
+        "text": "Im Bot auf „Anmeldungen“: eine LVA-Nummer oder einen TISS-Link eingeben und „Suchen“ – Name, Gruppen und Prüfungen mit ihren Öffnungszeiten erscheinen",
+        "done": true,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51740/",
+          "label": "Bot öffnen"
+        }
+      },
+      {
+        "text": "Dort Gruppen in deiner Wunschreihenfolge antippen (1, 2, 3 …) und „Planen“ – unter „Anmeldungen“ steht die Karte mit „Öffnet … in …“",
+        "done": true,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51740/",
+          "label": "Bot öffnen"
+        }
+      },
+      {
+        "text": "An der geplanten Karte „Probelauf“ drücken: „Alles gefunden. Die Anmeldung ist noch nicht offen.“ und darunter die Gruppen mit ihren Plätzen",
+        "done": true,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51740/",
+          "label": "Bot öffnen"
+        }
+      },
+      {
+        "text": "Nach einer echten Öffnung: Die Karte zeigt „Angemeldet“ und darunter „Knopf … nach Beginn gesehen, fertig … nach Beginn“. Unter „Verlauf“ steht, zwischen welchen zwei Abrufen die Anmeldung geöffnet hat",
+        "done": false,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51740/",
+          "label": "Bot öffnen"
+        }
+      }
+    ],
+    "created": "2026-10-05T23:45:00+02:00",
+    "changed": "2026-10-06T00:52:51.670096+02:00",
+    "stageAt": "2026-10-05T23:45:00+02:00"
+  },
+  {
+    "id": "r2dad8b0b",
+    "project": "tiss",
+    "title": "Login mit Code, Push-Meldungen, Zugang von anderen Geräten",
+    "note": "Das TU-Passwort liegt verschlüsselt auf dem Laptop und lässt sich nur dort eintragen. Den Code aus der Authenticator-App tippst du auf der Bot-Seite ein, auch vom Handy. Läuft die Sitzung vor einer Anmeldung ab, meldet der Bot das über ntfy und wartet auf den Code. Über Tailscale (Port 8443) ist der Bot von iPhone, iPad und Mac erreichbar – nur mit deinem Tailscale-Konto.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "TISS Bot, 05.10.2026",
+    "tests": [
+      {
+        "text": "Im Bot auf „Einstellungen“: unter „Push-Meldungen“ den Namen in die ntfy-App am iPhone eintragen und „Test senden“ – die Meldung kommt am Handy an",
+        "done": false
+      },
+      {
+        "text": "Dort unter „Andere Geräte“ auf „Einschalten“: Die Adresse mit :8443 erscheint. Am iPhone mit verbundenem Tailscale öffnen – die Bot-Seite kommt, ohne Passwortfelder",
+        "done": true,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51740/",
+          "label": "Bot öffnen"
+        }
+      },
+      {
+        "text": "Dort unter „TU-Login“ auf „Bot bei TISS abmelden“: Oben erscheint auf jeder Seite „Bei TISS anmelden“. Den Code aus der Authenticator-App eintippen – der Punkt oben rechts wird grün („Bei TISS angemeldet“)",
+        "done": false
+      },
+      {
+        "text": "Mit einer geplanten Anmeldung in den nächsten Stunden den Bot bei TISS abmelden: Am Handy kommt „TISS-Login nötig“, eine Stunde vorher noch einmal dringend",
+        "done": false,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51740/",
+          "label": "Bot öffnen"
+        }
+      }
+    ],
+    "created": "2026-10-05T23:45:00+02:00",
+    "changed": "2026-10-06T01:21:08.0826916+02:00",
+    "stageAt": "2026-10-05T23:45:00+02:00"
+  },
+  {
+    "id": "r93fd03c0",
+    "project": "tiss",
+    "title": "Kalender: Einzeltermine, Gruppe, Prüfungen und Anmeldefristen",
+    "note": "Eigene Seite „Kalender“ im Bot. Du fügst die TISS-Links deiner Lehrveranstaltungen ein (auch mehrere auf einmal). Der Bot liest von den öffentlichen LVA-Seiten die Einzeltermine (alle Seiten der TISS-Tabelle, Feiertage und Verschiebungen wie in TISS), die Prüfungen und wann die Anmeldung zu jeder Prüfung öffnet und endet. Pro LVA wählst du deine Gruppe; deren Termine rechnet der Bot aus dem Zeitraum in TISS und lässt Feiertage, Weihnachts- und Osterferien weg. Ansichten: Liste, Woche, Monat. Die geplanten Anmeldungen des Bots stehen mit drin. Der Bot liest die Seiten zweimal täglich neu.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "TISS Bot, 05.10.2026",
+    "tests": [
+      {
+        "text": "Im Bot auf „LVAs“: links unter „Lehrveranstaltungen hinzufügen“ die TISS-Links deiner Kurse einfügen (einer pro Zeile) und „Hinzufügen“ – jede LVA erscheint in der Liste mit ihrer Farbe und ihrer Art (VO, VU, UE)",
+        "done": false
+      },
+      {
+        "text": "Im Bot auf „Kalender“ → „Woche“: Die Termine stehen im Stundenraster, Fristen als gestrichelte Einträge darüber. Mit ‹ › blättern, „Heute“ springt zurück",
+        "done": false
+      },
+      {
+        "text": "Im Bot auf „LVAs“ eine LVA mit Gruppen wählen und oben „Meine Gruppe: …“ einstellen: Im Kalender erscheinen die Gruppentermine schraffiert, an Feiertagen und in den Weihnachtsferien steht keiner",
+        "done": false
+      },
+      {
+        "text": "Im Kalender einen Eintrag „Anmeldung öffnet“ antippen, der noch kommt: Das Fenster zeigt Prüfung und Frist. „Mit dem Bot anmelden …“ wechselt zu „Anmeldungen“ und hat die LVA schon gesucht",
+        "done": false
+      },
+      {
+        "text": "Im Kalender „Monat“ wählen und auf eine Tageszahl klicken: Die Woche dieses Tages öffnet sich. Oben rechts „Prüfungen“ antippen: Die Prüfungen verschwinden, noch einmal: Sie sind wieder da",
+        "done": false
+      },
+      {
+        "text": "Am iPhone über die Tailscale-Adresse auf „Kalender“: Die Liste zeigt die nächsten sechs Wochen Tag für Tag, nichts ragt seitlich hinaus",
+        "done": false,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51740/#/kalender",
+          "label": "Zum Kalender"
+        }
+      }
+    ],
+    "created": "2026-10-05T23:45:00+02:00",
+    "changed": "2026-10-06T01:21:08.1000555+02:00",
+    "stageAt": "2026-10-05T23:45:00+02:00"
+  },
+  {
+    "id": "rfce139e8",
+    "project": "hub",
+    "title": "TISS Bot als eigenes Projekt im Hub",
+    "note": "Neue Projekt-Art „extra“ in Hub/projects.json: ein eigenes Projekt, das nur in der Seitenleiste unter „Projekte“ und in der Planung steht. Die Übersicht, ihre Hinweise, Verkauf, Releases und Statistik lassen es aus. Seine Projektseite hat den Knopf „Bot öffnen“ (am Handy über Tailscale, Port 8443).",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Hub, 05.10.2026",
+    "tests": [
+      {
+        "text": "Links in der Seitenleiste unter „Projekte“ steht „TISS Bot“ (Kalender-Symbol). Anklicken: Die Projektseite zeigt Notiz, Stand, Planung, Dateien und oben „Bot öffnen“",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/projekt/tiss",
+          "label": "Zum Projekt"
+        }
+      },
+      {
+        "text": "Auf der Übersicht unter „Projekte“ stehen nur die bisherigen Karten – keine für den TISS Bot, und unter „Zu erledigen“ kein Hinweis zu ihm",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/",
+          "label": "Zur Übersicht"
+        }
+      },
+      {
+        "text": "Planung → oben den Filter „TISS Bot“ wählen: Seine drei Karten stehen in „Gebaut“ mit ihren Test-Schritten",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/planung?projekt=tiss",
+          "label": "Zur Roadmap"
+        }
+      },
+      {
+        "text": "Auf der Projektseite „Bot öffnen“ klicken, während der Bot läuft: Die Bot-Seite öffnet sich in einem neuen Tab",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/projekt/tiss",
+          "label": "Zum Projekt"
+        }
+      }
+    ],
+    "created": "2026-10-05T23:45:00+02:00",
+    "changed": "2026-10-05T23:45:00+02:00",
+    "stageAt": "2026-10-05T23:45:00+02:00"
+  },
+  {
+    "id": "rb5085ea1",
+    "project": "hub",
+    "title": "Einstellungen je Projekt, eigene Werte je Plugin",
+    "note": "Die Einstellungen haben oben Bereiche: „Hub allgemein“ (Anbieter und Kontakt, E-Mail, Mail-Vorlagen, Handy-Zugang), je Plugin einen Bereich, „Website“ (Verkaufsweg) und „TISS Bot“ (Weg zu seiner Seite). Testdauer, Nachfrage und „Läuft bald ab“ gelten jetzt je Plugin; bisher hatten beide dieselben Werte, und so bleibt es, bis du etwas änderst. „Für alle Plugins übernehmen“ setzt die Werte eines Plugins bei allen. Verkauf, Code-Anfragen und Verlängern bieten die Testdauer des jeweiligen Plugins an; Nachfrage-Mails und „Läuft bald ab“ richten sich nach dem Plugin des Codes. Links auf ein Feld öffnen den passenden Bereich.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Hub, 05.10.2026",
+    "tests": [
+      {
+        "text": "Einstellungen öffnen: Oben stehen die Bereiche „Hub allgemein“, „Laser Create“, „SW to Laser“, „Website“ und „TISS Bot“. „Hub allgemein“ zeigt Anbieter und Kontakt, E-Mail, Mail-Vorlagen und Handy-Zugang",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen",
+          "label": "Zu den Einstellungen"
+        }
+      },
+      {
+        "text": "Bereich „Laser Create“: Standard-Testdauer auf 14 stellen und „Speichern“. Oben rechts an der Karte steht „eigene Werte“. Der Bereich „SW to Laser“ zeigt weiter 30",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?bereich=laser",
+          "label": "Zu Laser Create"
+        }
+      },
+      {
+        "text": "Verkauf und Export → oben Laser Create wählen, „Testphase“: Das Enddatum liegt 14 Tage voraus, daneben „Standard: 14 Tage“. Auf SW to Laser wechseln: Es springt auf 30 Tage",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/verkauf?feld=code-card",
+          "label": "Zum Code-Formular"
+        }
+      },
+      {
+        "text": "Zurück im Bereich „Laser Create“: 30 eintragen und „Für alle Plugins übernehmen“ – nach der Rückfrage zeigen beide Bereiche 30 und das Schild „bei allen Plugins gleich“",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?bereich=laser",
+          "label": "Zu Laser Create"
+        }
+      },
+      {
+        "text": "Diesen Schritt über seinen Knopf öffnen: Die Einstellungen zeigen von selbst den Bereich „Website“, und die Karte „Verkaufsweg und Website“ leuchtet auf",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?feld=verkaufsweg",
+          "label": "Zum Verkaufsweg"
+        }
+      },
+      {
+        "text": "Bereich „TISS Bot“: Die Karte erklärt, dass der Bot seine Einstellungen selbst verwaltet, mit „Bot öffnen“, „Zum Projekt“ und „Zur Roadmap“",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/einstellungen?bereich=tiss",
+          "label": "Zum Bereich TISS Bot"
+        }
+      }
+    ],
+    "created": "2026-10-05T23:45:00+02:00",
+    "changed": "2026-10-05T23:45:00+02:00",
+    "stageAt": "2026-10-05T23:45:00+02:00"
+  },
+  {
+    "id": "r7077c49d",
+    "project": "tiss",
+    "title": "Reiter „LVAs“: Beschreibung aus TISS und eigene Anmeldungen",
+    "note": "Dritter Reiter im Bot. Für jede Lehrveranstaltung aus dem Kalender liest der Bot die ganze Beschreibungsseite in TISS: oben eine Kurzfassung (Art, ECTS, Abhaltung, Vortragende, Prüfungsmodus, nächster Termin, Anfang von Inhalt und Leistungsnachweis), darunter aufklappbar alle Abschnitte im Wortlaut. Ein Klick auf eine LVA – in der Liste des Kalenders oder über „Über die LVA“ im Termin-Fenster – öffnet ihre Karte. Mit dem TISS-Login liest der Bot dazu, ob du für die LVA, eine Gruppe und welche Prüfungen angemeldet bist, jeweils mit der Abmeldefrist; die Gruppe, in der du angemeldet bist, wird im Kalender von selbst gewählt. „Neu aus TISS lesen“ holt alles neu.\n\nDabei behoben: Das Termin-Fenster im Kalender zeigte fast immer einen falschen Termin (die Einträge wurden vor dem Sortieren nummeriert). Jede LVA hat jetzt eine eigene Farbe.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "TISS Bot, 06.10.2026",
+    "tests": [
+      {
+        "text": "Im Bot auf „LVAs“ (der erste Reiter): links die Liste deiner Lehrveranstaltungen, rechts die gewählte mit „Auf einen Blick“, Prüfungen, nächsten Terminen und dem Anfang von Inhalt und Leistungsnachweis",
+        "done": false
+      },
+      {
+        "text": "Dort ganz unten „Ganze Beschreibung aus TISS“ aufklappen: Alle Abschnitte der TISS-Seite stehen da (Lernergebnisse, Inhalt, Methoden, Leistungsnachweis, Literatur …), Listen und Links inklusive",
+        "done": false
+      },
+      {
+        "text": "Im Kalender unten in „Lehrveranstaltungen im Kalender“ auf eine LVA klicken – oder in einem Termin-Fenster auf „Über die LVA“: Der Reiter „LVAs“ zeigt diese LVA",
+        "done": false
+      },
+      {
+        "text": "Im Kalender in jeder Ansicht (Liste, Woche, Monat) mehrere Termine antippen: Das Fenster zeigt jedes Mal genau den angetippten Termin – Titel, Zeit, Raum und LVA stimmen. „Über die LVA“ führt zur Karte dieser LVA",
+        "done": false
+      },
+      {
+        "text": "Mit angemeldetem Bot auf „LVAs“ → „↻ Alle neu lesen“: In der Liste steht bei jeder LVA „angemeldet“ oder „nicht angemeldet“; in der Tabelle „Prüfungen“ steht bei jedem Termin, bis wann man sich abmelden kann",
+        "done": false
+      },
+      {
+        "text": "Im Kalender haben alle zehn Lehrveranstaltungen verschiedene Farben",
+        "done": false
+      },
+      {
+        "text": "Im Bot auf „LVAs“ → „Raumgestaltung“: Oben steht „Gruppe D 15 angemeldet“ (nicht „nicht angemeldet“), in der Liste links „angemeldet · Gruppe D 15“ – obwohl die Abmeldefrist dort vorbei ist und TISS keinen Abmelden-Knopf mehr zeigt",
+        "done": false
+      }
+    ],
+    "created": "2026-10-06T00:22:48.8330006+02:00",
+    "changed": "2026-10-06T01:37:38.0174887+02:00",
+    "stageAt": "2026-10-06T00:22:48.8376103+02:00"
+  },
+  {
+    "id": "rb7b940ae",
+    "project": "tiss",
+    "title": "Angemeldete Prüfungen im iPhone-Kalender (Abo mit Abmeldefrist)",
+    "note": "Der Bot gibt einen Kalender zum Abonnieren aus (/kalender/<Schlüssel>.ics): nur die Prüfungen, für die du angemeldet bist, mit Uhrzeit, Raum und Modus – und je Prüfung ein zweiter Eintrag „Abmeldung endet“ zum Zeitpunkt der Frist, mit Erinnerung am Tag davor. Die Lehrveranstaltungen selbst sind nicht drin. Das iPhone holt den Kalender von selbst neu, über Tailscale; dafür muss „Andere Geräte“ im Bot an sein, Tailscale am iPhone verbunden und der Laptop wach. Erreicht es den Bot nicht, bleibt der letzte Stand stehen. Meldet der Bot dich für eine Prüfung an, steht sie Sekunden später im Abo.\n\nGegen den TISS-Nachbau getestet. Am echten iPhone und mit einer echten angemeldeten Prüfung noch nicht.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "TISS Bot, 06.10.2026",
+    "tests": [
+      {
+        "text": "Im Bot auf „Kalender“, ganz unten „Prüfungen im iPhone-Kalender“: Die Liste zeigt die Prüfungen, für die du angemeldet bist, jede mit „Abmeldung bis …“ – oder den Satz, dass der Bot gerade keine findet",
+        "done": false
+      },
+      {
+        "text": "Im Bot auf „Einstellungen“ → „Andere Geräte“ einschalten. Am iPhone (Tailscale verbunden) die Adresse mit :8443 öffnen, auf „Kalender“, unten „Im Kalender abonnieren“ und bestätigen: In der Kalender-App erscheint der Kalender „TISS Prüfungen“",
+        "done": false
+      },
+      {
+        "text": "Über den Bot für eine Prüfung anmelden (oder in TISS anmelden und im Bot „Alle neu lesen“): Nach dem nächsten Abgleich steht die Prüfung im iPhone-Kalender, dazu „Abmeldung endet: …“ zum Zeitpunkt der Frist",
+        "done": false
+      },
+      {
+        "text": "In TISS von der Prüfung abmelden und im Bot neu lesen: Beide Einträge verschwinden beim nächsten Abgleich aus dem iPhone-Kalender",
+        "done": false
+      },
+      {
+        "text": "Am iPhone unter Einstellungen → Apps → Kalender → Kalenderaccounts → das Abo: „Hinweise entfernen“ ausschalten – am Tag vor einer Abmeldefrist kommt eine Erinnerung",
+        "done": false
+      },
+      {
+        "text": "Im Bot auf „Kalender“, unten „Prüfungen im iPhone-Kalender“: An einem Eintrag „Entfernen“ drücken – er ist durchgestrichen und verschwindet beim nächsten Abgleich aus dem iPhone-Kalender. „Wieder zeigen“ bringt ihn zurück",
+        "done": false
+      },
+      {
+        "text": "Für eine Prüfung angemeldet bleiben, bis ihre Abmeldefrist vorbei ist: Die Prüfung steht weiter im Bot und im iPhone-Kalender",
+        "done": false
+      }
+    ],
+    "created": "2026-10-06T00:22:48.8671982+02:00",
+    "changed": "2026-10-06T01:37:38.0494446+02:00",
+    "stageAt": "2026-10-06T00:22:48.8677282+02:00"
+  },
+  {
+    "id": "r990b66d4",
+    "project": "tiss",
+    "title": "Oberfläche: vier Reiter in einer Breite, Start ohne Terminal",
+    "note": "Reiter von links: LVAs, Kalender, Anmeldungen, Einstellungen – alle 1120 px breit, am Handy eine Spalte. „LVAs“ zeigt links die Liste und rechts die gewählte Lehrveranstaltung; dort fügt man Kurse hinzu. Einstellungen sind ein eigener Reiter. Vor jedem Termin steht die Art der LVA („VO Baugeschichte 1“). Bei jeder Prüfung steht, bis wann man sich abmelden kann (mit TISS-Login).\n\nDer Bot liest Termine, Prüfungen und deine Anmeldungen eine Viertelminute nach jedem Start und zweimal täglich neu; die Beschreibungen nur, wenn du „neu lesen“ drückst.\n\nAm 06.10.2026 um 00:54 war der Bot weg: Er war aus dem Terminal der Claude-App gestartet, und die App hat sich neu gestartet. Jetzt startet sich ein aus einem Terminal gestarteter Bot über den Explorer neu und hängt an keinem Terminal mehr. Dazu gibt es „Verknüpfung auf den Desktop legen“.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "TISS Bot, 06.10.2026",
+    "tests": [
+      {
+        "text": "Im Bot die Reiter LVAs, Kalender, Anmeldungen und Einstellungen der Reihe nach anklicken: Der Inhalt ist überall gleich breit, nichts springt zur Seite",
+        "done": false
+      },
+      {
+        "text": "Im Bot auf „Einstellungen“ → „Dieser Laptop“ → „Verknüpfung auf den Desktop legen“: Auf dem Desktop liegt „TISS Bot“. Dort „Bot beenden“, dann Doppelklick auf die Verknüpfung: Der Bot startet und öffnet seine Seite",
+        "done": false
+      },
+      {
+        "text": "Den Bot über den „Run“-Knopf in der Claude-App starten und danach die Claude-App schließen: Der Bot läuft weiter – sein Symbol bleibt neben der Uhr, die Seite antwortet",
+        "done": false
+      },
+      {
+        "text": "Den Bot beenden und neu starten: Nach etwa einer halben Minute steht unter „LVAs“ bei der gewählten LVA „gelesen“ mit der aktuellen Uhrzeit",
+        "done": false
+      },
+      {
+        "text": "Im Kalender steht vor jedem Termin die Art der LVA, z. B. „VO Baugeschichte 1“",
+        "done": false
+      },
+      {
+        "text": "Im Bot auf „LVAs“ eine LVA mit Prüfungen wählen: In der Tabelle „Prüfungen“ steht bei jedem Termin „Abmeldung bis …“. Ein Klick auf einen Prüfungstermin im Kalender zeigt dieselbe Frist",
+        "done": false
+      }
+    ],
+    "created": "2026-10-06T01:21:08.1829876+02:00",
+    "changed": "2026-10-06T01:21:08.1829876+02:00",
+    "stageAt": "2026-10-06T01:21:08.1832116+02:00"
+  },
+  {
+    "id": "rd4606338",
+    "project": "tiss",
+    "title": "Weitergabe: ZIP für Freunde mit Kurzanleitung",
+    "note": "„TISS Bot.zip“ (109 MB) in Desktop\\Claude\\TISS Bot\\Weitergabe: der Bot für einen anderen Windows-PC. .NET ist dabei, entpackt liegen eine TissBot.exe, die Anleitung und die Ordner wwwroot und .playwright im Ordner. Von dir ist nichts drin – Login, Plan und Kalender liegen unter %LOCALAPPDATA%\\TissBot. Jeder trägt sein TU-Passwort in seine eigene Kopie ein; es bleibt auf seinem Rechner. Neu bauen: Weitergabe\\paket.ps1 (dein laufender Bot bleibt dabei unberührt).\n\nGeprüft: Das fertige ZIP entpackt, als Test-Kopie gestartet, gegen den TISS-Nachbau angemeldet, Probelauf und eine geplante Gruppen-Anmeldung – alles ohne das installierte .NET. Nicht geprüft: ein PC ohne .NET, die Windows-Warnung beim ersten Start, ein echter TU-Login aus dem Paket.\n\nNicht in deinem eigenen Windows-Konto testen: Läuft dein Bot, zeigt das Paket nur ihn. Läuft er nicht, übernimmt das Paket deine Daten und den Start mit Windows. Nimm einen anderen PC, ein zweites Windows-Konto oder die Windows-Sandbox.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "TISS Bot, 06.10.2026",
+    "tests": [
+      {
+        "text": "Im Hub auf der Seite „TISS Bot“ → „ZIP zum Weitergeben“: Der Explorer zeigt „TISS Bot.zip“. Auf einen anderen Windows-PC, in ein zweites Windows-Konto oder in die Windows-Sandbox kopieren",
+        "done": false
+      },
+      {
+        "text": "Dort: Rechtsklick auf das ZIP → „Alle extrahieren…“, im Ordner „TissBot“ doppelklicken und die Windows-Warnung mit „Weitere Informationen“ → „Trotzdem ausführen“ bestätigen – die Seite des Bots öffnet sich im Browser, ohne dass etwas installiert werden muss",
+        "done": false
+      },
+      {
+        "text": "Dort im Bot: Benutzername, Passwort und Code eintragen – oben rechts steht „Bei TISS angemeldet“",
+        "done": false
+      },
+      {
+        "text": "Dort unter „Anmeldungen“ eine LVA suchen, planen und an der Karte „Probelauf“ drücken: „Alles gefunden. Die Anmeldung ist noch nicht offen.“",
+        "done": false
+      },
+      {
+        "text": "Dort unter „Einstellungen“ → „Dieser Laptop“: „Mit Windows starten“ anhaken und „Verknüpfung auf den Desktop legen“. Nach einem Neustart sitzt das Symbol des Bots neben der Uhr",
+        "done": false
+      },
+      {
+        "text": "Im entpackten Ordner „Anleitung“ öffnen und beim Einrichten mitlesen: Jeder Schritt passt zu dem, was am Bildschirm steht",
+        "done": false
+      }
+    ],
+    "created": "2026-10-06T18:45:29.7114705+02:00",
+    "changed": "2026-10-06T18:45:29.7114705+02:00",
+    "stageAt": "2026-10-06T18:45:29.7399567+02:00"
+  },
+  {
+    "id": "r77b0da44",
+    "project": "tiss",
+    "title": "Selbst anmelden: der Bot erzeugt den Code aus dem Schlüssel der Authenticator-App",
+    "note": "Anlass: Am 07.10.2026 um 00:00 lief die Anmeldung für 193.193 nicht. Der Bot hatte den Laptop um 23:50:55 aus dem Ruhezustand geweckt, aber TISS hatte die Sitzung im Schlaf beendet (Login 13:12, knapp fünf Stunden ohne Abruf), und bis 00:03 kam kein Code.\n\nNeu: Unter Einstellungen → „TU-Login“ → „Selbst anmelden“ trägst du am Laptop den Schlüssel deiner Authenticator-App ein (die Zeichenfolge unter dem QR-Code aus dem TU-Login-Portal, oder den otpauth://-Link). Der Bot erzeugt daraus die Codes selbst und meldet sich an, sobald TISS die Sitzung beendet hat – auch direkt vor einer Anmeldung. Ohne Schlüssel bleibt alles wie zuvor.\n\nDer Schlüssel liegt wie das Passwort verschlüsselt auf dem Laptop; der Bot zeigt weder ihn noch einen Code je wieder an. Damit ist dein ganzer Login auf dem Laptop gespeichert. Lehnt die TU ab, versucht der Bot es genau zweimal und hält dann an, damit das Konto nicht gesperrt wird; „Nochmal versuchen“ hebt das auf.\n\nGegen den TISS-Nachbau getestet (richtiger und falscher Schlüssel, abgelaufene Sitzung vor einer Anmeldung). Mit deinem echten Schlüssel am echten TU-Login noch nicht – das kannst nur du.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "TISS Bot, 08.10.2026",
+    "tests": [
+      {
+        "text": "Im TU-Login-Portal (Accountverwaltung → Multi-Faktor-Authentifizierung) den Schlüssel deiner Authenticator-App besorgen: die Zeichenfolge unter dem QR-Code. Nicht in einen Chat kopieren",
+        "done": false
+      },
+      {
+        "text": "Im Bot auf „Einstellungen“ → „TU-Login“ → „Selbst anmelden“: den Schlüssel eintragen und „Speichern“ – darunter steht „An. …“ und die Knöpfe „Jetzt prüfen“, „Schlüssel ändern“, „Schlüssel löschen“",
+        "done": false
+      },
+      {
+        "text": "Dort „Jetzt prüfen“ und bestätigen: Der Bot meldet sich ab und wieder an, oben rechts steht nach höchstens einer halben Minute „Bei TISS angemeldet“ – ohne dass du einen Code tippst",
+        "done": false
+      },
+      {
+        "text": "Laptop über Nacht schlafen lassen (Energie sparen) und am Morgen den Bot öffnen: Nach spätestens zehn Minuten steht oben wieder „Bei TISS angemeldet“, ohne Code",
+        "done": false
+      },
+      {
+        "text": "Eine Anmeldung planen, die in ein paar Stunden öffnet, und den Laptop schlafen legen: Der Bot weckt ihn zehn Minuten vorher, im Verlauf der Karte steht „der Bot meldet sich selbst an“ und danach die Anmeldung",
+        "done": false
+      }
+    ],
+    "created": "2026-10-08T01:00:53.672443+02:00",
+    "changed": "2026-10-08T01:00:53.672443+02:00",
+    "stageAt": "2026-10-08T01:00:53.6730088+02:00"
+  },
+  {
+    "id": "r56ba86f1",
+    "project": "hub",
+    "title": "Neues Design „Planblatt“",
+    "note": "Der Hub als Planblatt: Normschrift, auf jeder Seite ein Plankopf, Linien statt Kästen, Punktraster, Seitenleiste mit Reitern in ihrer Farbe – hell im hellen Modus, Grafit im dunklen. Kompakt, auf breiten Bildschirmen zwei bis drei Spalten. Eine verschobene Karte oder abgehakte Aufgabe sitzt sofort am neuen Platz, die Seite zeichnet danach still neu. Einstellungen → Aussehen schaltet alles um, je Gerät. Entwürfe und der Stand davor liegen in PluginHub\\design.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Hub, 08.10.2026",
+    "tests": [
+      {
+        "text": "Hub im Browser neu laden (F5): In der Seitenleiste hat jeder Reiter einen leichten Streifen in seiner Farbe – eckig, ohne Rundung. Der offene Reiter ist kräftiger und hat links eine Marke.",
+        "done": false
+      },
+      {
+        "text": "In der Seitenleiste mit der Maus über einen geschlossenen Reiter gehen: Sein Symbol nimmt die Farbe des Reiters an.",
+        "done": false
+      },
+      {
+        "text": "Links auf „Übersicht“ gehen: Oben steht der Plankopf (Kachel, Titel, rechts Bereich, Blatt, Datum), darunter die Kennzahlen und nebeneinander „Zu erledigen“, „Aufgaben“ und „Projekte“.",
+        "done": false
+      },
+      {
+        "text": "Links auf „Planung“ gehen und eine Karte in eine andere Spalte ziehen: Sie sitzt sofort am neuen Platz, die anderen Karten gleiten nach – die Seite lädt nicht sichtbar neu. Danach die Karte zurückziehen.",
+        "done": false
+      },
+      {
+        "text": "Links auf „Aufgaben“ gehen und eine Aufgabe abhaken: Die Zeile klappt weg, der Rest rückt nach. Dann unten „erledigte anzeigen“ klicken und den Haken wieder entfernen.",
+        "done": false
+      },
+      {
+        "text": "Links auf „Einstellungen“ gehen, Bereich „Hub allgemein“, Karte „Aussehen“: Modus auf „Dunkel“, dann „Hell“, dann wieder „Automatisch“ stellen – Seite und Seitenleiste wechseln sofort mit: im hellen Modus ist auch die Seitenleiste hell, im dunklen ist sie dunkel.",
+        "done": false
+      },
+      {
+        "text": "Einstellungen → Aussehen: Schrift „Segoe“, Flächen „Karten“, Punktraster „Aus“ und Tabelle im Plankopf „Aus“ nacheinander ausprobieren. Jede Wahl wirkt sofort und bleibt nach dem Neuladen (F5). Danach zurückstellen.",
+        "done": false
+      },
+      {
+        "text": "Einstellungen → Aussehen: Bewegung auf „Aus“ stellen und links einen anderen Reiter öffnen – die Seite erscheint ohne Bewegung. Danach wieder „An“.",
+        "done": false
+      },
+      {
+        "text": "Am Handy den Hub öffnen: Oben liegt die Leiste mit Menü, das Board in „Planung“ lässt sich wischen. Unter Einstellungen → Aussehen lässt sich das Handy anders einstellen als der PC.",
+        "done": false
+      }
+    ],
+    "source": "Chat 08.10.2026, Entwurf 2",
+    "created": "2026-10-08T12:09:35.9075337+02:00",
+    "changed": "2026-10-08T12:44:22.3296033+02:00",
+    "stageAt": "2026-10-08T12:09:35.9089815+02:00"
   }
 ]

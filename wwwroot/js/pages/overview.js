@@ -1,8 +1,8 @@
-// Übersicht: what needs doing, the open tasks - each with the button that leads to where it gets
-// done - the projects at a glance with their next step, the sales figures.
+// Übersicht: the figures at a glance, then what needs doing and the open tasks - each line leads
+// to where it gets done - and beside them the projects with their next step.
 
 import { changed, loadOverview } from '../store.js';
-import { actionButton, buildBadge, issueList, rhinoBadges, sharedClick } from '../parts.js';
+import { actionButton, buildBadge, issueList, sharedClick } from '../parts.js';
 import { esc, fmtDate, fmtDateTime, fmtWhen, icon, plural } from '../ui.js';
 
 export async function render(main) {
@@ -12,6 +12,7 @@ export async function render(main) {
   const state = problems || hints
     ? [problems && plural(problems, 'Problem', 'Probleme'), hints && plural(hints, 'Hinweis', 'Hinweise')].filter(Boolean).join(', ')
     : 'alles in Ordnung';
+  const r = o.register;
 
   main.innerHTML = `
     <div class="page">
@@ -23,43 +24,41 @@ export async function render(main) {
         <button class="btn" data-refresh>${icon('refresh')} Aktualisieren</button>
       </header>
 
-      <section>
-        <h2>Zu erledigen</h2>
-        ${issueList(o.health)}
-      </section>
+      <div class="kpis">
+        ${kpi('#/mails?feld=anfragen', 'key', 'Code-Anfragen', o.inbox.new, o.inbox.new ? 'warten auf Antwort' : 'keine offen', o.inbox.new ? 'attn' : '')}
+        ${kpi('#/mails', 'send', 'Nachfragen', o.mail.due, o.mail.due ? 'fällig' : 'keine fällig', o.mail.due ? 'attn' : '')}
+        ${kpi('#/kunden', 'hourglass', 'Testphasen', r.trials, 'laufen gerade')}
+        ${kpi('#/kunden', 'users', 'Kunden', r.customers, `${plural(r.licenses, 'Code', 'Codes')} ausgestellt`)}
+        ${kpi('#/kunden', 'euro', 'Nicht bezahlt', r.unpaid, r.unpaid ? 'offen' : 'alles bezahlt', r.unpaid ? 'attn' : '')}
+        ${backupKpi(o.backup)}
+      </div>
 
-      ${o.tasks.open ? `
-        <section>
-          <h2>Aufgaben <a class="faint" href="#/aufgaben">alle ${o.tasks.open} ansehen</a></h2>
-          <div class="tasks compact">${o.tasks.top.map((t) => `
-            <div class="task prio-${esc(t.priority)}">
-              <span class="prio-dot" title="Wichtigkeit ${esc(t.priority)}"></span>
-              <a class="task-body" href="#/aufgaben?feld=task-${esc(t.id)}"><div class="t">${esc(t.title)}</div></a>
-              <div class="actions">
-                ${t.priority === 'hoch' ? '<span class="badge bad">hoch</span>' : ''}
-                ${actionButton(t.goto, { task: t.id })}
-              </div>
-            </div>`).join('')}
-          </div>
-        </section>` : ''}
+      <div class="dash">
+        <section class="d-todo">
+          <h2>Zu erledigen</h2>
+          ${issueList(o.health)}
+        </section>
 
-      <section>
-        <h2>Projekte</h2>
-        <div class="pcards">${o.projects.map(projectCard).join('')}</div>
-      </section>
+        ${o.tasks.open ? `
+          <section class="d-tasks">
+            <h2>Aufgaben <a class="faint" href="#/aufgaben">alle ${o.tasks.open} ansehen</a></h2>
+            <div class="tasks compact">${o.tasks.top.map((t) => `
+              <div class="task prio-${esc(t.priority)}">
+                <span class="prio-dot" title="Wichtigkeit ${esc(t.priority)}"></span>
+                <a class="task-body" href="#/aufgaben?feld=task-${esc(t.id)}"><div class="t">${esc(t.title)}</div></a>
+                <div class="actions">
+                  ${t.priority === 'hoch' ? '<span class="badge bad">hoch</span>' : ''}
+                  ${actionButton(t.goto, { task: t.id })}
+                </div>
+              </div>`).join('')}
+            </div>
+          </section>` : ''}
 
-      <section>
-        <h2>Verkauf</h2>
-        <div class="tiles">
-          <a class="tile" href="#/kunden"><div class="label">Kunden</div><div class="value">${o.register.customers}</div></a>
-          <a class="tile" href="#/kunden"><div class="label">Ausgestellte Codes</div><div class="value">${o.register.licenses}</div></a>
-          <a class="tile" href="#/kunden"><div class="label">Laufende Testphasen</div><div class="value">${o.register.trials}</div></a>
-          <a class="tile" href="#/mails?feld=anfragen"><div class="label">Code-Anfragen</div><div class="value ${o.inbox.new ? 'bad' : ''}">${o.inbox.new}</div></a>
-          <a class="tile" href="#/mails"><div class="label">Fällige Nachfragen</div><div class="value ${o.mail.due ? 'bad' : ''}">${o.mail.due}</div></a>
-          <a class="tile" href="#/kunden"><div class="label">Noch nicht bezahlt</div><div class="value ${o.register.unpaid ? 'bad' : ''}">${o.register.unpaid}</div></a>
-          <a class="tile" href="#/schluessel"><div class="label">Letztes Backup</div>${backupValue(o.backup)}</a>
-        </div>
-      </section>
+        <section class="d-projects">
+          <h2>Projekte</h2>
+          <div class="plist">${o.projects.filter((p) => p.kind !== 'extra').map(projectRow).join('')}</div>
+        </section>
+      </div>
     </div>`;
 
   main.oninput = null;
@@ -70,28 +69,39 @@ export async function render(main) {
   };
 }
 
-function projectCard(p) {
-  const facts = [];
-  if (p.build) {
-    facts.push(['Release', p.released ? esc(p.released) : '<span class="muted">noch keins</span>']);
-    facts.push(['Gebaut', `${esc(fmtWhen(p.build.rhpTime))} ${buildBadge(p.build)}`]);
-    facts.push(['Rhino', rhinoBadges(p.rhino)]);
-  }
-  facts.push(['Git', p.changes ? `<span class="badge">${plural(p.changes, 'Änderung', 'Änderungen')} offen</span>` : '<span class="badge ok">sauber</span>']);
-  if (p.lastCommit) facts.push(['Zuletzt', `<span title="${esc(p.lastCommit.subject)}">${esc(fmtDate(p.lastCommit.date))} · ${esc(p.lastCommit.subject)}</span>`]);
+const kpi = (href, iconName, label, value, note, mark = '') => `
+  <a class="kpi ${mark}" href="${href}">
+    <div class="label">${icon(iconName)} ${esc(label)}</div>
+    <div class="value">${esc(String(value))}</div>
+    <div class="note">${esc(note)}</div>
+  </a>`;
 
-  const plan = planLine(p.plan);
-  if (plan) facts.push(['Planung', plan]);
-
-  const next = p.plan?.next;
+function backupKpi(backup) {
+  const stale = backup.last && (backup.keysChanged || backup.registerChanged);
+  const mark = !backup.last ? 'bad' : stale ? 'attn' : '';
+  const note = !backup.last ? 'noch keins' : backup.keysChanged ? 'Schlüssel seither geändert' : backup.registerChanged ? 'Register seither geändert' : 'aktuell';
   return `
-    <div class="pcard">
-      <a class="pcard-top" href="#/projekt/${esc(p.id)}">
-        <div class="picon">${icon(p.icon)}</div>
-        <div><div class="name">${esc(p.name)}</div><div class="faint">${esc(kindLine(p))}</div></div>
-      </a>
-      ${p.note ? `<p class="faint">${esc(p.note)}</p>` : ''}
-      <div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${k}</span><span>${v}</span></div>`).join('')}</div>
+    <a class="kpi ${mark}" href="#/schluessel">
+      <div class="label">${icon('shield')} Letztes Backup</div>
+      <div class="value small">${backup.last ? esc(fmtDate(backup.last.at)) : '–'}</div>
+      <div class="note">${esc(note)}</div>
+    </a>`;
+}
+
+/** One line per project: what it is, how its build stands, and where it goes next. */
+function projectRow(p) {
+  const next = p.plan?.next;
+  const meta = [kindLine(p), p.build?.exists && `gebaut ${fmtWhen(p.build.rhpTime)}`].filter(Boolean).join(' · ');
+  const state = [
+    p.build ? buildBadge(p.build) : '',
+    p.changes ? `<span class="badge" title="Nicht committed">${plural(p.changes, 'Änderung', 'Änderungen')}</span>` : '',
+  ].join('');
+  return `
+    <div class="prow">
+      <a class="cover" href="#/projekt/${esc(p.id)}" aria-label="${esc(p.name)} öffnen"></a>
+      <div class="picon">${icon(p.icon)}</div>
+      <div style="min-width:0"><div class="name">${esc(p.name)}</div><div class="meta">${esc(meta)}</div></div>
+      <div class="state">${state}</div>
       ${next ? `<a class="next ${esc(next.kind)}" href="${esc(next.route)}">${icon(NEXT_ICON[next.kind] ?? 'arrowRight')}<span>${esc(next.text)}</span></a>` : ''}
     </div>`;
 }
@@ -102,6 +112,7 @@ export function kindLine(p) {
   if (p.kind === 'library') return 'Bibliothek';
   if (p.kind === 'tool') return 'Werkzeug';
   if (p.kind === 'website') return 'Website · Vorschau im Hub';
+  if (p.kind === 'extra') return 'Eigenes Projekt';
   return [p.build?.productVersion && `Build ${p.build.productVersion}`, p.version].filter(Boolean).join(' · ') || 'noch nicht gebaut';
 }
 
@@ -116,10 +127,4 @@ export function planLine(plan) {
     c.getestet && `${c.getestet} getestet`,
     c.idee && plural(c.idee, 'Idee', 'Ideen'),
   ].filter(Boolean).join(' · ');
-}
-
-function backupValue(backup) {
-  if (!backup.last) return '<div class="value small bad">keins</div>';
-  const stale = backup.keysChanged ? ' <span class="badge bad">veraltet</span>' : '';
-  return `<div class="value small">${esc(fmtDate(backup.last.at))}${stale}</div>`;
 }

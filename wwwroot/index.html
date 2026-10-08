@@ -6,6 +6,17 @@
   <title>Plugin Hub</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/hub.css">
+  <script>
+    // The look chosen on this device (Einstellungen → Aussehen, kept by js/look.js) - on before the first paint
+    (function () {
+      try {
+        var look = JSON.parse(localStorage.getItem('hub.look') || 'null');
+        if (!look) return;
+        if (look.theme === 'light' || look.theme === 'dark') document.documentElement.dataset.theme = look.theme;
+        if (typeof look.classes === 'string') document.documentElement.className = look.classes;
+      } catch (e) { /* a private window: the rule applies */ }
+    })();
+  </script>
 </head>
 <body>
   <div class="app">

@@ -3,7 +3,7 @@
 // (after a build, say) loses nothing.
 
 import { api, post } from '../api.js';
-import { changed, getOverview, keyOf, loadOverview } from '../store.js';
+import { changed, getOverview, keyOf, loadOverview, productSettings } from '../store.js';
 import { buildBadge, buildLine, dropParam, isoDate, issueList, linkChips, mailDialog, sharedClick, statusBadge } from '../parts.js';
 import { busy, checkMachineId, copy, esc, fmtDate, fmtWhen, icon, toast } from '../ui.js';
 
@@ -30,7 +30,6 @@ export async function render(main, { params }) {
   register = reg;
   shared = settings.shared;
   form.language ??= shared.defaultLanguage;
-  if (!form.end) form.end = daysFromNow(shared.trialDays);
 
   // "Neuer Code" on a customer page arrives with ?kunde=<id>
   if (params.kunde) {
@@ -57,6 +56,8 @@ export async function render(main, { params }) {
   if (!plugins.some((p) => p.id === form.product)) {
     form.product = (plugins.find((p) => keyOf(o, p.id)?.inHub) ?? plugins[0])?.id ?? null;
   }
+  // Each plug-in has a trial length of its own - the end offered first follows the plug-in
+  if (!form.end) form.end = daysFromNow(trialDays());
 
   const salesIssues = o.health.filter((h) =>
     h.level === 'problem' && ['keys', 'backup', 'secrets', 'build', 'mail'].includes(h.area));
@@ -138,7 +139,7 @@ function codeCard(o, plugins) {
           <div class="inline wrap">
             <input type="date" name="end" value="${esc(form.end)}" min="${isoDate(new Date())}" style="max-width:190px">
             ${[14, 30, 60].map((n) => `<button type="button" class="btn small ${form.end === daysFromNow(n) ? 'on' : ''}" data-days="${n}">${n} Tage</button>`).join('')}
-            <span class="faint">Standard: ${shared.trialDays} Tage (Einstellungen)</span>
+            <span class="faint">Standard: ${trialDays()} Tage (<a href="#/einstellungen?feld=trialDays-${esc(form.product ?? '')}">Einstellungen</a>)</span>
           </div>
         </div>` : ''}
       <label class="field">
@@ -285,8 +286,13 @@ async function click(e, main) {
 
 /** Changes a choice and redraws the form - the result below stays until the next code. */
 function pick(main, change) {
+  // An end that is still the old plug-in's standard becomes the new plug-in's standard
+  const standard = form.end === daysFromNow(trialDays());
   Object.assign(form, change);
-  if ('product' in change) form.result = null;
+  if ('product' in change) {
+    form.result = null;
+    if (standard) form.end = daysFromNow(trialDays());
+  }
   main.querySelector('#code-card').innerHTML = codeCard(getOverview(), getOverview().projects.filter((p) => p.kind === 'plugin'));
 }
 
@@ -321,7 +327,7 @@ async function issue(button, main) {
   // The next code starts from a clean form - product and kind stay
   Object.assign(form, {
     result, customerId: '', customerName: '', email: '', machineId: '', price: '', paid: false, note: '',
-    language: shared.defaultLanguage, end: daysFromNow(shared.trialDays),
+    language: shared.defaultLanguage, end: daysFromNow(trialDays()),
   });
   toast(result.license.end ? `Testcode bis ${fmtDate(result.license.end)} erzeugt` : 'Code erzeugt und im Register gespeichert');
   // Draw the whole page again: the new code belongs in "Zuletzt ausgestellt" too
@@ -329,6 +335,9 @@ async function issue(button, main) {
 }
 
 const daysFromNow = (n) => isoDate(new Date(Date.now() + n * 86_400_000));
+
+/** The trial length of the plug-in chosen in the form. */
+const trialDays = () => productSettings(shared, form.product).trialDays;
 
 // ── Recent codes ───────────────────────────────────────────────────────────
 

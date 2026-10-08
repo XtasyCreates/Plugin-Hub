@@ -7,6 +7,8 @@ import { api, onOffline, post } from './api.js';
 import { confirmDialog, esc, icon, toast } from './ui.js';
 import { changed, getOverview, loadOverview, loadSession, onPhone } from './store.js';
 import { dropParam, flash, resumeBuild } from './parts.js';
+import { applyLook } from './look.js';
+import { carry, snapshot } from './motion.js';
 import * as overview from './pages/overview.js';
 import * as tasks from './pages/tasks.js';
 import * as plan from './pages/plan.js';
@@ -39,6 +41,10 @@ const side = document.getElementById('side');
 const main = document.getElementById('main');
 let quitting = false;
 
+// The look chosen on this device (Einstellungen → Aussehen): index.html has put it on already,
+// this keeps it true to what look.js knows
+applyLook();
+
 // Each tab's colour (hub.css, [data-tab]) and icon - the side bar, the strip over the page and
 // the tile at its title all show it, so the open tab is told at a glance
 const TABS = {
@@ -54,18 +60,116 @@ const TABS = {
   '#/einstellungen': { key: 'einstellungen', icon: 'sliders' },
 };
 
-/** Colours the page as its tab and puts the tab's tile before the title; project pages have their own tile. */
+// Which part of the hub a tab belongs to, and the tabs in the order of the side bar - a page's
+// title block names both, the way a plan names its section and its sheet
+const GROUPS = { uebersicht: 'Start', aufgaben: 'Arbeit', planung: 'Arbeit', releases: 'Arbeit', verkauf: 'Verkauf',
+  statistik: 'Verkauf', kunden: 'Verkauf', mails: 'Verkauf', schluessel: 'System', einstellungen: 'System', projekt: 'Projekte' };
+const SHEETS = ['uebersicht', 'aufgaben', 'planung', 'releases', 'verkauf', 'statistik', 'kunden', 'mails', 'schluessel', 'einstellungen'];
+
+/**
+ * Colours the page as its tab, puts the tab's tile before the title (project pages have their
+ * own), and gives the page its title block: where it belongs above the title, and at the right
+ * the small table of a plan - section, sheet, date.
+ */
 function markTab(route) {
   const tab = TABS[route.nav ?? ''];
-  document.body.dataset.tab = tab?.key ?? 'projekt';
-  const title = main.querySelector('.page-head h1');
+  const key = tab?.key ?? 'projekt';
+  document.body.dataset.tab = key;
+  const head = main.querySelector('.page-head');
+  const title = head?.querySelector('h1');
   const box = title?.parentElement;
-  if (!tab || !box || box.closest('.titled') || box.querySelector('.picon')) return;
-  const titled = document.createElement('div');
-  titled.className = 'titled';
-  box.replaceWith(titled);
-  titled.innerHTML = `<span class="tab-mark" aria-hidden="true">${icon(tab.icon)}</span>`;
-  titled.append(box);
+  if (!head || !box) return;
+
+  if (tab && !box.closest('.titled') && !box.querySelector('.picon')) {
+    const titled = document.createElement('div');
+    titled.className = 'titled';
+    box.replaceWith(titled);
+    titled.innerHTML = `<span class="tab-mark" aria-hidden="true">${icon(tab.icon)}</span>`;
+    titled.append(box);
+  }
+  if (head.querySelector('.plankopf')) return;
+
+  // What the page offers at its title gets a cell of its own in the block
+  const offers = [...head.children].slice(1);
+  if (offers.length) {
+    const cell = document.createElement('div');
+    cell.className = 'pk-actions';
+    head.append(cell);
+    cell.append(...offers);
+  }
+
+  const crumb = document.createElement('div');
+  crumb.className = 'crumb';
+  crumb.textContent = `Plugin Hub / ${GROUPS[key]}`;
+  title.before(crumb);
+
+  const projects = getOverview()?.projects ?? [];
+  const at = projects.findIndex((p) => `#/projekt/${p.id}` === (location.hash || '#/').split('?')[0]);
+  const sheet = key === 'projekt' ? `P${at + 1 || ''}` : String(SHEETS.indexOf(key) + 1).padStart(2, '0');
+  const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const block = document.createElement('div');
+  block.className = 'plankopf';
+  block.setAttribute('aria-hidden', 'true');
+  block.innerHTML = `<div><span>Bereich</span><b>${esc(GROUPS[key])}</b></div>
+    <div><span>Blatt</span><b>${esc(sheet)}</b></div><div><span>Datum</span><b>${esc(today)}</b></div>`;
+  head.append(block);
+}
+
+// What stands beside what on a wide screen: per tab the cards of the left and of the right
+// column, named as the page writes them, and how the two share the width. Whatever is not named
+// keeps the full width; a narrow screen shows the cards in the page's own order.
+const SPLITS = {
+  verkauf: { a: ['#code-card', '#code-card + .card'], b: ['#plugins', '#plugins + .card'], share: [7, 5] },
+  mails: { a: ['[data-place="anfragen"]'], b: ['[data-place="anfragen"] + .card', '[data-place="anfragen"] + .card + .card'], share: [7, 5] },
+  schluessel: { a: ['#keys', '#git-remote-card'], b: ['#backup', '#git-remote-card + .card'], share: [7, 5] },
+  einstellungen: { a: ['form#shared', '#handy'], b: ['form#mail', '#aussehen'], share: [1, 1] },
+  statistik: { a: ['section.card:nth-of-type(1)', 'section.card:nth-of-type(3)'], b: ['section.card:nth-of-type(2)', 'section.card:nth-of-type(4)'], share: [1, 1] },
+  projekt: { a: ['.card:has(+ [data-place="planung"])', '[data-place="planung"] + .card'], b: ['[data-place="planung"]'], share: [1, 1] },
+  releases: { a: ['#release-laser'], b: ['#release-swtolaser'], share: [1, 1] },
+  planung: { a: ['[data-place="fragen"]'], b: ['[data-place="entscheidungen"]'], share: [5, 7] },
+};
+
+function arrange(key) {
+  const page = main.querySelector('.page');
+  const spec = SPLITS[key];
+  if (!page || !spec || page.querySelector(':scope > .split')) return;
+  const pick = (selectors) => selectors.map((s) => page.querySelector(`:scope > ${s}`)).filter(Boolean);
+  const columns = [pick(spec.a), pick(spec.b)];
+  if (!columns[0].length || !columns[1].length) return;
+
+  const all = [...page.children];
+  const split = document.createElement('div');
+  split.className = 'split';
+  split.style.setProperty('--a', `${spec.share[0]}fr`);
+  split.style.setProperty('--b', `${spec.share[1]}fr`);
+  all.find((el) => columns.some((c) => c.includes(el))).before(split);
+  for (const cards of columns) {
+    const column = document.createElement('div');
+    for (const card of cards) {
+      card.style.order = all.indexOf(card);   // the page's own order, for the narrow screen
+      column.append(card);
+    }
+    split.append(column);
+  }
+}
+
+/** A page that was just opened settles in, and its strip is cut across - not on a mere redraw. */
+let entering = 0;
+function enter() {
+  clearTimeout(entering);
+  for (const el of [main, side]) {
+    el.classList.remove('enter');
+    void el.offsetWidth;   // restart the animations
+    el.classList.add('enter');
+  }
+  // Off again once it has run: a redraw puts new elements on the page, and they would come in once more
+  entering = setTimeout(arrived, 520);
+}
+
+function arrived() {
+  clearTimeout(entering);
+  main.classList.remove('enter');
+  side.classList.remove('enter');
 }
 
 async function show({ keepScroll = false } = {}) {
@@ -74,6 +178,10 @@ async function show({ keepScroll = false } = {}) {
   const args = path.match(route.path)?.slice(1) ?? [];
   const params = Object.fromEntries(new URLSearchParams(query ?? ''));
   const scroll = window.scrollY;
+  // On a redraw, what the page names ("followed" in its file) glides to its new place instead of jumping
+  const follow = keepScroll ? route.page.followed : null;
+  const before = follow ? snapshot(follow(main)) : null;
+  if (keepScroll) arrived();
 
   try {
     await route.page.render(main, { args, params });
@@ -83,7 +191,10 @@ async function show({ keepScroll = false } = {}) {
   if (!keepScroll) side.classList.remove('open');   // the phone's menu closes on the way to a page
   markTab(route);
   drawSide(path, route);
+  arrange(document.body.dataset.tab);
   if (keepScroll) window.scrollTo(0, scroll);
+  else enter();
+  if (before) carry(before, follow(main));
   if (params.feld) {
     markPlace(params.feld);
     dropParam('feld');   // once - a redraw after a save must not jump back there
@@ -207,19 +318,23 @@ function drawSide(path, route) {
     </div>
     <nav class="nav">
       ${link('#/', 'grid', 'Übersicht', { alarm: problem(() => true) })}
+      <div class="nav-label">Arbeit</div>
       ${link('#/aufgaben', 'list', 'Aufgaben', { count: o.tasks.open })}
       ${link('#/planung', 'board', 'Planung', { count: o.plan.toTest })}
+      ${link('#/releases', 'tag', 'Releases')}
+      <div class="nav-label">Verkauf</div>
       ${link('#/verkauf', 'package', 'Verkauf und Export')}
       ${link('#/statistik', 'chart', 'Statistik')}
       ${link('#/kunden', 'users', 'Kunden', { count: o.register.customers })}
       ${link('#/mails', 'mail', 'Mails', { alarm: problem((h) => h.area === 'mail'), count: o.mail.due + o.inbox.new })}
-      ${link('#/releases', 'tag', 'Releases')}
-      ${link('#/schluessel', 'shield', 'Schlüssel und Backup', { alarm: problem((h) => ['keys', 'backup', 'secrets'].includes(h.area)) })}
-      ${link('#/einstellungen', 'sliders', 'Einstellungen')}
       <div class="nav-label">Projekte</div>
       ${o.projects.map((p) => link(`#/projekt/${p.id}`, p.icon, p.name, { alarm: problem((h) => h.project === p.id) })).join('')}
     </nav>
     <div class="side-foot">
+      <nav class="nav">
+        ${link('#/schluessel', 'shield', 'Schlüssel und Backup', { alarm: problem((h) => ['keys', 'backup', 'secrets'].includes(h.area)) })}
+        ${link('#/einstellungen', 'sliders', 'Einstellungen')}
+      </nav>
       <div class="rhino">${rhino}</div>
       ${onPhone() ? `<div class="rhino">${icon('phone')} Vom Handy über Tailscale</div>` : ''}
       <button class="btn ghost small" data-quit>${icon('power')} Hub beenden</button>

@@ -98,7 +98,7 @@ public sealed class Mailer
             if (!l.Trial || l.End is not DateOnly end || l.ReplacedBy != null || l.FollowUp != null) continue;
             int left = end.DayNumber - Today.DayNumber;
             // Due from FollowUpDays before the end; after two weeks past it, the moment has gone
-            if (left > shared.FollowUpDays || left < -14) continue;
+            if (left > shared.For(l.Product).FollowUpDays || left < -14) continue;
             if (_keys.Info(l.Product)?.Fingerprint != l.KeyFingerprint) continue;
 
             var customer = data.Customers.FirstOrDefault(c => c.Id == l.CustomerId);

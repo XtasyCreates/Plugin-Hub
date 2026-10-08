@@ -28,7 +28,8 @@ public sealed class Places
         const string settings = "Einstellungen";
         Add(settings, "Kontakt-Adresse für Kunden", "route", "#/einstellungen?feld=contact", "Zur Kontakt-Adresse");
         Add(settings, "Anbieter und Anschrift", "route", "#/einstellungen?feld=seller", "Zum Anbieter");
-        Add(settings, "Standard-Testdauer", "route", "#/einstellungen?feld=trialDays", "Zur Testdauer");
+        foreach (var p in plugins)
+            Add(settings, $"Testdauer {p.Name}", "route", $"#/einstellungen?feld=trialDays-{p.Id}", "Zur Testdauer");
         Add(settings, "Unterschrift unter Mails", "route", "#/einstellungen?feld=signature", "Zur Unterschrift");
         Add(settings, "E-Mail-Konto", "route", "#/einstellungen?feld=mail", "Zum E-Mail-Konto");
         Add(settings, "Mail-Vorlagen", "route", "#/einstellungen?feld=templates", "Zu den Mail-Vorlagen");

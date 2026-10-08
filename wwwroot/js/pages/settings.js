@@ -1,11 +1,15 @@
-// Einstellungen: what belongs to the products (Hub\settings.json, in Git), the mail account
-// (private, the password never comes back to the page), the mail templates, and phone access
-// through Tailscale (private, switched on and off only on the PC).
+// Einstellungen, in sections: the hub in general - seller and contact (Hub\settings.json, in
+// Git), the mail account (private, the password never comes back to the page), the mail
+// templates, phone access through Tailscale (private, switched on and off only on the PC) -
+// and one section per project that has settings of its own: each plug-in its trial length,
+// follow-up and "läuft bald ab", the website its sales channel, an extra project the way to
+// its own page.
 
 import { api, post, put } from '../api.js';
-import { changed, loadOverview, onPhone } from '../store.js';
+import { changed, loadOverview, onPhone, productSettings, projectUrl } from '../store.js';
 import { sharedClick } from '../parts.js';
-import { busy, copy, esc, fmtDateTime, icon, toast } from '../ui.js';
+import { busy, confirmDialog, copy, esc, fmtDateTime, icon, toast } from '../ui.js';
+import { LOOK, getLook, setLook } from '../look.js';
 
 const KINDS = [
   { id: 'code', label: 'Code senden' },
@@ -13,156 +17,94 @@ const KINDS = [
   { id: 'extension', label: 'Neuer Code nach Verlängerung' },
 ];
 
-export async function render(main) {
+const NUMBERS = ['trialDays', 'followUpDays', 'endingSoonDays'];
+
+// The general section, or a project id. Not 'hub': that is the id of the project "Plugin Hub",
+// which has no section of its own - what holds for the hub is the general section.
+const GENERAL = 'allgemein';
+let section = GENERAL;
+
+/** The section a field stands in - a link to a field ("?feld=") opens that section. */
+function sectionOf(field, plugins, website) {
+  const number = NUMBERS.find((n) => field === n || field.startsWith(`${n}-`));
+  // Links from before each plug-in had its own numbers name no plug-in: the first one
+  if (number) return field.includes('-') ? field.slice(number.length + 1) : plugins[0]?.id;
+  if (['verkaufsweg', 'website-statistik', 'salesChannel', 'siteStats', 'channel'].includes(field)) return website?.id;
+  return GENERAL;
+}
+
+export async function render(main, { params = {} } = {}) {
   const [o, settings, templates] = await Promise.all([loadOverview(), api('/api/settings'), api('/api/templates/mails')]);
   const s = settings.shared;
   const m = settings.mail;
+
+  const plugins = o.projects.filter((p) => p.kind === 'plugin');
+  const website = o.projects.find((p) => p.kind === 'website');
+  const extras  = o.projects.filter((p) => p.kind === 'extra');
+  const sections = [{ id: GENERAL, name: 'Hub allgemein', icon: 'grid' }, ...plugins, ...(website ? [website] : []), ...extras];
+
+  if (params.bereich) section = params.bereich;
+  if (params.feld) section = sectionOf(params.feld, plugins, website) ?? section;
+  if (!sections.some((x) => x.id === section)) section = GENERAL;
+  const project = section === GENERAL ? null : o.projects.find((p) => p.id === section);
+
+  const body = !project ? hubSection(s, m, settings, templates)
+    : project.kind === 'plugin' ? pluginSection(project, s, plugins)
+    : project.kind === 'website' ? websiteSection(s)
+    : extraSection(project);
 
   main.innerHTML = `
     <div class="page">
       <header class="page-head">
         <div>
           <h1>Einstellungen</h1>
-          <p class="sub">Allgemeines liegt in Hub\\settings.json (in Git), das Mailkonto nur auf diesem PC.</p>
+          <p class="sub">Für den Hub allgemein und für jedes Projekt einzeln. Allgemeines liegt in Hub\\settings.json (in Git), das Mailkonto nur auf diesem PC, das Aussehen in diesem Browser.</p>
         </div>
       </header>
-
-      <form class="card" id="shared">
-        <div class="card-head"><h3>${icon('sliders')} Allgemein</h3></div>
-        <div class="form-grid">
-          <label class="field"><span>Kontakt-Adresse für Kunden</span>
-            <input type="email" name="contact" value="${esc(s.contact)}" placeholder="name@beispiel.de">
-            <span class="hint">Steht im Plugin („Request a free trial“, „Buy a license“), in der Anleitung und als Antwort-Adresse der Mails. Im Plugin wirkt eine Änderung ab dem nächsten Build.</span></label>
-          <label class="field"><span>Unterschrift unter Mails</span>
-            <input type="text" name="signature" value="${esc(s.signature)}"></label>
-          <label class="field"><span>Anbieter (Name oder Firma)</span>
-            <input type="text" name="seller" value="${esc(s.seller)}">
-            <span class="hint">Steht in den Lizenzbedingungen und im Paket. Pflicht für ein Release.</span></label>
-          <label class="field"><span>Anschrift des Anbieters</span>
-            <input type="text" name="sellerAddress" value="${esc(s.sellerAddress)}" placeholder="Straße 1, 12345 Stadt, Deutschland"></label>
-          <label class="field"><span>Standard-Testdauer <em>Tage</em></span>
-            <input type="number" name="trialDays" min="1" max="365" value="${s.trialDays}">
-            <span class="hint">Platzhalter, bis du deinen Zeitraum festgelegt hast.</span></label>
-          <label class="field"><span>Nachfrage vorschlagen <em>Tage vor Ende der Testphase</em></span>
-            <input type="number" name="followUpDays" min="0" max="60" value="${s.followUpDays}"></label>
-          <label class="field"><span>„Läuft bald ab“ ab <em>Tage vorher</em></span>
-            <input type="number" name="endingSoonDays" min="1" max="60" value="${s.endingSoonDays}"></label>
-          <label class="field"><span>Sprache für neue Kunden</span>
-            <select name="defaultLanguage">
-              <option value="de" ${s.defaultLanguage === 'de' ? 'selected' : ''}>Deutsch</option>
-              <option value="en" ${s.defaultLanguage === 'en' ? 'selected' : ''}>English</option>
-            </select></label>
-        </div>
-        <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Speichern</button></div>
-      </form>
-
-      <form class="card" id="channel" data-place="verkaufsweg">
-        <div class="card-head"><h3>${icon('chart')} Verkaufsweg und Website</h3></div>
-        <p class="card-note">Wenn die Website online geht und du dort verkaufst, stellst du hier um – sonst nichts. Jeder neue Code merkt sich
-          den Weg, die Statistik zeigt beide getrennt; bisherige Codes zählen als „Per Mail“.</p>
-        <div class="form-grid">
-          <div class="field">
-            <span>Verkaufsweg</span>
-            <div class="seg" role="radiogroup" aria-label="Verkaufsweg">
-              <button type="button" role="radio" aria-checked="${s.salesChannel !== 'online'}" class="${s.salesChannel !== 'online' ? 'on' : ''}" data-channel="mail">${icon('mail')} Per Mail</button>
-              <button type="button" role="radio" aria-checked="${s.salesChannel === 'online'}" class="${s.salesChannel === 'online' ? 'on' : ''}" data-channel="online">${icon('globe')} Online</button>
-            </div>
-            <input type="hidden" name="salesChannel" value="${esc(s.salesChannel ?? 'mail')}">
-            <span class="hint">Per Mail: Anfrage per Mail, Code aus dem Hub. Online: Website und Zahlungsanbieter.</span>
-          </div>
-          <label class="field" data-place="website-statistik"><span>Website-Statistik <em>Quelle der Aufrufe</em></span>
-            <select name="siteStats">
-              <option value="off" selected>Aus – die Website ist noch nicht online</option>
-              <option disabled>Zähler des Webspace – kommt mit dem Hosting</option>
-            </select>
-            <span class="hint">Die Quelle kommt dazu, wenn Hosting und Domain entschieden sind (offene Fragen im Projekt Website).</span></label>
-        </div>
-        <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Speichern</button></div>
-      </form>
-
-      <form class="card" id="mail">
-        <div class="card-head">
-          <h3>${icon('mail')} E-Mail</h3>
-          <span class="badge ${settings.ready ? 'ok' : 'bad'}">${settings.ready ? 'eingerichtet' : 'nicht eingerichtet'}</span>
-        </div>
-        <p class="card-note">Der Hub sendet über dein Gmail-Konto. Dafür braucht er ein <em>App-Passwort</em> von Google – dein normales
-          Gmail-Passwort funktioniert hier nicht und gehört auch nicht hierher.
-          <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">App-Passwort bei Google erzeugen</a>
-          (geht nur, wenn im Google-Konto die Bestätigung in zwei Schritten an ist).</p>
-        <div class="form-grid">
-          <label class="field"><span>Absender-Adresse <em>deine Gmail-Adresse</em></span>
-            <input type="email" name="senderEmail" value="${esc(m.senderEmail)}" placeholder="name@gmail.com"></label>
-          <label class="field"><span>App-Passwort ${settings.hasPassword ? '<em>ist gespeichert – nur zum Ändern eintragen</em>' : '<em>16 Zeichen, Leerzeichen sind egal</em>'}</span>
-            <input type="password" name="password" autocomplete="new-password" placeholder="${settings.hasPassword ? '••••••••••••••••' : 'abcd efgh ijkl mnop'}"></label>
-          <label class="field"><span>Absender-Name <em>so sehen dich die Kunden</em></span>
-            <input type="text" name="senderName" value="${esc(m.senderName)}" placeholder="Gustav"></label>
-          <div class="form-grid inner">
-            <label class="field"><span>Server</span><input type="text" name="host" value="${esc(m.host)}"></label>
-            <label class="field"><span>Port</span><input type="number" name="port" value="${m.port}" style="width:90px"></label>
-          </div>
-        </div>
-        <div class="actions" style="margin-top:14px">
-          <button class="btn primary" type="submit">Speichern</button>
-          <button class="btn" type="button" data-test ${settings.ready ? '' : 'disabled'}>${icon('send')} Test-Mail an mich</button>
-          ${settings.ready ? '' : '<span class="faint">Die Test-Mail geht, sobald Adresse und App-Passwort gespeichert sind.</span>'}
-        </div>
-      </form>
-
-      <form class="card" id="templates">
-        <div class="card-head"><h3>${icon('file')} Mail-Vorlagen</h3></div>
-        <p class="card-note">Platzhalter: {name} {product} {code} {deviceId} {end} {validity} {daysLeft} {command} {activationCommand} {signature} {contact}</p>
-        ${KINDS.map((k) => `
-          <div class="template">
-            <div class="label">${esc(k.label)}</div>
-            <div class="form-grid">
-              ${['de', 'en'].map((lang) => `
-                <div class="field">
-                  <span>${lang === 'de' ? 'Deutsch' : 'English'}</span>
-                  <input type="text" name="${k.id}.${lang}.subject" value="${esc(templates[k.id]?.[lang]?.subject ?? '')}">
-                  <textarea name="${k.id}.${lang}.body" rows="9">${esc(templates[k.id]?.[lang]?.body ?? '')}</textarea>
-                </div>`).join('')}
-            </div>
-          </div>`).join('')}
-        <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Vorlagen speichern</button></div>
-      </form>
-
-      <div class="card" id="handy">
-        <div class="card-head"><h3>${icon('phone')} Handy-Zugang</h3></div>
-        <p class="faint">Prüfe Tailscale …</p>
+      <div class="filters" role="group" aria-label="Bereich">${sections.map((x) => `
+        <a class="chip ${x.id === section ? 'on' : ''}" href="#/einstellungen?bereich=${esc(x.id)}" ${x.id === section ? 'aria-current="true"' : ''}>${icon(x.icon)}${esc(x.name)}</a>`).join('')}
       </div>
+      ${body}
     </div>`;
 
   // Asking Tailscale takes a moment - the rest of the page does not wait for it
-  api('/api/phone').then(showPhone).catch((e) => showPhone(null, e.message));
+  if (!project) api('/api/phone').then(showPhone).catch((e) => showPhone(null, e.message));
 
   main.oninput = null;
   main.onchange = null;
 
-  // Both cards save the whole of settings.json - each sends the other's values as they are
+  // Every card saves the whole of settings.json - each sends the others' values as they are
   const sharedBody = (changes) => ({
     contact: s.contact, signature: s.signature, seller: s.seller, sellerAddress: s.sellerAddress,
     trialDays: s.trialDays, followUpDays: s.followUpDays, endingSoonDays: s.endingSoonDays, defaultLanguage: s.defaultLanguage,
-    salesChannel: s.salesChannel ?? 'mail', siteStats: s.siteStats ?? 'off',
+    salesChannel: s.salesChannel ?? 'mail', siteStats: s.siteStats ?? 'off', products: s.products ?? {},
     ...changes,
   });
+  const on = (id, handler) => { const form = main.querySelector(`#${id}`); if (form) form.onsubmit = handler; };
 
-  main.querySelector('#shared').onsubmit = (e) => save(e, () => {
+  on('shared', (e) => save(e, () => {
     const f = new FormData(e.target);
     return put('/api/settings/shared', sharedBody({
       contact: f.get('contact'), signature: f.get('signature'), seller: f.get('seller'), sellerAddress: f.get('sellerAddress'),
-      trialDays: Number(f.get('trialDays')), followUpDays: Number(f.get('followUpDays')),
-      endingSoonDays: Number(f.get('endingSoonDays')), defaultLanguage: f.get('defaultLanguage'),
+      defaultLanguage: f.get('defaultLanguage'),
     }));
   }, s.contact !== new FormData(e.target).get('contact')
-    ? 'Gespeichert. Die neue Kontakt-Adresse kommt mit dem nächsten Build ins Plugin.' : 'Gespeichert');
+    ? 'Gespeichert. Die neue Kontakt-Adresse kommt mit dem nächsten Build ins Plugin.' : 'Gespeichert'));
 
-  main.querySelector('#channel').onsubmit = (e) => save(e, () => {
+  // One plug-in's three numbers, as its form shows them right now
+  const numbers = (form) => Object.fromEntries(NUMBERS.map((n) => [n, Number(new FormData(form).get(`${n}-${section}`))]));
+
+  on('product', (e) => save(e, () =>
+    put('/api/settings/shared', sharedBody({ products: { ...(s.products ?? {}), [section]: numbers(e.target) } })),
+  `Gespeichert – gilt für ${project?.name}`));
+
+  on('channel', (e) => save(e, () => {
     const f = new FormData(e.target);
     return put('/api/settings/shared', sharedBody({ salesChannel: f.get('salesChannel'), siteStats: f.get('siteStats') }));
-  }, 'Gespeichert – neue Codes merken sich diesen Verkaufsweg');
+  }, 'Gespeichert – neue Codes merken sich diesen Verkaufsweg'));
 
   // One "Speichern" for address and password: two buttons meant saving one and forgetting the other
-  main.querySelector('#mail').onsubmit = (e) => save(e, async () => {
+  on('mail', (e) => save(e, async () => {
     const f = new FormData(e.target);
     const saved = await put('/api/settings/mail', {
       senderName: f.get('senderName'), senderEmail: f.get('senderEmail'), host: f.get('host'), port: Number(f.get('port')), userName: '',
@@ -171,9 +113,9 @@ export async function render(main) {
     const password = String(f.get('password') ?? '').replace(/\s+/g, '');
     if (password) await put('/api/settings/mail-password', { password });
     return saved;
-  }, 'Gespeichert');
+  }, 'Gespeichert'));
 
-  main.querySelector('#templates').onsubmit = (e) => save(e, () => {
+  on('templates', (e) => save(e, () => {
     const f = new FormData(e.target);
     const body = {};
     for (const k of KINDS) {
@@ -181,10 +123,41 @@ export async function render(main) {
       for (const lang of ['de', 'en']) body[k.id][lang] = { subject: f.get(`${k.id}.${lang}.subject`), body: f.get(`${k.id}.${lang}.body`) };
     }
     return put('/api/templates/mails', body);
-  }, 'Vorlagen gespeichert');
+  }, 'Vorlagen gespeichert'));
 
   main.onclick = async (e) => {
     if (await sharedClick(e)) return;
+
+    // Aussehen: a choice works at once - nothing to save, nothing to draw again
+    const look = e.target.closest('[data-look]');
+    if (look) {
+      setLook(look.dataset.look, look.dataset.value);
+      for (const b of look.parentElement.children) {
+        b.classList.toggle('on', b === look);
+        b.setAttribute('aria-checked', String(b === look));
+      }
+      return;
+    }
+
+    // The numbers in this plug-in's form become every plug-in's - and the common ones, for a plug-in to come
+    const sync = e.target.closest('[data-sync]');
+    if (sync) {
+      const form = sync.closest('form');
+      if (!form.reportValidity()) return;
+      const v = numbers(form);
+      const others = plugins.filter((p) => p.id !== section).map((p) => p.name).join(', ');
+      const text = `${others} ${plugins.length > 2 ? 'bekommen' : 'bekommt'} dieselben Werte wie ${project.name}: ` +
+        `Testdauer ${v.trialDays} Tage, Nachfrage ${v.followUpDays} Tage vor dem Ende, „Läuft bald ab“ ab ${v.endingSoonDays} Tagen.`;
+      if (!(await confirmDialog('Für alle Plugins übernehmen?', text, { confirm: 'Übernehmen' }))) return;
+      const result = await busy(sync, () => put('/api/settings/shared',
+        sharedBody({ ...v, products: Object.fromEntries(plugins.map((p) => [p.id, v])) })));
+      if (result !== undefined) {
+        toast('Alle Plugins haben jetzt dieselben Werte');
+        changed();
+      }
+      return;
+    }
+
     const channel = e.target.closest('[data-channel]');
     if (channel) {
       const form = channel.closest('form');
@@ -218,6 +191,196 @@ export async function render(main) {
       if (action !== 'check') changed();
     }
   };
+}
+
+// ── The sections ───────────────────────────────────────────────────────────
+
+/** What holds for the hub and every plug-in alike. */
+function hubSection(s, m, settings, templates) {
+  return `
+      <form class="card" id="shared">
+        <div class="card-head"><h3>${icon('sliders')} Anbieter und Kontakt</h3></div>
+        <p class="card-note">Gilt für alle Plugins. Testdauer und Nachfragen stellst du je Plugin ein – oben in dessen Bereich.</p>
+        <div class="form-grid">
+          <label class="field"><span>Kontakt-Adresse für Kunden</span>
+            <input type="email" name="contact" value="${esc(s.contact)}" placeholder="name@beispiel.de">
+            <span class="hint">Steht im Plugin („Request a free trial“, „Buy a license“), in der Anleitung und als Antwort-Adresse der Mails. Im Plugin wirkt eine Änderung ab dem nächsten Build.</span></label>
+          <label class="field"><span>Unterschrift unter Mails</span>
+            <input type="text" name="signature" value="${esc(s.signature)}"></label>
+          <label class="field"><span>Anbieter (Name oder Firma)</span>
+            <input type="text" name="seller" value="${esc(s.seller)}">
+            <span class="hint">Steht in den Lizenzbedingungen und im Paket. Pflicht für ein Release.</span></label>
+          <label class="field"><span>Anschrift des Anbieters</span>
+            <input type="text" name="sellerAddress" value="${esc(s.sellerAddress)}" placeholder="Straße 1, 12345 Stadt, Deutschland"></label>
+          <label class="field"><span>Sprache für neue Kunden</span>
+            <select name="defaultLanguage">
+              <option value="de" ${s.defaultLanguage === 'de' ? 'selected' : ''}>Deutsch</option>
+              <option value="en" ${s.defaultLanguage === 'en' ? 'selected' : ''}>English</option>
+            </select></label>
+        </div>
+        <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Speichern</button></div>
+      </form>
+
+      <form class="card" id="mail">
+        <div class="card-head">
+          <h3>${icon('mail')} E-Mail</h3>
+          <span class="badge ${settings.ready ? 'ok' : 'bad'}">${settings.ready ? 'eingerichtet' : 'nicht eingerichtet'}</span>
+        </div>
+        <p class="card-note">Der Hub sendet über dein Gmail-Konto. Dafür braucht er ein <em>App-Passwort</em> von Google – dein normales
+          Gmail-Passwort funktioniert hier nicht und gehört auch nicht hierher.
+          <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">App-Passwort bei Google erzeugen</a>
+          (geht nur, wenn im Google-Konto die Bestätigung in zwei Schritten an ist).</p>
+        <div class="form-grid">
+          <label class="field"><span>Absender-Adresse <em>deine Gmail-Adresse</em></span>
+            <input type="email" name="senderEmail" value="${esc(m.senderEmail)}" placeholder="name@gmail.com"></label>
+          <label class="field"><span>App-Passwort ${settings.hasPassword ? '<em>ist gespeichert – nur zum Ändern eintragen</em>' : '<em>16 Zeichen, Leerzeichen sind egal</em>'}</span>
+            <input type="password" name="password" autocomplete="new-password" placeholder="${settings.hasPassword ? '••••••••••••••••' : 'abcd efgh ijkl mnop'}"></label>
+          <label class="field"><span>Absender-Name <em>so sehen dich die Kunden</em></span>
+            <input type="text" name="senderName" value="${esc(m.senderName)}" placeholder="Gustav"></label>
+          <div class="form-grid inner">
+            <label class="field"><span>Server</span><input type="text" name="host" value="${esc(m.host)}"></label>
+            <label class="field"><span>Port</span><input type="number" name="port" value="${m.port}" style="width:90px"></label>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:14px">
+          <button class="btn primary" type="submit">Speichern</button>
+          <button class="btn" type="button" data-test ${settings.ready ? '' : 'disabled'}>${icon('send')} Test-Mail an mich</button>
+          ${settings.ready ? '' : '<span class="faint">Die Test-Mail geht, sobald Adresse und App-Passwort gespeichert sind.</span>'}
+        </div>
+      </form>
+
+      ${lookCard()}
+
+      <form class="card" id="templates">
+        <div class="card-head"><h3>${icon('file')} Mail-Vorlagen</h3></div>
+        <p class="card-note">Platzhalter: {name} {product} {code} {deviceId} {end} {validity} {daysLeft} {command} {activationCommand} {signature} {contact}</p>
+        ${KINDS.map((k) => `
+          <div class="template">
+            <div class="label">${esc(k.label)}</div>
+            <div class="form-grid">
+              ${['de', 'en'].map((lang) => `
+                <div class="field">
+                  <span>${lang === 'de' ? 'Deutsch' : 'English'}</span>
+                  <input type="text" name="${k.id}.${lang}.subject" value="${esc(templates[k.id]?.[lang]?.subject ?? '')}">
+                  <textarea name="${k.id}.${lang}.body" rows="9">${esc(templates[k.id]?.[lang]?.body ?? '')}</textarea>
+                </div>`).join('')}
+            </div>
+          </div>`).join('')}
+        <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Vorlagen speichern</button></div>
+      </form>
+
+      <div class="card" id="handy">
+        <div class="card-head"><h3>${icon('phone')} Handy-Zugang</h3></div>
+        <p class="faint">Prüfe Tailscale …</p>
+      </div>`;
+}
+
+/** How the hub looks on this device: each choice works at once and stays in this browser (js/look.js). */
+function lookCard() {
+  const look = getLook();
+  return `<div class="card" id="aussehen" data-place="aussehen">
+        <div class="card-head"><h3>${icon('layers')} Aussehen</h3><span class="badge">nur dieses Gerät</span></div>
+        <p class="card-note">Wirkt sofort und bleibt in diesem Browser – PC und Handy können verschieden aussehen.</p>
+        <div class="looks">${Object.entries(LOOK).map(([key, choice]) => `
+          <div class="look">
+            <span>${esc(choice.label)}</span>
+            <div class="seg small" role="radiogroup" aria-label="${esc(choice.label)}">${choice.values.map(([value, label]) => `
+              <button type="button" role="radio" aria-checked="${look[key] === value}" class="${look[key] === value ? 'on' : ''}"
+                data-look="${key}" data-value="${value}">${esc(label)}</button>`).join('')}
+            </div>
+            ${choice.hint ? `<span class="hint">${esc(choice.hint)}</span>` : ''}
+          </div>`).join('')}
+        </div>
+      </div>`;
+}
+
+/** One plug-in: how long its trials run and when the hub speaks up about them. */
+function pluginSection(p, s, plugins) {
+  const v = productSettings(s, p.id);
+  const own = Boolean(s.products?.[p.id]);
+  // Whether the plug-ins differ - then "für alle übernehmen" has something to do
+  const same = plugins.every((x) => NUMBERS.every((n) => productSettings(s, x.id)[n] === v[n]));
+  // A link from before each plug-in had its own numbers ("?feld=trialDays") lands in the first plug-in
+  const legacy = (name) => (p.id === plugins[0]?.id ? `data-place="${name}"` : '');
+  return `
+      <form class="card" id="product">
+        <div class="card-head">
+          <h3>${icon('clock')} Testphase von ${esc(p.name)}</h3>
+          <span class="badge ${same ? 'ok' : ''}">${same ? 'bei allen Plugins gleich' : own ? 'eigene Werte' : 'gemeinsame Werte'}</span>
+        </div>
+        <p class="card-note">Gilt nur für Codes von ${esc(p.name)}.${plugins.length > 1 ? ' „Für alle Plugins übernehmen“ setzt die Werte, die hier stehen, auch bei den anderen.' : ''}</p>
+        <div class="form-grid">
+          <label class="field"><span>Standard-Testdauer <em>Tage</em></span>
+            <input type="number" name="trialDays-${esc(p.id)}" ${legacy('trialDays')} min="1" max="365" value="${v.trialDays}" required>
+            <span class="hint">Wird beim Erzeugen eines Testcodes zuerst angeboten.</span></label>
+          <label class="field"><span>Nachfrage vorschlagen <em>Tage vor Ende der Testphase</em></span>
+            <input type="number" name="followUpDays-${esc(p.id)}" ${legacy('followUpDays')} min="0" max="60" value="${v.followUpDays}" required></label>
+          <label class="field"><span>„Läuft bald ab“ ab <em>Tage vorher</em></span>
+            <input type="number" name="endingSoonDays-${esc(p.id)}" ${legacy('endingSoonDays')} min="1" max="60" value="${v.endingSoonDays}" required></label>
+        </div>
+        <div class="actions" style="margin-top:14px">
+          <button class="btn primary" type="submit">Speichern</button>
+          ${plugins.length > 1 ? `<button class="btn" type="button" data-sync>${icon('copy')} Für alle Plugins übernehmen</button>` : ''}
+        </div>
+      </form>
+
+      <div class="card">
+        <div class="card-head"><h3>${icon(p.icon)} ${esc(p.name)}</h3></div>
+        <div class="facts">
+          <div class="fact"><span>Aktivierung in Rhino</span><span>Befehle <span class="mono">${esc(p.startCommand ?? '–')}</span>, <span class="mono">${esc(p.activationCommand ?? '–')}</span></span></div>
+          <div class="fact"><span>Kontakt, Anbieter, Mails</span><span>für alle Plugins gleich – <a href="#/einstellungen?bereich=allgemein">Hub allgemein</a></span></div>
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <a class="btn small" href="#/projekt/${esc(p.id)}">${icon(p.icon)} Zum Projekt</a>
+          <a class="btn small" href="#/releases?feld=release-${esc(p.id)}">${icon('tag')} Release</a>
+          <a class="btn small" href="#/schluessel?feld=keys">${icon('shield')} Schlüssel</a>
+        </div>
+      </div>`;
+}
+
+/** The website: how codes are sold, and where its visit numbers come from. */
+function websiteSection(s) {
+  return `
+      <form class="card" id="channel" data-place="verkaufsweg">
+        <div class="card-head"><h3>${icon('chart')} Verkaufsweg und Website</h3></div>
+        <p class="card-note">Wenn die Website online geht und du dort verkaufst, stellst du hier um – sonst nichts. Jeder neue Code merkt sich
+          den Weg, die Statistik zeigt beide getrennt; bisherige Codes zählen als „Per Mail“.</p>
+        <div class="form-grid">
+          <div class="field">
+            <span>Verkaufsweg</span>
+            <div class="seg" role="radiogroup" aria-label="Verkaufsweg">
+              <button type="button" role="radio" aria-checked="${s.salesChannel !== 'online'}" class="${s.salesChannel !== 'online' ? 'on' : ''}" data-channel="mail">${icon('mail')} Per Mail</button>
+              <button type="button" role="radio" aria-checked="${s.salesChannel === 'online'}" class="${s.salesChannel === 'online' ? 'on' : ''}" data-channel="online">${icon('globe')} Online</button>
+            </div>
+            <input type="hidden" name="salesChannel" value="${esc(s.salesChannel ?? 'mail')}">
+            <span class="hint">Per Mail: Anfrage per Mail, Code aus dem Hub. Online: Website und Zahlungsanbieter.</span>
+          </div>
+          <label class="field" data-place="website-statistik"><span>Website-Statistik <em>Quelle der Aufrufe</em></span>
+            <select name="siteStats">
+              <option value="off" selected>Aus – die Website ist noch nicht online</option>
+              <option disabled>Zähler des Webspace – kommt mit dem Hosting</option>
+            </select>
+            <span class="hint">Die Quelle kommt dazu, wenn Hosting und Domain entschieden sind (offene Fragen im Projekt Website).</span></label>
+        </div>
+        <div class="actions" style="margin-top:14px"><button class="btn primary" type="submit">Speichern</button></div>
+      </form>`;
+}
+
+/** A project of its own: it keeps its settings itself - the hub only shows the way. */
+function extraSection(p) {
+  const url = projectUrl(p);
+  return `
+      <div class="card">
+        <div class="card-head"><h3>${icon(p.icon)} ${esc(p.name)}</h3></div>
+        ${p.note ? `<p class="card-note">${esc(p.note)}</p>` : ''}
+        <p>${esc(p.name)} verwaltet seine Einstellungen selbst, auf seiner eigenen Seite – sie gehören zu dir und nicht zu den Plugins.</p>
+        <div class="actions" style="margin-top:12px">
+          ${url ? `<a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">${icon('external')} ${esc(p.urlLabel ?? 'Öffnen')}</a>`
+                : '<span class="faint">Seine Seite ist von hier aus nicht erreichbar.</span>'}
+          <a class="btn" href="#/projekt/${esc(p.id)}">${icon(p.icon)} Zum Projekt</a>
+          <a class="btn" href="#/planung?projekt=${esc(p.id)}">${icon('board')} Zur Roadmap</a>
+        </div>
+      </div>`;
 }
 
 /**

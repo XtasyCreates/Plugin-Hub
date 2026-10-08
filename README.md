@@ -18,9 +18,30 @@ Solange er läuft, steht sein Symbol im Infobereich neben der Uhr (`Services\Tra
 Windows Forms auf einem eigenen Thread): Klick öffnet den Hub, Rechtsklick „Hub öffnen“ und
 „Hub beenden“. So sieht man auch einen Hub, der ohne Fenster mit Windows gestartet ist.
 
-Jeder Reiter hat eine eigene Farbe (`--c-…` in `hub.css`, `body[data-tab]` setzt `app.js`): sein
-Symbol in der Seitenleiste, die Markierung des offenen Reiters, der Streifen über der Seite, die
-Kachel am Titel und die Symbole der Karten. Die Seitenleiste ist eine Stufe dunkler als die Seite.
+## Aussehen
+
+Der Hub sieht aus wie ein Planblatt (seit 08.10.2026): Normschrift für Titel und Beschriftungen,
+auf jeder Seite ein Plankopf, Linien statt Kästen, daneben die Leiste mit den Reitern – hell im
+hellen Modus (eine Stufe dunkler als die Seite), Grafit im dunklen. Farbe hat drei
+Aufgaben: Orange ist, was du tun kannst. Die Farbe eines Reiters zeigt, wo du bist (`--c-…` in
+`hub.css`, `body[data-tab]` setzt `app.js`) – seine Zeile in der Leiste trägt sie dauerhaft, dazu
+der Streifen über der Seite, die Kachel am Titel und was auf der Seite gewählt ist. Rot, Grün und
+Gelb zeigen einen Zustand.
+
+- **Einstellungen → Aussehen** schaltet Modus (Automatisch, Hell, Dunkel), Schrift, Flächen,
+  Punktraster, die Tabelle im Plankopf und die Bewegung um. Das gilt je Gerät: `js\look.js` merkt
+  es im Browser (`localStorage`, Eintrag `hub.look`) und setzt Klassen an `<html>`; `index.html`
+  setzt sie schon vor dem ersten Bild.
+- **Bewegung** (`js\motion.js`) ist ein Schalter des Hubs und hängt nicht an den Animationseffekten
+  von Windows. Eine verschobene Karte oder abgehakte Aufgabe sitzt sofort am neuen Platz; der Hub
+  wird nebenher informiert, danach zeichnet die Seite still neu. Was eine Seite unter `followed`
+  nennt, gleitet bei einem Neuzeichnen an seinen neuen Platz.
+- **Rahmen** (`js\app.js`): Plankopf (`markTab`) und zwei Spalten je Seite auf breiten Bildschirmen
+  (`SPLITS`). Eine Seite zeichnet nie selbst neu, sie ruft `changed()` – sonst fehlt ihr der
+  Plankopf.
+- `css\hub.css` hat zwei Teile: erst die Palette und die Teile des Hubs mit ihrer Anordnung, dann –
+  ab „Planblatt“ – ihr Aussehen. Wo beide etwas sagen, gilt der zweite Teil.
+- Die Entwürfe und der Stand vor dem Einbau liegen in `design\` (siehe `design\README.md`).
 
 ## Wo was liegt
 
@@ -78,6 +99,30 @@ Website-Dateien (HTML, CSS, Skripte, Bilder, Schriften); die README im Ordner bl
 `/website` ohne Schrägstrich leitet relativ weiter, damit das Handy bei https bleibt
 (`Services\Website.cs`). Der Plan bis zum Live-Gang: `Website Plan 01_10_26.md` und die Karten
 des Projekts.
+
+## Eigene Projekte (Art `extra`)
+
+Ein Projekt mit `"kind": "extra"` in `Hub\projects.json` gehört nicht zum Plugin-Geschäft – der
+TISS Bot ist so eins. Sein Ordner darf neben diesem liegen: `"folder": "../TISS Bot"`, die Links
+ebenso (seit 06.10.2026; vorher `TissBot\` hier). Git-Verlauf und offene Änderungen zeigt der Hub
+dann nicht, weil der Ordner nicht zu diesem Git gehört. Es steht in der Seitenleiste unter
+„Projekte“ und hat seine Roadmap in der Planung. Die Übersicht zeigt keine Karte dafür, und weder
+seine offenen Git-Änderungen noch seine Karten erzeugen dort Hinweise (`Services\Status.cs`).
+`url` und `urlLabel` geben der Projektseite einen Knopf zur eigenen Seite des Projekts; mit
+`phonePort` führt er am Handy zu `https://<dieser PC im Tailnet>:<Port>/`.
+
+## Einstellungen
+
+Die Seite hat Bereiche (`?bereich=<id>`): „Hub allgemein“ (`allgemein`: Anbieter und Kontakt,
+E-Mail, Mail-Vorlagen, Handy-Zugang), je Plugin einen, „Website“ (Verkaufsweg) und je eigenem
+Projekt einen, der nur zu dessen Seite führt. Ein Link auf ein Feld (`?feld=`) öffnet den Bereich,
+in dem es steht.
+
+Testdauer, Nachfrage und „Läuft bald ab“ gelten je Plugin: `products` in `Hub\settings.json`,
+nach Projekt-id. Ein Plugin ohne Eintrag nimmt die gemeinsamen Werte daneben (`trialDays`,
+`followUpDays`, `endingSoonDays`) – so wie alle, bevor es eigene gab. „Für alle Plugins übernehmen“
+setzt die Werte eines Plugins bei allen und als gemeinsame. Wer einen Wert braucht, fragt
+`HubSettings.For(produkt)` bzw. auf der Seite `productSettings(shared, produkt)` (`store.js`).
 
 ## Planung
 

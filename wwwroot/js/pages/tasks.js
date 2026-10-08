@@ -6,6 +6,7 @@ import { api, del, post, put } from '../api.js';
 import { changed, loadOverview } from '../store.js';
 import { actionButton, sharedClick } from '../parts.js';
 import { confirmDialog, dialog, esc, fmtDate, icon, toast } from '../ui.js';
+import { fold } from '../motion.js';
 
 const PRIORITIES = [
   { id: 'hoch', label: 'Hoch' },
@@ -14,6 +15,14 @@ const PRIORITIES = [
 ];
 
 let showDone = false;
+
+/**
+ * What the frame follows when it draws the page again: a task that ends up elsewhere - another
+ * priority, back from the done ones - glides there, and so do the heads of the lists.
+ */
+export const followed = (main) => ({
+  move: new Map([...main.querySelectorAll('.task[id], .prio-head, [data-toggle-done]')].map((el) => [el.id || el.className, el])),
+});
 
 export async function render(main) {
   const [o, tasks] = await Promise.all([loadOverview(), api('/api/tasks')]);
@@ -72,12 +81,20 @@ export async function render(main) {
   main.onchange = async (e) => {
     const box = e.target.closest('[data-done]');
     if (!box) return;
+    // The line shows it at once and folds away - with its list, when it was the last one in it.
+    // The hub is told meanwhile; the page is drawn again quietly once both are through.
+    const row = box.closest('.task');
+    box.disabled = true;
+    row.classList.toggle('done', box.checked);
+    const last = row.parentElement.querySelectorAll('.task').length === 1;
+    const gone = fold(last ? row.closest('section') : row);
     try {
       await post(`/api/tasks/${box.dataset.done}/done`, { done: box.checked });
       if (box.checked) toast('Erledigt');
     } catch (ex) {
       toast(ex.message, 'bad');
     }
+    await gone;
     changed();
   };
 
@@ -87,7 +104,7 @@ export async function render(main) {
 
     if (t.closest('[data-toggle-done]')) {
       showDone = !showDone;
-      return render(main);
+      return changed();   // through the frame, which gives the page its title block
     }
     if (t.closest('[data-new]')) return edit(o, null);
 

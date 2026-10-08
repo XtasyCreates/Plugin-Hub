@@ -32,3 +32,18 @@ export const changed = () => window.dispatchEvent(new CustomEvent('hub:changed')
 export const keyOf = (o, product) => o.keys.find((k) => k.product === product);
 
 export const projectOf = (o, id) => o.projects.find((p) => p.id === id);
+
+/**
+ * Trial length, follow-up and "läuft bald ab" as they apply to one plug-in: its own values
+ * (Einstellungen → the plug-in), or the common ones while it has none.
+ */
+export const productSettings = (shared, product) => shared.products?.[product]
+  ?? { trialDays: shared.trialDays, followUpDays: shared.followUpDays, endingSoonDays: shared.endingSoonDays };
+
+/**
+ * The page a project runs itself (projects.json, "url") - on the phone under this PC's
+ * Tailscale name and the project's own port, or not at all when it has none.
+ */
+export const projectUrl = (p) => !p.url ? null
+  : !phone ? p.url
+  : p.phonePort ? `https://${location.hostname}:${p.phonePort}/` : null;

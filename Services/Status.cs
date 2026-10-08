@@ -93,10 +93,11 @@ public sealed class Status
     {
         var data = _register.Snapshot();
         var today = DateOnly.FromDateTime(DateTime.Today);
-        int soon = _settings.Shared.EndingSoonDays;
+        var shared = _settings.Shared;
         var fingerprints = _config.Current.Projects.ToDictionary(p => p.Id, p => _keys.Info(p.Id)?.Fingerprint);
         return new RegisterView(data.Customers,
-            data.Licenses.Select(l => new LicenseView(l, LicenseStatus.Of(l, fingerprints.GetValueOrDefault(l.Product), today, soon))).ToList(),
+            data.Licenses.Select(l => new LicenseView(l,
+                LicenseStatus.Of(l, fingerprints.GetValueOrDefault(l.Product), today, shared.For(l.Product).EndingSoonDays))).ToList(),
             data.Mails);
     }
 
@@ -180,7 +181,7 @@ public sealed class Status
         return new ProjectStatus(p.Id, p.Name, p.Kind, p.Icon, p.Folder, p.Note, p.StartCommand, p.ActivationCommand,
             version, released, changed, last, build, registrations, RhinoInfo.ToolbarCache(p),
             p.Links.Select(l => new LinkView(l.Id, l.Label, l.Kind)).ToList(),
-            _plan.Summary(p.Id, roadmap, decisions));
+            _plan.Summary(p.Id, roadmap, decisions), p.Url, p.UrlLabel, p.PhonePort);
     }
 
     private BuildInfo BuildInfo(ProjectDef p, string rhp)
@@ -383,7 +384,8 @@ public sealed class Status
                     string.Join(", ", hubFiles.Select(c => c.Path.TrimEnd('/')).Take(4)) + (hubFiles.Count > 4 ? " …" : ""),
                     null, new("commit-hub", "", "Jetzt committen")));
 
-            foreach (var p in projects.Where(p => p.Changes > 0))
+            // An extra project keeps to its own page, where "Stand" says the same
+            foreach (var p in projects.Where(p => p.Changes > 0 && p.Kind != "extra"))
             {
                 var code = config.Projects.First(d => d.Id == p.Id).Links.FirstOrDefault(l => l.Kind == "vscode");
                 items.Add(new("hint", "git", $"{p.Name}: {Count(p.Changes, "Änderung", "Änderungen")} nicht committed",
@@ -409,7 +411,10 @@ public sealed class Status
                     new("open", "path:" + c.Path.TrimEnd('/'), "Im Explorer zeigen")));
         }
 
-        // Planning: what waits for the user's test in Rhino, and findings Claude has not fixed yet
+        // Planning: what waits for the user's test in Rhino, and findings Claude has not fixed yet.
+        // The cards of an extra project stay in the planning - they are no notice up here.
+        var extra = config.Projects.Where(p => p.IsExtra).Select(p => p.Id).ToHashSet();
+        roadmap = roadmap.Where(x => x.Project == null || !extra.Contains(x.Project)).ToList();
         int toTest = roadmap.Count(x => x.Stage == "gebaut" && !Plan.HasProblem(x));
         if (toTest > 0)
             items.Add(new("hint", "plan", toTest == 1 ? "1 Funktion wartet auf deinen Test" : $"{toTest} Funktionen warten auf deinen Test",
@@ -462,7 +467,8 @@ public sealed record OverviewView(
 public sealed record ProjectStatus(
     string Id, string Name, string Kind, string Icon, string Folder, string? Note, string? StartCommand,
     string? ActivationCommand, string? Version, string? Released, int Changes, Commit? LastCommit,
-    BuildInfo? Build, List<Registration> Rhino, List<string> ToolbarCache, List<LinkView> Links, PlanSummary Plan);
+    BuildInfo? Build, List<Registration> Rhino, List<string> ToolbarCache, List<LinkView> Links, PlanSummary Plan,
+    string? Url, string? UrlLabel, int? PhonePort);
 
 public sealed record ProjectDetailView(ProjectStatus Project, List<Commit> Log, List<HealthItem> Health);
 

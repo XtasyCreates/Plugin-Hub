@@ -742,5 +742,50 @@
     "date": "2026-10-01",
     "source": "Deine Wahl im Auswahl-Dialog (entschiedene Punkte, 01.10.2026)",
     "created": "2026-10-01T19:03:11.5630464+02:00"
+  },
+  {
+    "id": "d5c33b340",
+    "project": "hub",
+    "question": "Wie soll der Hub aussehen?",
+    "decision": "Neues Design „Planblatt“ (Entwurf 2): Normschrift, auf jeder Seite ein Plankopf, Linien statt Kästen, Punktraster, Seitenleiste mit Reitern in ihrer Farbe, kompakt. Entwurf 1 „Werkbank“ und der Stand davor bleiben in PluginHub\\design zum Zurückgehen.",
+    "date": "2026-10-08",
+    "source": "Chat 08.10.2026, Auswahl-Dialog",
+    "created": "2026-10-08T12:09:35.9344554+02:00"
+  },
+  {
+    "id": "db03a3324",
+    "project": "hub",
+    "question": "Wie zeigen die Reiter in der Seitenleiste ihre Farbe?",
+    "decision": "Jeder Reiter trägt dauerhaft einen leichten Hintergrund in seiner Farbe – die ganze Zeile, ohne abgerundete Ecken. Das Symbol eines geschlossenen Reiters bleibt grau und zeigt seine Farbe unter der Maus; der offene Reiter ist kräftiger.",
+    "date": "2026-10-08",
+    "source": "Chat 08.10.2026, Auswahl-Dialog",
+    "created": "2026-10-08T12:09:35.9606797+02:00"
+  },
+  {
+    "id": "da3729690",
+    "project": "hub",
+    "question": "Wo wird das Aussehen des Hubs eingestellt?",
+    "decision": "Unter Einstellungen → Aussehen: Modus, Schrift, Flächen, Punktraster, Tabelle im Plankopf und Bewegung sind umschaltbar. Das gilt je Gerät (im Browser gespeichert) – PC und Handy können verschieden aussehen.",
+    "date": "2026-10-08",
+    "source": "Chat 08.10.2026, Auswahl-Dialog",
+    "created": "2026-10-08T12:09:35.9923358+02:00"
+  },
+  {
+    "id": "de12c9bca",
+    "project": "hub",
+    "question": "Wie viel Bewegung zeigt der Hub?",
+    "decision": "Wenig und dezent, als eigener Schalter des Hubs – unabhängig von den Animationseffekten in Windows. Verschieben und Abhaken wirken sofort, ohne dass die Seite sichtbar neu lädt.",
+    "date": "2026-10-08",
+    "source": "Chat 08.10.2026, Auswahl-Dialog",
+    "created": "2026-10-08T12:09:36.0244676+02:00"
+  },
+  {
+    "id": "d9ad1d702",
+    "project": "hub",
+    "question": "Wie sieht die Seitenleiste im hellen Modus aus?",
+    "decision": "Im hellen Modus ist auch die Seitenleiste hell – eine Stufe dunkler als die Seite, mit einer feinen Linie dazwischen. Im dunklen Modus bleibt sie Grafit.",
+    "date": "2026-10-08",
+    "source": "Chat 08.10.2026",
+    "created": "2026-10-08T12:44:22.3678079+02:00"
   }
 ]

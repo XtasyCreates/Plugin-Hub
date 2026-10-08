@@ -7,6 +7,7 @@ import { api, del, post, put } from '../api.js';
 import { changed, loadOverview } from '../store.js';
 import { actionButton, dropParam, flash, runAction, sharedClick } from '../parts.js';
 import { markdown } from '../markdown.js';
+import { fade, glide, settle, settled } from '../motion.js';
 import { confirmDialog, copy, dialog, esc, fmtDate, fmtDateTime, icon, plural, toast } from '../ui.js';
 
 export const STAGES = [
@@ -34,6 +35,7 @@ let releasedAll = false;
 let currentDoc = null;
 let draft = null;           // { path, text, original, stamp } - an edit survives redraws and detours
 let dragId = null;
+let grab = null;             // where on the card the pointer took hold of it
 
 export async function render(main, { args, params }) {
   const tab = args[0] ?? '';
@@ -45,6 +47,10 @@ export async function render(main, { args, params }) {
     : tab === 'versionen' ? await versionsView(o)
     : tab === 'dokumente' ? await docsView(o, params)
     : await boardView(o);
+
+  // A redraw must not lose the place: how far the board is scrolled sideways, whether "Abgelehnt" is open
+  const boardLeft = main.querySelector('.board')?.scrollLeft ?? 0;
+  const rejectedOpen = main.querySelector('details.rejected')?.open ?? false;
 
   main.innerHTML = `
     <div class="page wide">
@@ -64,6 +70,12 @@ export async function render(main, { args, params }) {
       ${view.html}
     </div>`;
 
+  const board = main.querySelector('.board');
+  if (board) {
+    board.scrollLeft = boardLeft;
+    main.querySelector('details.rejected').open = rejectedOpen;
+  }
+
   main.oninput = view.input ?? null;
   main.onchange = view.change ?? null;
   main.onkeydown = view.keydown ?? null;
@@ -77,6 +89,15 @@ export async function render(main, { args, params }) {
   };
   view.after?.(main, params);
 }
+
+/**
+ * What the frame follows when it draws the page again: a card that ends up elsewhere - moved in
+ * its dialog, or by Claude meanwhile - glides there, and the columns grow and shrink along.
+ */
+export const followed = (main) => ({
+  move: new Map([...main.querySelectorAll('.board [data-card]')].map((el) => [el.dataset.card, el])),
+  size: new Map([...main.querySelectorAll('.board [data-col]')].map((el) => [el.dataset.col, el])),
+});
 
 function filterChips(o, tab) {
   const base = `#/planung${tab ? `/${tab}` : ''}?projekt=`;
@@ -161,6 +182,8 @@ async function boardView(o) {
       const c = e.target.closest?.('[data-card]');
       if (!c) return;
       dragId = c.dataset.card;
+      const r = c.getBoundingClientRect();
+      grab = { x: e.clientX - r.left, y: e.clientY - r.top };
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', dragId);
       requestAnimationFrame(() => c.classList.add('dragging'));
@@ -177,10 +200,13 @@ async function boardView(o) {
       if (!zone || !dragId) return;
       e.preventDefault();
       const id = dragId;
-      const before = e.currentTarget.querySelector('.drop-marker')?.nextElementSibling?.dataset?.card ?? null;
-      clearDrop(e.currentTarget);
+      const main = e.currentTarget;
+      const before = main.querySelector('.drop-marker')?.nextElementSibling?.dataset?.card ?? null;
+      // Where the card was let go of: its corner, under the pointer as it was taken
+      const at = grab ? { left: e.clientX - grab.x, top: e.clientY - grab.y } : null;
+      clearDrop(main, { keepMarker: true });   // the marker goes when the card takes its place
       dragId = null;
-      await moveCard(find(id), zone.dataset.drop, before);
+      await moveCard(find(id), zone.dataset.drop, before, { main, at });
     },
     dragend: (e) => {
       dragId = null;
@@ -243,30 +269,94 @@ function showDropSpot(main, zone, y) {
   else zone.append(marker);
 }
 
-function clearDrop(main) {
-  main.querySelector('.drop-marker')?.remove();
+function clearDrop(main, { keepMarker = false } = {}) {
+  if (!keepMarker) main.querySelector('.drop-marker')?.remove();
   main.querySelectorAll('.drop-zone,.dragging').forEach((x) => x.classList.remove('drop-zone', 'dragging'));
 }
 
-async function moveCard(item, stage, before) {
-  if (!item) return;
+/**
+ * Moves a card to a stage, before another card or to the end. The board shows it at once - the
+ * card settles where it was let go of, the others glide to make room - and the hub is told
+ * meanwhile. Afterwards the page is drawn again quietly, for counts and marks; should the hub
+ * have refused, that puts the card back.
+ */
+async function moveCard(item, stage, before, { main = null, at = null } = {}) {
+  const marker = main?.querySelector('.drop-marker');
+  if (!item) return marker?.remove();
   let reason = null;
+  const left = item.tests.filter((t) => !t.done).length;
   if (stage === 'abgelehnt' && item.stage !== 'abgelehnt') {
+    marker?.remove();
+    at = null;   // a question first: the card is out of the hand
     reason = await askReason(item);
     if (reason === null) return;
+  } else if (stage === 'getestet' && item.stage !== 'getestet' && left) {
+    marker?.remove();
+    at = null;
+    if (!(await confirmDialog('Wirklich getestet?', `${plural(left, 'Test-Schritt ist', 'Test-Schritte sind')} noch nicht abgehakt.`, { confirm: 'Trotzdem getestet' }))) return;
   }
-  const left = item.tests.filter((t) => !t.done).length;
-  if (stage === 'getestet' && item.stage !== 'getestet' && left
-      && !(await confirmDialog('Wirklich getestet?', `${plural(left, 'Test-Schritt ist', 'Test-Schritte sind')} noch nicht abgehakt.`, { confirm: 'Trotzdem getestet' }))) {
-    return;
-  }
+  const from = item.stage;
+  const saving = post(`/api/roadmap/${item.id}/move`, { stage, before, reason });
+  const shown = main ? place(main, item.id, stage, before, at) : Promise.resolve();
+  item.stage = stage;
   try {
-    await post(`/api/roadmap/${item.id}/move`, { stage, before, reason });
-    if (stage !== item.stage) toast(`„${item.title}“ → ${STAGE_LABEL[stage]}`);
+    await saving;
+    if (stage !== from) toast(`„${item.title}“ → ${STAGE_LABEL[stage]}`);
   } catch (ex) {
     toast(ex.message, 'bad');
   }
+  await shown;
   changed();
+}
+
+/**
+ * Puts a card where it now belongs, on the page as it stands: into its column before `before`
+ * or at the end - coming from `at`, where it was let go of - or off the board when it was turned
+ * down. Resolves when the movement is over.
+ */
+function place(main, id, stage, before, at) {
+  const el = main.querySelector(`.board [data-card="${CSS.escape(id)}"]`);
+  const zone = main.querySelector(`[data-drop="${CSS.escape(stage)}"]`);
+  const marker = main.querySelector('.drop-marker');
+  if (!el || !zone) {
+    marker?.remove();
+    return Promise.resolve();
+  }
+  const from = el.parentElement;
+  const rest = () => [...main.querySelectorAll('.board .rcard, .board .more')].filter((x) => !(at && x === el));
+  const boxes = () => main.querySelectorAll('.board .col');
+  const count = (body, by) => {
+    const n = body.closest('[data-col], details').querySelector('.count');
+    n.textContent = Number(n.textContent) + by;
+  };
+  const gone = () => {   // the card has left its column
+    count(from, -1);
+    if (!from.querySelector('[data-card]')) from.innerHTML = '<div class="col-empty">–</div>';
+  };
+
+  if (zone.tagName === 'DETAILS') {
+    // turned down: it leaves the board for the pile below
+    return fade(el).then(() => {
+      glide(rest, () => {
+        el.remove();
+        count(zone, 1);
+        gone();
+      }, { boxes });
+      return settled();
+    });
+  }
+
+  glide(rest, () => {
+    marker?.remove();
+    zone.querySelector('.col-empty')?.remove();
+    zone.insertBefore(el, (before && zone.querySelector(`[data-card="${CSS.escape(before)}"]`)) || null);
+    if (zone !== from) {
+      count(zone, 1);
+      gone();
+    }
+  }, { boxes });
+  if (at) settle(el, at);
+  return settled();
 }
 
 const askReason = (item) => dialog({
@@ -291,7 +381,8 @@ async function cardDialog(o, data, item, defaults = {}) {
   const name = namer(o);
   const done = x.tests.filter((t) => t.done).length;
   const kind = o.projects.find((p) => p.id === x.project)?.kind;
-  const testWhere = kind === 'tool' ? 'Test im Hub' : kind === 'website' ? 'Test im Browser' : kind ? 'Test in Rhino' : 'Test';
+  const testWhere = kind === 'tool' ? 'Test im Hub' : kind === 'website' ? 'Test im Browser' : kind === 'extra' ? 'Test'
+    : kind ? 'Test in Rhino' : 'Test';
   let warned = false;
 
   const saved = await dialog({
@@ -422,8 +513,14 @@ async function cardDialog(o, data, item, defaults = {}) {
   });
   if (!saved) return;
   toast(isNew ? 'Angelegt' : saved.stage !== x.stage ? `→ ${STAGE_LABEL[saved.stage]}` : 'Gespeichert');
+  // A card that changed its stage sets off for its column at once; the page is drawn again when it is there
+  if (!isNew && saved.stage !== x.stage) await place(document.getElementById('main'), x.id, saved.stage, nextIn(data, x, saved.stage), null);
   changed();
 }
+
+/** The card a card stands before in another stage: the hub keeps its place in the list, whatever the stage. */
+const nextIn = (data, item, stage) =>
+  data.roadmap.slice(data.roadmap.indexOf(item) + 1).find((y) => y.stage === stage && matches(y.project))?.id ?? null;
 
 function cardMeta(x) {
   const parts = [`angelegt ${fmtDate(x.created)}`];

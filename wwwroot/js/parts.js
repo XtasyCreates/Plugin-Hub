@@ -14,11 +14,14 @@ export function issueList(items, { allGood = true, here = null } = {}) {
   return `<div class="issues">${items.map((h) => issue(h, here)).join('')}</div>`;
 }
 
+const AREA_ICON = { mail: 'mail', customers: 'hourglass', git: 'git', plan: 'flask', backup: 'shield', keys: 'key',
+  secrets: 'lock', cleanup: 'trash', rhino: 'rhino', release: 'tag', settings: 'sliders' };
+
 function issue(h, here) {
   const action = h.action && !(h.action.kind === 'route' && h.action.target === here) ? h.action : null;
   return `
     <div class="issue ${h.level}">
-      ${icon(h.level === 'problem' ? 'alert' : 'info')}
+      ${icon(h.level === 'problem' ? 'alert' : AREA_ICON[h.area] ?? 'info')}
       <div>
         <div class="t">${esc(h.title)}</div>
         ${h.detail ? `<div class="d">${esc(h.detail)}</div>` : ''}

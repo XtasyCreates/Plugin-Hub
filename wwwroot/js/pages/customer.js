@@ -2,7 +2,7 @@
 // same device, the mails that went out. "#/kunden/ohne" lists the codes made without a customer.
 
 import { api, del, put } from '../api.js';
-import { loadOverview } from '../store.js';
+import { changed, loadOverview, productSettings } from '../store.js';
 import { extendDialog, mailDialog, sharedClick, statusBadge } from '../parts.js';
 import { confirmDialog, copy, dialog, esc, fmtDate, fmtDateTime, fmtPrice, icon, toast } from '../ui.js';
 import { customerFields } from './customers.js';
@@ -106,7 +106,7 @@ export async function render(main, { args }) {
     } catch (ex) {
       toast(ex.message, 'bad');
     }
-    render(main, { args });
+    changed();
   };
 
   main.onclick = async (e) => {
@@ -117,7 +117,10 @@ export async function render(main, { args }) {
     if (copyButton) return copy(byId(copyButton.dataset.copy).license.code, 'Code');
 
     const extend = t.closest('[data-extend]');
-    if (extend) return extendDialog(byId(extend.dataset.extend), settings.shared.trialDays);
+    if (extend) {
+      const view = byId(extend.dataset.extend);
+      return extendDialog(view, productSettings(settings.shared, view.license.product).trialDays);
+    }
 
     const mail = t.closest('[data-mail]');
     if (mail) return chooseMail(byId(mail.dataset.mail));
@@ -129,7 +132,7 @@ export async function render(main, { args }) {
         body: customerFields(customer),
         submit: (v) => put(`/api/customers/${customer.id}`, v),
       });
-      if (saved) render(main, { args });
+      if (saved) changed();
       return;
     }
 
@@ -145,7 +148,7 @@ export async function render(main, { args }) {
           <label class="field"><span>Notiz <em>optional</em></span><input type="text" name="note" value="${esc(l.note)}"></label>`,
         submit: (v) => put(`/api/licenses/${l.id}`, { price: v.price || null, paid: v.paid, note: v.note }),
       });
-      if (saved) render(main, { args });
+      if (saved) changed();
       return;
     }
 
@@ -157,7 +160,7 @@ export async function render(main, { args }) {
         { confirm: 'Löschen', danger: true });
       if (!ok) return;
       await del(`/api/licenses/${l.id}`).then(() => toast('Gelöscht')).catch((ex) => toast(ex.message, 'bad'));
-      render(main, { args });
+      changed();
       return;
     }
 
