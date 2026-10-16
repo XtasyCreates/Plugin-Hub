@@ -1,0 +1,29 @@
+[Unit]
+Description=TISS-Helfer - Kalender-Abo und Erinnerungen des TISS Bots (Plugin Hub)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/wecker/tiss_helfer.py --config /etc/wecker.json
+Restart=always
+RestartSec=3
+# It keeps one file of its own (/var/lib/tiss-helfer), listens on 127.0.0.1, asks Tailscale for
+# the laptop's address and talks to ntfy - it needs nothing more
+DynamicUser=yes
+StateDirectory=tiss-helfer
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

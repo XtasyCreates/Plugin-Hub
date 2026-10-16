@@ -1,0 +1,26 @@
+[Unit]
+Description=Wecker - weckt den PC ueber das Heimnetz (Plugin Hub)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/wecker/wecker.py --config /etc/wecker.json
+Restart=always
+RestartSec=3
+# It reads its files, listens on 127.0.0.1 and sends one kind of packet - it needs nothing more
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

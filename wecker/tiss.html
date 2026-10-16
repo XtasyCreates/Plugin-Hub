@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F2F1EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16161A" media="(prefers-color-scheme: dark)">
+<title>TISS-Helfer</title>
+<link rel="icon" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<style>
+  /* The Wecker's colours - those of the Plugin Hub's "Planblatt" */
+  :root {
+    --bg: #F2F1EC; --text: #1A1A1D; --muted: #5E5D58; --faint: #8C8A84; --rule: #6B6A64;
+    --accent: #E07A18; --accent-text: #241403; --ok: #2B7A38; --warn: #946200; --danger: #C4302B;
+    --button: #FBFAF6; --button-line: #BEBCB4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161A; --text: #EEEEF1; --muted: #A7A7B2; --faint: #767682; --rule: #7C7C88;
+      --accent: #F0892E; --accent-text: #1F1204; --ok: #62C370; --warn: #E3B341; --danger: #F0625F;
+      --button: #222228; --button-line: #41414B;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; background: var(--bg); color: var(--text);
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: max(28px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+  }
+  main { max-width: 480px; margin: 0 auto; }
+  .head { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+  .head img { width: 36px; height: 36px; border-radius: 8px; }
+  .crumb { font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+  h1 { margin: 1px 0 0; font-size: 19px; letter-spacing: .07em; text-transform: uppercase; }
+  h2 { margin: 30px 0 8px; font-size: 12px; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .state { display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 5px 12px; align-items: center; margin: 26px 0 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--faint); }
+  .dot.ok { background: var(--ok); }
+  .dot.warn { background: var(--warn); }
+  .dot.bad { background: var(--danger); }
+  .what { font-size: 21px; font-weight: 650; }
+  .more { grid-column: 2; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .note { margin: 8px 0 0; color: var(--muted); font-size: 15px; }
+  .note.bad { color: var(--danger); }
+  .copy { display: flex; gap: 8px; }
+  .copy input {
+    flex: 1; min-width: 0; min-height: 46px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--button-line);
+    background: var(--button); color: var(--text); font: 14px ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .btn {
+    appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 46px;
+    padding: 0 18px; border-radius: 6px; border: 1px solid var(--button-line); background: var(--button);
+    color: var(--text); font: 600 16px system-ui, -apple-system, sans-serif; cursor: pointer;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .steps { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 15px; }
+  .steps li + li { margin-top: 4px; }
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list li { display: grid; grid-template-columns: 8em minmax(0, 1fr); gap: 10px; padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--rule) 35%, transparent); font-size: 15px; }
+  .list li.empty { display: block; color: var(--muted); }
+  .list .t { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .list .failed { color: var(--danger); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="head">
+    <img src="/icon.png" alt="">
+    <div><div class="crumb">Wecker</div><h1>TISS-Helfer</h1></div>
+  </div>
+
+  <div class="state" role="status" aria-live="polite">
+    <span class="dot" id="dot"></span><span class="what" id="what">Ich sehe nach&nbsp;…</span>
+    <span class="more" id="more"></span>
+  </div>
+  <p class="note bad" id="problem" hidden></p>
+
+  <section id="feed-box" hidden>
+    <h2>Kalender-Abo</h2>
+    <div class="copy">
+      <input id="feed" readonly aria-label="Adresse des Kalender-Abos">
+      <button type="button" class="btn" id="copy">Kopieren</button>
+    </div>
+    <p class="note" id="feed-note"></p>
+    <ol class="steps">
+      <li>Adresse kopieren.</li>
+      <li>Einstellungen → Apps → Kalender → Kalenderaccounts → Account hinzufügen → Andere → Kalenderabo hinzufügen.</li>
+      <li>Adresse einfügen, „Weiter“, dann „Sichern“.</li>
+    </ol>
+  </section>
+
+  <h2>Nächste Erinnerungen</h2>
+  <ul class="list" id="next"></ul>
+
+  <h2>Zuletzt gesendet</h2>
+  <ul class="list" id="sent"></ul>
+  <div class="actions">
+    <button type="button" class="btn primary" id="probe">Probe-Erinnerung senden</button>
+  </div>
+  <p class="note" id="probe-note" role="status"></p>
+</main>
+
+<script>
+  // What the Pi was told: below which path this page lives (/tiss)
+  const S = /*SETTINGS*/{};
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // "So 25.10. 21:00" - Vienna's clock, whichever zone the phone is in
+  const parts = new Intl.DateTimeFormat('de-AT', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Vienna' });
+  function when(v) {
+    if (!v) return '';
+    const p = Object.fromEntries(parts.formatToParts(new Date(v)).map((x) => [x.type, x.value]));
+    return `${p.weekday.replace('.', '')} ${p.day}.${p.month}. ${p.hour}:${p.minute}`;
+  }
+  const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  let last = null;
+
+  function ago(v) {
+    const min = Math.round((Date.now() - new Date(v)) / 60000);
+    if (min < 1) return 'gerade eben';
+    if (min < 60) return `vor ${min} min`;
+    const h = Math.round(min / 60);
+    return h < 36 ? `vor ${h} h` : `vor ${Math.round(h / 24)} Tagen`;
+  }
+
+  function show(dot, what, more) {
+    $('dot').className = `dot ${dot}`;
+    $('what').textContent = what;
+    $('more').textContent = more;
+  }
+
+  function list(id, items, row, empty) {
+    $(id).innerHTML = items.length ? items.map(row).join('') : `<li class="empty">${empty}</li>`;
+  }
+
+  function draw(s) {
+    last = s;
+    if (!s.received) {
+      show('bad', 'Noch keine Lieferung',
+        'Der TISS Bot am Laptop schickt sie nach seinem nächsten Lesen – im Bot steht dafür unter Einstellungen → „Pi“ die Adresse dieser Seite.');
+    } else {
+      show(s.stale ? 'warn' : 'ok', s.stale ? `Stand von ${when(s.received)}` : 'Bereit',
+        `Letzte Lieferung ${ago(s.received)} · ${count(s.courses, 'LVA', 'LVAs')} · ${count(s.exams, 'Prüfungstermin', 'Prüfungstermine')}` +
+        (s.stale ? '. Der Laptop hat länger nichts geschickt – Abo und Erinnerungen gelten für diesen Stand.' : ''));
+    }
+
+    const problems = [];
+    if (s.pushOn === false) problems.push('Push ist im Bot ausgeschaltet – der Pi erinnert nicht.');
+    if (s.problem) problems.push(s.problem);
+    $('problem').hidden = problems.length === 0;
+    $('problem').textContent = problems.join(' ');
+
+    $('feed-box').hidden = !s.feed;
+    if (s.feed && document.activeElement !== $('feed')) $('feed').value = s.feed;
+    $('feed-note').textContent = s.feedEvents
+      ? `Im Abo: ${count(s.feedEvents, 'Eintrag', 'Einträge')} – deine angemeldeten Prüfungen und ihre Abmeldefristen.`
+      : 'Im Abo steht gerade nichts: Es zeigt nur Prüfungen, für die du angemeldet bist.';
+
+    list('next', s.next, (n) => `<li><span class="t">${esc(when(n.at))}</span><span>${esc(n.title)}</span></li>`,
+      s.received ? 'Gerade steht keine an.' : 'Nach der ersten Lieferung.');
+    list('sent', s.pushes, (p) => `<li><span class="t">${esc(when(p.at))}</span><span class="${p.ok ? '' : 'failed'}">${p.ok ? '' : 'Nicht angekommen: '}${esc(p.title)}</span></li>`,
+      'Noch keine.');
+    $('probe').disabled = !s.received;
+  }
+
+  async function load() {
+    try {
+      const answer = await fetch(`${S.base}/api/status`, { cache: 'no-store' });
+      if (!answer.ok) throw new Error(String(answer.status));
+      draw(await answer.json());
+    } catch {
+      show('bad', 'Der TISS-Helfer antwortet nicht', 'Ist Tailscale auf diesem Gerät an? Dann die Seite neu laden.');
+    }
+  }
+
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('feed').value);
+      $('copy').textContent = 'Kopiert ✓';
+    } catch {
+      $('feed').select();
+      $('copy').textContent = 'Markiert – jetzt kopieren';
+    }
+    setTimeout(() => { $('copy').textContent = 'Kopieren'; }, 2500);
+  });
+
+  $('probe').addEventListener('click', async () => {
+    $('probe').disabled = true;
+    $('probe-note').textContent = 'Sende …';
+    try {
+      const answer = await fetch(`${S.base}/api/probe`, { method: 'POST', headers: { 'X-Tiss-Helfer': '1' } });
+      const text = await answer.text();
+      let result = {};
+      try { result = JSON.parse(text); } catch { /* a refusal in plain words */ }
+      if (!answer.ok) throw new Error(result.error || text || `Fehler ${answer.status}`);
+      $('probe-note').textContent = 'Gesendet – kommt sie am iPhone an?' + (result.pushOn ? '' : ' (Push ist im Bot aus, die Probe kommt trotzdem.)');
+    } catch (e) {
+      $('probe-note').textContent = `Nicht gesendet: ${e.message}`;
+    }
+    $('probe').disabled = false;
+    load();
+  });
+
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
+  setInterval(() => { if (document.visibilityState === 'visible') load(); }, 30000);
+  load();
+</script>
+</body>
+</html>

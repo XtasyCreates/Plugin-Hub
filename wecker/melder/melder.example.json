@@ -1,0 +1,21 @@
+{
+  "imap": { "host": "imap.gmail.com", "port": 993, "tls": true, "user": "support.autocreate@gmail.com" },
+  "ntfy": {
+    "server": "https://ntfy.sh",
+    "topic": "<der Push-Name aus den Einstellungen des TISS Bots>",
+    "click": "https://wecker.tail03edd2.ts.net/#/mails?feld=anfragen"
+  },
+  "products": ["Laser Create", "SW to Laser"],
+  "intervalSeconds": 120,
+  "remindHours": 12,
+  "giveUpDays": 7,
+  "quiet": { "from": "22:00", "to": "08:00" },
+  "health": {
+    "tempWarn": 75,
+    "diskMinGb": 2,
+    "mailFailMinutes": 30,
+    "adguard": { "tcp": "127.0.0.1:53" },
+    "wecker": { "tcp": "127.0.0.1:8080" },
+    "heartbeat": { "weekday": 6, "time": "10:00" }
+  }
+}

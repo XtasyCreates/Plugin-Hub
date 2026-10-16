@@ -1,0 +1,3 @@
+# These files run on the Raspberry Pi: Linux line endings, whatever Git on Windows would do
+* text=auto eol=lf
+*.png binary

@@ -1,0 +1,18 @@
+{
+  "listen": "127.0.0.1:8080",
+  "mac": "C8:53:09:57:5E:D3",
+  "broadcast": ["192.168.0.255", "255.255.255.255"],
+  "wakePort": 9,
+  "pc": {
+    "name": "gustavs-legion.tail03edd2.ts.net",
+    "ip": "100.x.y.z",
+    "port": 443,
+    "tls": true,
+    "check": "/api/hello"
+  },
+  "hub": "https://gustavs-legion.tail03edd2.ts.net/",
+  "bot": "https://gustavs-legion.tail03edd2.ts.net:8443/",
+  "allow": ["login@example.org"],
+  "wakeOnOpen": true,
+  "waitSeconds": 120
+}
