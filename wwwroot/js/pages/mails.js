@@ -1,5 +1,6 @@
 // Mails: code requests that came in - answered with a code in a few clicks - the follow-ups
-// that are due, and everything sent so far. Nothing goes out without a click here.
+// that are due, and everything sent so far. Nothing goes out without a click here. A request
+// stays open until the mail with its code has really gone out: making the code is half of it.
 
 import { api, post } from '../api.js';
 import { changed, loadOverview, productSettings } from '../store.js';
@@ -87,6 +88,8 @@ export async function render(main) {
     }
     const answer = t.closest('[data-answer]');
     if (answer) return answerRequest(o, settings, findRequest(answer.dataset.answer), answer.dataset.kind);
+    const send = t.closest('[data-send-code]');
+    if (send) return sendCode(findRequest(send.dataset.sendCode));
     const read = t.closest('[data-read]');
     if (read) return readRequest(inbox, findRequest(read.dataset.read));
     const status = t.closest('[data-request-status]');
@@ -157,6 +160,9 @@ function requestsCard(o, inbox) {
     const p = product(r.product);
     const [wantsClass, wantsText] = WANTS[r.wants ?? 'none'];
     const codes = v.codes.map((c) => `${esc(c.product)} (${esc(c.label)})`).join(', ');
+    // A code was made for it, but the mail with the code is not out: that is what it waits for
+    const unsent = Boolean(r.licenseId) && !v.mailSent;
+    const made = unsent ? v.codes.find((c) => c.licenseId === r.licenseId) : null;
     return `
       <div class="req">
         <div class="picon">${icon(p?.icon ?? 'key')}</div>
@@ -170,11 +176,18 @@ function requestsCard(o, inbox) {
             <span class="faint">${esc(fmtWhen(r.received))}</span>
           </div>
           ${v.customerId || codes ? `<div class="faint">${v.customerId ? `Bekannter Kunde: <a href="#/kunden/${esc(v.customerId)}">${esc(v.customerName)}</a>` : 'Neuer Kunde'}${codes ? ` · dieses Gerät hat schon: ${codes}` : ''}</div>` : ''}
+          ${unsent ? `<div class="req-wait">${icon('alert')}<span>Der Code ist erzeugt${made ? ` (${esc(made.product)}, ${esc(made.label)})` : ''} – die Mail damit ist noch nicht gesendet.</span></div>` : ''}
           <div class="actions req-actions">
-            <button class="btn small ${r.wants !== 'full' ? 'primary' : ''}" data-answer="${esc(r.id)}" data-kind="trial">${icon('hourglass')} Testcode senden …</button>
-            <button class="btn small ${r.wants === 'full' ? 'primary' : ''}" data-answer="${esc(r.id)}" data-kind="full">${icon('key')} Kauf-Code senden …</button>
-            <button class="btn small ghost" data-read="${esc(r.id)}">${icon('mail')} Mail lesen</button>
-            <button class="btn small ghost" data-request-status="${esc(r.id)}:ignoriert">Ohne Code ablegen</button>
+            ${unsent ? `
+              <button class="btn small primary" data-send-code="${esc(r.id)}">${icon('send')} Mail mit dem Code senden …</button>
+              <button class="btn small ghost" data-answer="${esc(r.id)}" data-kind="trial">Anderer Testcode …</button>
+              <button class="btn small ghost" data-answer="${esc(r.id)}" data-kind="full">Anderer Kauf-Code …</button>
+              <button class="btn small ghost" data-read="${esc(r.id)}">${icon('mail')} Mail lesen</button>
+              <button class="btn small ghost" data-request-status="${esc(r.id)}:erledigt">Ohne Mail ablegen</button>` : `
+              <button class="btn small ${r.wants !== 'full' ? 'primary' : ''}" data-answer="${esc(r.id)}" data-kind="trial">${icon('hourglass')} Testcode senden …</button>
+              <button class="btn small ${r.wants === 'full' ? 'primary' : ''}" data-answer="${esc(r.id)}" data-kind="full">${icon('key')} Kauf-Code senden …</button>
+              <button class="btn small ghost" data-read="${esc(r.id)}">${icon('mail')} Mail lesen</button>
+              <button class="btn small ghost" data-request-status="${esc(r.id)}:ignoriert">Ohne Code ablegen</button>`}
           </div>
         </div>
       </div>`;
@@ -182,12 +195,14 @@ function requestsCard(o, inbox) {
 
   const doneRow = (v) => {
     const r = v.request;
-    const what = r.status === 'erledigt' && r.licenseId ? 'Code erzeugt' : 'ohne Code abgelegt';
+    // Done means: the code went out. What was filed by hand says so.
+    const what = v.mailSent ? `Code gesendet am ${esc(fmtDate(v.mailSent))}`
+      : `${r.licenseId ? 'Code erzeugt, ohne Mail abgelegt' : 'ohne Code abgelegt'}${r.handledAt ? ` am ${esc(fmtDate(r.handledAt))}` : ''}`;
     return `
       <div class="req done">
         <div class="req-body">
           <div class="t">${esc(r.fromName || r.fromEmail)} <span class="faint">· ${esc(product(r.product)?.name ?? 'Plugin unklar')} · ${esc(fmtDate(r.received))}</span></div>
-          <div class="faint">${what}${r.handledAt ? ` am ${esc(fmtDate(r.handledAt))}` : ''}${v.customerId ? ` · <a href="#/kunden/${esc(v.customerId)}">${esc(v.customerName)}</a>` : ''}</div>
+          <div class="faint">${what}${v.customerId ? ` · <a href="#/kunden/${esc(v.customerId)}">${esc(v.customerName)}</a>` : ''}</div>
         </div>
         <div class="actions">
           <button class="btn small ghost" data-read="${esc(r.id)}">${icon('mail')} Mail lesen</button>
@@ -287,11 +302,19 @@ async function answerRequest(o, settings, view, kind) {
   });
   if (!result) return;
 
-  await post(`/api/inbox/${r.id}/status`, { status: 'erledigt', licenseId: result.license.id }).catch((e) => toast(e.message, 'bad'));
+  // The code is noted on the request, which stays open: only the mail going out files it -
+  // the hub does that itself once the mail is sent
+  await post(`/api/inbox/${r.id}/status`, { status: 'neu', licenseId: result.license.id }).catch((e) => toast(e.message, 'bad'));
   toast(trial ? `Testcode bis ${fmtDate(result.license.end)} erzeugt` : 'Kauf-Code erzeugt');
   changed();
   // The answer goes back into the customer's conversation
-  if (result.customer?.email) await mailDialog('code', result.license.id, null, { inReplyTo: r.messageId });
+  await mailDialog('code', result.license.id, null, { inReplyTo: r.messageId });
+}
+
+/** The mail for a code that was made earlier and never sent - as an answer to the request. */
+async function sendCode(view) {
+  if (!view?.request.licenseId) return;
+  await mailDialog('code', view.request.licenseId, null, { inReplyTo: view.request.messageId });
 }
 
 const GMAIL = /@(gmail|googlemail)\.com$/i;

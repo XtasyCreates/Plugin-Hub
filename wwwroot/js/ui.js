@@ -52,6 +52,8 @@ const ICONS = {
   hourglass: '<path d="M6 3h12"/><path d="M6 21h12"/><path d="M7.5 3v2.5a4.5 4.5 0 0 0 2 3.7L12 11l2.5-1.8a4.5 4.5 0 0 0 2-3.7V3"/><path d="M7.5 21v-2.5a4.5 4.5 0 0 1 2-3.7L12 13l2.5 1.8a4.5 4.5 0 0 1 2 3.7V21"/>',
   board: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="M15 4v16"/>',
   arrowRight: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+  arrowUp: '<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>',
+  arrowDown: '<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>',
   external: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z"/>',
   chart: '<path d="M4 20h16"/><path d="M7 16v-4"/><path d="M12 16V7"/><path d="M17 16v-7"/>',
@@ -144,8 +146,11 @@ export async function busy(button, action) {
  * A modal form. Resolves with what `submit(values)` returns (or the values), null when
  * cancelled. When `submit` throws, its message stays in the dialog and the dialog stays open.
  * `onOpen(form)` wires up anything inside it; `wide` makes room for longer texts.
+ * `onCancel(form)` runs when the dialog is closed without its button - the cancel button or
+ * Esc: what it returns is what the dialog resolves with, `false` keeps the dialog open, and
+ * an error it throws stays in the dialog. A card uses it to keep what was typed.
  */
-export function dialog({ title, body = '', confirm = 'OK', danger = false, cancel = 'Abbrechen', submit, onOpen, wide = false }) {
+export function dialog({ title, body = '', confirm = 'OK', danger = false, cancel = 'Abbrechen', submit, onOpen, onCancel, wide = false }) {
   return new Promise((resolve) => {
     const dlg = document.createElement('dialog');
     if (wide) dlg.classList.add('wide');
@@ -170,10 +175,24 @@ export function dialog({ title, body = '', confirm = 'OK', danger = false, cance
       dlg.remove();
       resolve(value);
     };
-    dlg.querySelector('[data-cancel]')?.addEventListener('click', () => close(null));
+    let cancelling = false;
+    const cancelled = async () => {
+      if (!onCancel) return close(null);
+      if (cancelling) return;
+      cancelling = true;
+      try {
+        const result = await onCancel(form);
+        if (result !== false) close(result ?? null);
+      } catch (ex) {
+        error.textContent = ex.message;
+      } finally {
+        cancelling = false;
+      }
+    };
+    dlg.querySelector('[data-cancel]')?.addEventListener('click', cancelled);
     dlg.addEventListener('cancel', (e) => {
       e.preventDefault();
-      close(null);
+      cancelled();
     });
     form.addEventListener('input', () => { error.textContent = ''; });
     form.addEventListener('submit', async (e) => {

@@ -5,8 +5,10 @@ namespace PluginHub.Services;
 
 /// <summary>
 /// Makes activation codes and puts them in the register - new ones, and extensions of existing
-/// ones for the same device. Every code is checked before it is handed out: against the hub's
-/// key, and against the key the plug-in actually carries.
+/// ones for the same device. Since the suite (17.11.2026) every code names products and is signed
+/// with the suite key (Laser Create's), see <see cref="Suite"/>. Every code is checked before it
+/// is handed out: against the hub's key, and against the suite key each plug-in it is for
+/// actually carries.
 /// </summary>
 public sealed class Licenses
 {
@@ -27,7 +29,10 @@ public sealed class Licenses
 
     public IssueResult Issue(LicenseRequest request)
     {
-        var project = Plugin(request.Product);
+        // A page from before the suite sends one plug-in: its product
+        var products = Suite.Parse(request.Products
+            ?? (string.IsNullOrWhiteSpace(request.Product) ? null : new List<string> { Suite.ProductOf(request.Product) }),
+            request.Trial);
         string machineId = MachineIds.Normalize(request.MachineId);
         DateOnly? end = Ends.Parse(request.End);
         decimal? price = Prices.Parse(request.Price);
@@ -39,7 +44,7 @@ public sealed class Licenses
             customer = _register.FindOrAddCustomer(request.CustomerName, request.CustomerEmail,
                 request.Language ?? _settings.Shared.DefaultLanguage);
 
-        var (license, fit) = Make(project, machineId, end);
+        var (license, fit) = Make(products, machineId, end);
         license.CustomerId = customer?.Id;
         license.Trial      = request.Trial && end != null;
         license.Price      = price;
@@ -48,19 +53,22 @@ public sealed class Licenses
         license.Note       = request.Note?.Trim() ?? "";
         license = _register.AddLicense(license);
 
-        Log.Info($"Code issued: {project.Id} for {machineId}, end {end?.ToString("yyyy-MM-dd") ?? "none"}");
-        return new IssueResult(license, customer, fit.MatchesPlugin, fit.InBuild);
+        Log.Info($"Code issued: {license.Product} for {machineId}, end {end?.ToString("yyyy-MM-dd") ?? "none"}");
+        return Result(license, customer, fit);
     }
 
-    /// <summary>A new code for the same product and device - a longer trial, or the bought licence.</summary>
+    /// <summary>
+    /// A new code for the same device - a longer trial, the bought licence, or more products (an
+    /// upgrade, the suite). Without products it names what the old code covered.
+    /// </summary>
     public IssueResult Extend(string licenseId, ExtendRequest request)
     {
         var old = _register.FindLicense(licenseId) ?? throw new HubError("Diese Lizenz gibt es nicht mehr.");
         if (old.ReplacedBy != null) throw new HubError("Dieser Code wurde schon verlängert – verlängere den neuen.");
-        var project = Plugin(old.Product);
+        var products = Suite.Parse(request.Products ?? Suite.ProductsOf(old), request.Trial);
         DateOnly? end = Ends.Parse(request.End);
 
-        var (license, fit) = Make(project, old.MachineId, end);
+        var (license, fit) = Make(products, old.MachineId, end);
         license.CustomerId = old.CustomerId;
         license.Trial      = request.Trial && end != null;
         license.Price      = Prices.Parse(request.Price);
@@ -70,51 +78,66 @@ public sealed class Licenses
         license = _register.AddExtension(old.Id, license);
 
         var customer = old.CustomerId == null ? null : _register.FindCustomer(old.CustomerId);
-        Log.Info($"Code extended: {project.Id} for {old.MachineId}, end {end?.ToString("yyyy-MM-dd") ?? "none"}");
-        return new IssueResult(license, customer, fit.MatchesPlugin, fit.InBuild);
+        Log.Info($"Code extended: {license.Product} for {old.MachineId}, end {end?.ToString("yyyy-MM-dd") ?? "none"}");
+        return Result(license, customer, fit);
     }
 
-    private (License License, (bool MatchesPlugin, bool InBuild) Fit) Make(ProjectDef project, string machineId, DateOnly? end)
-    {
-        var key = _keys.Info(project.Id)
-            ?? throw new HubError($"Für {project.Name} gibt es noch keinen Schlüssel. Leg ihn unter „Schlüssel und Backup“ an.");
+    private IssueResult Result(License license, Customer? customer, Fit fit) =>
+        new(license, customer, fit.MatchesPlugin, fit.InBuild, Suite.Name(license, _config.Current), fit.NotYet);
 
-        string code = _keys.Sign(project.Id, machineId, end);
+    private (License License, Fit Fit) Make(List<string> products, string machineId, DateOnly? end)
+    {
+        var key = _keys.Info(Suite.KeyProduct)
+            ?? throw new HubError("Für Laser Create gibt es noch keinen Schlüssel – er unterschreibt als Suite-Schlüssel " +
+                                  "alle Codes. Leg ihn unter „Schlüssel und Backup“ an.");
+
+        string code = _keys.Sign(Suite.KeyProduct, machineId, end, products);
         DateTime? endDay = end?.ToDateTime(TimeOnly.MinValue);
         var grant = ActivationCode.Read(key.PublicKey, machineId, code);
-        if (grant == null || grant.End != endDay)
+        if (grant?.Products == null || grant.End != endDay || !grant.Products.SequenceEqual(products))
             throw new HubError("Der eben erzeugte Code ließ sich nicht bestätigen. Bitte melde das.");
 
-        string? pluginKey = PluginActivationFile.ReadKey(_paths, project);
-        bool matchesPlugin = pluginKey != null && ActivationCode.Read(pluginKey, machineId, code) != null;
-        bool inBuild = PluginActivationFile.InBuild(_paths, project, key.PublicKey);
+        // Every plug-in the code is for must carry the suite key - in its source and in the .rhp
+        var (targets, notYet) = Suite.Targets(products, _config.Current);
+        bool matchesPlugin = targets.Count > 0 && targets.All(p =>
+            PluginActivationFile.ReadSuiteKey(_paths, p) is string suite && ActivationCode.Read(suite, machineId, code) != null);
+        bool inBuild = targets.Count > 0 && targets.All(p => PluginActivationFile.InBuild(_paths, p, key.PublicKey));
 
         var license = new License
         {
-            Product        = project.Id,
+            Product        = Suite.OfferId(products),
+            Products       = products,
             MachineId      = machineId,
             Code           = code,
             KeyFingerprint = key.Fingerprint,
             Issued         = DateTimeOffset.Now,
             End            = end
         };
-        return (license, (matchesPlugin, inBuild));
+        return (license, new Fit(matchesPlugin, inBuild, notYet));
     }
 
-    private ProjectDef Plugin(string id)
-    {
-        var project = _config.Project(id);
-        if (!project.IsPlugin) throw new HubError($"{project.Name} ist kein Plugin.");
-        return project;
-    }
+    private sealed record Fit(bool MatchesPlugin, bool InBuild, List<string> NotYet);
 }
 
-public sealed record LicenseRequest(string Product, string MachineId, string? CustomerId, string? CustomerName,
-    string? CustomerEmail, string? Language, bool Trial, string? End, string? Price, bool Paid, string? Note);
+/// <summary>
+/// Products: what the code unlocks (see RhinoKit's Products.cs). Product: one plug-in, as pages
+/// from before the suite send it - used only when Products is missing.
+/// </summary>
+public sealed record LicenseRequest(string? Product, List<string>? Products, string MachineId, string? CustomerId,
+    string? CustomerName, string? CustomerEmail, string? Language, bool Trial, string? End, string? Price, bool Paid,
+    string? Note);
 
-public sealed record ExtendRequest(bool Trial, string? End, string? Price, bool Paid, string? Note);
+/// <summary>Products: what the new code unlocks; missing = what the old one covered.</summary>
+public sealed record ExtendRequest(bool Trial, string? End, string? Price, bool Paid, string? Note,
+    List<string>? Products = null);
 
-public sealed record IssueResult(License License, Customer? Customer, bool MatchesPlugin, bool InBuild);
+/// <summary>
+/// MatchesPlugin / InBuild: every plug-in the code is for carries the suite key, in its source and
+/// in its build. Name: what it unlocks, readable. NotYet: products whose plug-in does not check
+/// codes yet (no project with activation in the hub).
+/// </summary>
+public sealed record IssueResult(License License, Customer? Customer, bool MatchesPlugin, bool InBuild, string Name,
+    List<string> NotYet);
 
 /// <summary>
 /// Where a code stands today. State: unlimited | valid | ending | expired | oldkey | replaced.
@@ -139,8 +162,11 @@ public sealed record LicenseStatus(string State, string Label, int? DaysLeft)
     }
 }
 
-/// <summary>A licence as the page sees it: the stored fields and where it stands.</summary>
-public sealed record LicenseView(License License, LicenseStatus Status);
+/// <summary>
+/// A licence as the page sees it: the stored fields, where it stands, and what it unlocks as a
+/// name ("Laser Create + AutoDim"; the plug-in's name for a code from before the suite).
+/// </summary>
+public sealed record LicenseView(License License, LicenseStatus Status, string Name);
 
 /// <summary>End dates as the page sends them ("2027-01-31"), empty for no end.</summary>
 public static class Ends

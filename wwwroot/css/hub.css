@@ -877,6 +877,18 @@ a.chip { text-decoration: none; }
 /* ── Repository backup ────────────────────────────────────────────────── */
 
 .steps-list { display: grid; gap: 8px; margin: 0 0 14px; padding-left: 20px; }
+/* Schlüssel und Backup: a block per repository */
+.repos { display: grid; }
+.repo { display: grid; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line-soft); }
+.repo:first-child { border-top: 0; padding-top: 2px; }
+.repo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 28px; }
+.repo-head .t { display: flex; align-items: center; gap: 7px; font-weight: 600; }
+.repo-head .t svg.i { width: 16px; height: 16px; color: var(--faint); }
+.repo .facts { gap: 7px; }
+.repo .facts .fact { display: grid; grid-template-columns: 150px minmax(0, 1fr); justify-content: start; }
+.repo .facts .fact > span:last-child { text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.repo > p { margin: 0; }
+.repo .steps-list { margin: 2px 0 4px; }
 .steps-list a { display: inline-flex; align-items: center; gap: 4px; }
 .steps-list a svg.i { width: 14px; height: 14px; }
 form.inline input { flex: 1; min-width: 0; }
@@ -891,6 +903,8 @@ form.inline input { flex: 1; min-width: 0; }
 .req-body { display: grid; gap: 6px; min-width: 0; }
 .req-facts { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13px; }
 .req-actions { margin-top: 4px; }
+.req-wait { display: flex; gap: 7px; align-items: flex-start; font-size: 13px; color: var(--warn); }
+.req-wait svg.i { width: 15px; height: 15px; flex: none; margin-top: 2px; }
 .req.done { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
 .req.done .t { font-weight: 500; }
 .reqs-done { margin-top: 10px; }
@@ -947,8 +961,12 @@ body.phone [data-change-remote], body.phone [data-remote-form], body.phone [data
   .issue > :last-child:not(:empty) { grid-column: 2; justify-self: start; margin-left: -10px; }
   .issue > span:empty:last-child { display: none; }
 
-  .board { grid-template-columns: repeat(6, 84vw); scroll-snap-type: x mandatory; overscroll-behavior-x: contain; }
+  /* The board: three columns side by side - on a phone held upright two (below) - so a card
+     can be drawn straight into the next column. It moves on column by column. */
+  .board { grid-template-columns: repeat(6, calc((100% - 16px) / 3)); gap: 8px; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; }
   .col { scroll-snap-align: start; }
+  .col-head { gap: 5px; }
+  .col-head > span:not(.count) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .form-grid { grid-template-columns: minmax(0, 1fr); }
   .rel, .keyrow { grid-template-columns: minmax(0, 1fr); }
@@ -1160,6 +1178,90 @@ section { margin-top: 24px; }
 .kpi .value.small { font-size: 18px; line-height: 30px; }
 .kpi .note { font-size: 11.5px; }
 
+/* ── Milestones: a chain of dimensions under the figures ───────────────── */
+
+/* A tick per mark on one line, as a plan dimensions a wall: the name above its tick, below it the
+   stamp with the day once it is reached, and between two reached marks the days that lay between
+   them. All marks share three rows (subgrid), so the line runs straight whatever a name's length;
+   a chain wider than the page scrolls sideways. Laid out and drawn here in one piece. */
+/* (more than "section:first-of-type", which takes the distance off a page's first section) */
+.page > .ms-section { margin-top: 18px; }
+.no-milestones .ms-section { display: none; }
+.ms-section h2 .count { letter-spacing: .08em; }
+.ms-edit {
+  order: 2; border: 0; background: none; padding: 2px 0; cursor: pointer; color: var(--muted);
+  font: 400 12px/1 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; letter-spacing: 0; text-transform: none;
+}
+.ms-edit:hover { color: var(--text); }
+.ms-edit:focus-visible, .ms > .cover:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.ms-chain {
+  position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(118px, 1fr); grid-template-rows: auto 22px auto;
+  margin: 0; padding: 4px 0 6px; list-style: none; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin;
+}
+.ms {
+  position: relative; display: grid; grid-row: 1 / span 3; grid-template-rows: subgrid; justify-items: center;
+  min-width: 0; padding: 0 7px; text-align: center; transition: background .14s;
+}
+.ms:hover { background: var(--hover); }
+.ms > .cover { position: absolute; inset: 0; z-index: 1; border: 0; padding: 0; background: none; cursor: pointer; }
+.ms-title {
+  align-self: end; padding: 4px 0 1px; overflow-wrap: anywhere; color: var(--faint);
+  font: 600 10.5px/1.25 var(--display); letter-spacing: .1em; text-transform: uppercase;
+}
+.ms-done .ms-title, .ms-next .ms-title, .ms:hover .ms-title { color: var(--text); }
+
+/* The line: half of it towards each neighbour - drawn through where both ends are reached, broken
+   where the way still lies ahead - and beyond the outermost ticks the short end of a dimension line */
+.ms-rule { position: relative; justify-self: stretch; margin: 0 -7px; }
+.ms-rule i { position: absolute; top: 50%; height: 0; border-top: 1px dashed color-mix(in srgb, var(--rule) 62%, transparent); }
+.ms-rule i.solid { border-top: 1px solid var(--rule); }
+.ms-rule .l { left: 0; right: 50%; }
+.ms-rule .r { left: 50%; right: 0; }
+.ms-rule .l.stub { left: calc(50% - 11px); }
+.ms-rule .r.stub { right: calc(50% - 11px); }
+/* The tick: the short line across, and the slash of an architect's dimension - green once reached,
+   in the page's colour where the way stands now */
+.ms-tick { position: absolute; left: 50%; top: 50%; width: 1px; height: 14px; margin: -7px 0 0 -.5px; background: var(--line); }
+.ms-tick::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 15px; height: 2px; margin: -1px 0 0 -7.5px;
+  background: var(--faint); transform: rotate(-45deg);
+}
+.ms-done .ms-tick { background: var(--rule); }
+.ms-done .ms-tick::after { background: var(--ok); }
+.ms-next .ms-tick::after { background: var(--tab); }
+/* What lies between two stamps, written on the line where two marks meet */
+.ms-gap {
+  position: absolute; left: 100%; top: 50%; z-index: 2; transform: translate(-50%, -50%); padding: 0 5px; pointer-events: none;
+  background: var(--page-bg); color: var(--muted); white-space: nowrap;
+  font: 600 9.5px/1.3 var(--display); letter-spacing: .1em; text-transform: uppercase; font-variant-numeric: tabular-nums;
+}
+
+.ms-below { align-self: start; padding: 2px 0 3px; font-size: 11.5px; line-height: 1.3; color: var(--faint); }
+.ms-next .ms-below { color: var(--muted); }
+.ms-stamp {
+  display: inline-block; padding: 2px 6px 1px; border: 1px solid currentColor; border-radius: 2px; color: var(--ok);
+  font: 600 11px/1.2 var(--display); letter-spacing: .07em; font-variant-numeric: tabular-nums;
+}
+/* A mark this device sees reached for the first time: its stamp is pressed on */
+.ms-fresh .ms-stamp { animation: stamp .36s cubic-bezier(.2, .9, .3, 1.15) both; }
+@keyframes stamp { from { opacity: 0; transform: scale(1.8); } 55% { opacity: 1; } to { transform: none; } }
+
+/* The list behind "bearbeiten": a line per mark - where it stands, what counts, what to do with it */
+.ms-list { display: grid; }
+.ms-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line-soft); background: var(--surface); }
+.ms-row:first-child { border-top: 0; }
+.ms-move { display: flex; }
+.ms-move .btn[disabled] { opacity: .3; pointer-events: none; }
+.ms-row .t { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-weight: 600; }
+.ms-row .d { margin-top: 1px; font-size: 12px; color: var(--muted); }
+.ms-row.off .ms-what { opacity: .55; }
+.ms-row .actions { flex-wrap: nowrap; gap: 4px; justify-content: flex-end; }
+@media (max-width: 600px) {
+  .ms-row { grid-template-columns: auto minmax(0, 1fr); }
+  .ms-row .actions { grid-column: 2; justify-content: flex-start; flex-wrap: wrap; }
+}
+
 .issues, .tasks.compact, .plist { background: transparent; border: 0; border-radius: 0; box-shadow: none; overflow: visible; }
 .issue, .tasks.compact .task, .prow { transition: background .14s; }
 .issue:hover, .tasks.compact .task:hover, .prow:hover { background: var(--hover); }
@@ -1276,7 +1378,7 @@ dialog[open] { animation: pop .16s ease-out; }
    (Einstellungen → Aussehen → Bewegung; js/look.js puts the class on <html>, js/motion.js asks it
    too). Windows' own switch for animation effects is often off for other reasons. */
 .no-motion .main.enter::before, .no-motion .main.enter::after, .no-motion .main.enter .page > *,
-.no-motion .side.enter .nav a.on::before, .no-motion dialog[open] { animation: none !important; }
+.no-motion .side.enter .nav a.on::before, .no-motion dialog[open], .no-motion .ms-fresh .ms-stamp { animation: none !important; }
 .no-motion *, .no-motion *::before, .no-motion *::after { transition: none !important; }
 .btn { transition: background .12s, border-color .12s, box-shadow .12s; }
 /* Switched off, a message just appears and the wheel of something busy turns slowly */
@@ -1306,6 +1408,12 @@ dialog[open] { animation: pop .16s ease-out; }
   .chip-group .label { padding-top: 0; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi .label { letter-spacing: .08em; }
+  .col-head { letter-spacing: .07em; }
+}
+
+/* A phone held upright: two columns of the board at a time */
+@media (max-width: 600px) {
+  .board { grid-template-columns: repeat(6, calc((100% - 8px) / 2)); }
 }
 
 /* ── What Einstellungen → Aussehen can switch (classes on <html>, see js/look.js) ── */

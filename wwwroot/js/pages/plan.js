@@ -1,6 +1,6 @@
 // Planung: the roadmap from idea to release as a board, decisions and open questions, the
-// version history from Git, and the documents. Roadmap and decisions live in Hub\roadmap.json
-// and Hub\decisions.json, in Git: Claude moves a card to "Gebaut" with the steps to test it,
+// version history from Git, and the documents. Roadmap and decisions live in the hub's data
+// folder (Hub\roadmap.json, Hub\decisions.json), in Git: Claude moves a card to "Gebaut" with the steps to test it,
 // the user ticks them off in Rhino - or writes on the card what went wrong, for Claude to read.
 
 import { api, del, post, put } from '../api.js';
@@ -8,7 +8,7 @@ import { changed, loadOverview } from '../store.js';
 import { actionButton, dropParam, flash, runAction, sharedClick } from '../parts.js';
 import { markdown } from '../markdown.js';
 import { fade, glide, settle, settled } from '../motion.js';
-import { confirmDialog, copy, dialog, esc, fmtDate, fmtDateTime, icon, plural, toast } from '../ui.js';
+import { confirmDialog, copy, dialog, esc, fmtDate, fmtDateTime, fmtWhen, icon, plural, toast } from '../ui.js';
 
 export const STAGES = [
   { id: 'idee', label: 'Idee', icon: 'bulb' },
@@ -157,7 +157,7 @@ async function boardView(o) {
   const open = (item) => item && cardDialog(o, data, item);
 
   return {
-    sub: `Von der Idee bis zum Release – ziehen, um weiterzuschieben.${toTest ? ` ${plural(toTest, 'Karte wartet', 'Karten warten')} auf deinen Test.` : ''} Liegt in Hub\\roadmap.json, Claude sieht dieselbe Liste.`,
+    sub: `Von der Idee bis zum Release – ziehen, um weiterzuschieben.${toTest ? ` ${plural(toTest, 'Karte wartet', 'Karten warten')} auf deinen Test.` : ''} Liegt in ${esc(o.dataDir)}\\roadmap.json, Claude sieht dieselbe Liste.`,
     buttons: `<button class="btn primary" data-new-card>${icon('plus')} Neuer Punkt</button>`,
     html,
     click: async (e) => {
@@ -385,10 +385,37 @@ async function cardDialog(o, data, item, defaults = {}) {
     : kind ? 'Test in Rhino' : 'Test';
   let warned = false;
 
+  // What was typed is never lost (the user's long test report once was): closing a card saves it,
+  // a new one asks before anything is thrown away, "Auftrag für Claude kopieren" saves first and
+  // takes the text along, and a draft in this browser outlives a reload or a closed tab.
+  const draftKey = `hub.cardDraft.${x.id ?? 'neu'}`;
+  const fieldsOf = (form) => {
+    const v = Object.fromEntries(new FormData(form));
+    delete v.then;
+    return v;
+  };
+  const bodyOf = (v, stage) => ({
+    title: v.title, note: v.note, project: v.project || null, kind: v.kind, stage: stage ?? v.stage,
+    built: v.built, release: v.release, tests: v.tests.split('\n'), problem: v.problem, reason: v.reason, source: v.source,
+  });
+  let openForm = null;
+  let initial = '';            // the fields as last saved - anything else was typed since
+  let pending = 0;             // the draft is written a moment after typing stops
+  let removed = false;
+  let savedMeanwhile = null;   // saved by the copy button, while the card stayed open
+  const dirty = (form) => JSON.stringify(fieldsOf(form)) !== initial;
+  const unload = (e) => {
+    if (openForm && dirty(openForm)) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  };
+
   const saved = await dialog({
     title: isNew ? 'Neuer Punkt' : `${name(x.project)} · ${STAGE_LABEL[x.stage]}`,
     wide: true,
     confirm: isNew ? 'Anlegen' : 'Speichern',
+    cancel: isNew ? 'Abbrechen' : 'Schließen',
     body: `
       <label class="field"><span>Titel</span><input type="text" name="title" value="${esc(x.title)}" autocomplete="off"></label>
       ${isNew ? '<div class="similar" data-similar hidden></div>' : ''}
@@ -443,6 +470,29 @@ async function cardDialog(o, data, item, defaults = {}) {
       };
       form.elements.stage.addEventListener('change', toggle);
 
+      // What was typed before a reload or a closed tab comes back into the fields
+      openForm = form;
+      initial = JSON.stringify(fieldsOf(form));
+      const draft = readDraft(draftKey);
+      if (draft && (!x.changed || new Date(draft.at) > new Date(x.changed)) && JSON.stringify(draft.values) !== initial) {
+        for (const [field, value] of Object.entries(draft.values)) {
+          if (form.elements[field] && typeof value === 'string') form.elements[field].value = value;
+        }
+        toggle();
+        const back = document.createElement('div');
+        back.className = 'similar';
+        back.innerHTML = `${icon('info')}<div><strong>Dein nicht gespeicherter Text von ${esc(fmtWhen(draft.at))} ist wieder da.</strong> ` +
+          `${isNew ? '„Anlegen“' : '„Speichern“ oder Schließen'} übernimmt ihn.</div>`;
+        form.querySelector('.dlg-body h3').after(back);
+      } else if (draft) {
+        writeDraft(draftKey, null);
+      }
+      form.addEventListener('input', () => {
+        clearTimeout(pending);
+        pending = setTimeout(() => writeDraft(draftKey, dirty(form) ? fieldsOf(form) : null), 300);
+      });
+      window.addEventListener('beforeunload', unload);
+
       const similarBox = form.querySelector('[data-similar]');
       if (similarBox) {
         form.elements.title.addEventListener('input', () => {
@@ -482,11 +532,35 @@ async function cardDialog(o, data, item, defaults = {}) {
         form.elements.then.value = e.currentTarget.dataset.then;
         form.requestSubmit();
       });
-      form.querySelector('[data-claude]')?.addEventListener('click', () => copy(claudeText(x, name), 'Auftrag'));
+      // Saved first, so the text is in the card - and the copy carries what is in the fields now
+      form.querySelector('[data-claude]')?.addEventListener('click', async (e) => {
+        const button = e.currentTarget;
+        button.classList.add('busy');
+        try {
+          const wasDirty = dirty(form);
+          if (wasDirty) {
+            savedMeanwhile = await put(`/api/roadmap/${x.id}`, bodyOf(fieldsOf(form)));
+            Object.assign(x, savedMeanwhile);
+            initial = JSON.stringify(fieldsOf(form));
+            clearTimeout(pending);
+            writeDraft(draftKey, null);
+          }
+          await copy(claudeText(x, name), wasDirty ? 'Gespeichert – Auftrag' : 'Auftrag');
+          // A tested card without a report only names the card - say so, before it goes to the chat empty
+          if (!hasProblem(x) && ['gebaut', 'getestet', 'veroeffentlicht'].includes(x.stage))
+            toast('Der Auftrag nennt nur die Karte – schreib im Chat dazu, worum es geht, oder trag es unter „Was beim Test nicht geklappt hat“ ein.', 'bad');
+        } catch (ex) {
+          toast(ex.message, 'bad');
+        } finally {
+          button.classList.remove('busy');
+        }
+      });
       form.querySelector('[data-remove]')?.addEventListener('click', async () => {
         if (!(await confirmDialog('Punkt löschen?', `„${esc(x.title)}“ verschwindet ganz. Soll er nur nicht gebaut werden, schieb ihn lieber auf „Abgelehnt“ – dann bleibt der Grund erhalten.`, { confirm: 'Löschen', danger: true }))) return;
         try {
           await del(`/api/roadmap/${x.id}`);
+          removed = true;
+          writeDraft(draftKey, null);
           form.closest('dialog').querySelector('[data-cancel]').click();
           toast('Gelöscht');
           changed();
@@ -503,19 +577,55 @@ async function cardDialog(o, data, item, defaults = {}) {
           throw new Error(`${plural(left, 'Schritt ist', 'Schritte sind')} noch nicht abgehakt – klick noch einmal, um die Karte trotzdem auf „Getestet“ zu setzen.`);
         }
       }
-      const body = {
-        title: v.title, note: v.note, project: v.project || null, kind: v.kind,
-        stage: v.then === 'tested' ? 'getestet' : v.stage,
-        built: v.built, release: v.release, tests: v.tests.split('\n'), problem: v.problem, reason: v.reason, source: v.source,
-      };
-      return isNew ? post('/api/roadmap', body) : put(`/api/roadmap/${x.id}`, body);
+      const body = bodyOf(v, v.then === 'tested' ? 'getestet' : v.stage);
+      const result = isNew ? await post('/api/roadmap', body) : await put(`/api/roadmap/${x.id}`, body);
+      clearTimeout(pending);
+      writeDraft(draftKey, null);
+      return result;
+    },
+    // Closed with "Schließen", Esc or a step's button: an existing card keeps what was typed,
+    // a new one asks before what was typed is thrown away
+    onCancel: async (form) => {
+      clearTimeout(pending);
+      if (removed || !dirty(form)) {
+        writeDraft(draftKey, null);
+        return null;
+      }
+      if (isNew) {
+        const drop = await confirmDialog('Eintrag verwerfen?',
+          'Der neue Punkt ist noch nicht angelegt – was du eingetragen hast, ginge verloren. „Abbrechen“ führt zurück zum Punkt.',
+          { confirm: 'Verwerfen', danger: true });
+        if (!drop) return false;
+        writeDraft(draftKey, null);
+        return null;
+      }
+      const result = await put(`/api/roadmap/${x.id}`, bodyOf(fieldsOf(form)));
+      writeDraft(draftKey, null);
+      return { ...result, keptOnClose: true };
     },
   });
-  if (!saved) return;
-  toast(isNew ? 'Angelegt' : saved.stage !== x.stage ? `→ ${STAGE_LABEL[saved.stage]}` : 'Gespeichert');
+  window.removeEventListener('beforeunload', unload);
+  clearTimeout(pending);
+  if (!saved) {
+    if (savedMeanwhile) changed();
+    return;
+  }
+  toast(isNew ? 'Angelegt' : saved.stage !== x.stage ? `→ ${STAGE_LABEL[saved.stage]}` : saved.keptOnClose ? 'Beim Schließen gespeichert' : 'Gespeichert');
   // A card that changed its stage sets off for its column at once; the page is drawn again when it is there
   if (!isNew && saved.stage !== x.stage) await place(document.getElementById('main'), x.id, saved.stage, nextIn(data, x, saved.stage), null);
   changed();
+}
+
+/** A card's unsaved fields in this browser - back after a reload, a closed tab or a crash. */
+function readDraft(key) {
+  try { return JSON.parse(localStorage.getItem(key) ?? 'null'); } catch { return null; }
+}
+
+function writeDraft(key, values) {
+  try {
+    if (values) localStorage.setItem(key, JSON.stringify({ at: new Date().toISOString(), values }));
+    else localStorage.removeItem(key);
+  } catch { /* private window or full: closing the card still saves it */ }
 }
 
 /** The card a card stands before in another stage: the hub keeps its place in the list, whatever the stage. */

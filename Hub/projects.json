@@ -5,33 +5,33 @@
       "name": "Laser Create",
       "kind": "plugin",
       "icon": "scissors",
-      "folder": "LaserExportPlugin",
-      "project": "LaserExportPlugin/LaserExportPlugin.csproj",
-      "output": "LaserExportPlugin/bin/Release/LaserExportPlugin.rhp",
+      "folder": "Plugins Rhino/LaserExportPlugin",
+      "project": "Plugins Rhino/LaserExportPlugin/LaserExportPlugin.csproj",
+      "output": "Plugins Rhino/LaserExportPlugin/bin/Release/LaserExportPlugin.rhp",
       "pluginGuid": "2E3A5B8F-1C4D-4E9A-B6F2-7D0A3C8E5B91",
-      "keyFile": "LaserExportPlugin/Activation.cs",
+      "keyFile": "Plugins Rhino/LaserExportPlugin/Activation.cs",
       "keyNamespace": "LaserExport",
       "startCommand": "LaserCreate",
       "activationCommand": "LaserActivation",
-      "versionFile": "LaserExportPlugin/Version.props",
+      "versionFile": "Plugins Rhino/LaserExportPlugin/Version.props",
       "packageName": "LaserCreate",
       "packageDescription": "Turns walls, floors and contour models into nested laser plates - with material thickness per layer, part numbers, rest plates and DXF export for the laser cutter.",
       "packageKeywords": ["laser", "lasercut", "nesting", "dxf", "architecture", "model"],
       "package": [
-        "LaserExportPlugin/bin/Release/LaserExportPlugin.rhp",
-        "LaserExportPlugin/bin/Release/LaserExportPlugin.rui"
+        "Plugins Rhino/LaserExportPlugin/bin/Release/LaserExportPlugin.rhp",
+        "Plugins Rhino/LaserExportPlugin/bin/Release/LaserExportPlugin.rui"
       ],
       "tagPattern": "v[0-9]*",
       "toolbar": "LaserExportPlugin.rui",
-      "sources": ["LaserExportPlugin", "RhinoKit"],
+      "sources": ["Plugins Rhino/LaserExportPlugin", "Plugins Rhino/RhinoKit"],
       "links": [
-        { "id": "laser-folder",   "label": "Quellordner",       "kind": "folder", "path": "LaserExportPlugin" },
-        { "id": "laser-rhp",      "label": "Release-Ordner",    "kind": "select", "path": "LaserExportPlugin/bin/Release/LaserExportPlugin.rhp" },
-        { "id": "laser-code",     "label": "In VS Code",        "kind": "vscode", "path": "LaserExportPlugin" },
-        { "id": "laser-releases", "label": "Kundenpakete",      "kind": "folder", "path": "Releases/Laser Create" },
-        { "id": "laser-progress", "label": "Progress-Dokument", "kind": "file",   "path": "Progress Rhino Plugin 18_08_26.md" },
-        { "id": "laser-review",   "label": "Code Review",       "kind": "file",   "path": "Code Review 24_08_26.md" },
-        { "id": "laser-icons",    "label": "Icons",             "kind": "folder", "path": "LaserExportPlugin/icons" }
+        { "id": "laser-folder",   "label": "Quellordner",       "kind": "folder", "path": "Plugins Rhino/LaserExportPlugin" },
+        { "id": "laser-rhp",      "label": "Release-Ordner",    "kind": "select", "path": "Plugins Rhino/LaserExportPlugin/bin/Release/LaserExportPlugin.rhp" },
+        { "id": "laser-code",     "label": "In VS Code",        "kind": "vscode", "path": "Plugins Rhino/LaserExportPlugin" },
+        { "id": "laser-releases", "label": "Kundenpakete",      "kind": "folder", "path": "Plugins Rhino/Releases/Laser Create" },
+        { "id": "laser-progress", "label": "Progress-Dokument", "kind": "file",   "path": "Plugins Rhino/Progress Rhino Plugin 18_08_26.md" },
+        { "id": "laser-review",   "label": "Code Review",       "kind": "file",   "path": "Plugins Rhino/Code Review 24_08_26.md" },
+        { "id": "laser-icons",    "label": "Icons",             "kind": "folder", "path": "Plugins Rhino/LaserExportPlugin/icons" }
       ]
     },
     {
@@ -39,32 +39,73 @@
       "name": "SW to Laser",
       "kind": "plugin",
       "icon": "map",
-      "folder": "SwToLaserPlugin",
-      "project": "SwToLaserPlugin/SwToLaserPlugin.csproj",
-      "output": "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp",
+      "folder": "Plugins Rhino/SwToLaserPlugin",
+      "project": "Plugins Rhino/SwToLaserPlugin/SwToLaserPlugin.csproj",
+      "output": "Plugins Rhino/SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp",
       "pluginGuid": "FDDB7238-BC44-4F6C-9ABA-2D2F1FB5AE25",
-      "keyFile": "SwToLaserPlugin/Activation.cs",
+      "keyFile": "Plugins Rhino/SwToLaserPlugin/Activation.cs",
       "keyNamespace": "SwToLaser",
       "startCommand": "SiteLaser",
       "activationCommand": "SiteActivation",
-      "versionFile": "SwToLaserPlugin/Version.props",
+      "versionFile": "Plugins Rhino/SwToLaserPlugin/Version.props",
       "packageName": "SWtoLaser",
       "packageDescription": "Reads figure-ground plans (Schwarzplan) from DXF, DWG, PDF and SVG, turns them into closed building outlines at model scale and hands them to Laser Create.",
       "packageKeywords": ["schwarzplan", "figure-ground", "site", "urban", "laser", "model"],
       "package": [
-        "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp",
-        "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rui"
+        "Plugins Rhino/SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp",
+        "Plugins Rhino/SwToLaserPlugin/bin/Release/SwToLaserPlugin.rui"
       ],
       "tagPattern": "swl-v[0-9]*",
       "toolbar": "SwToLaserPlugin.rui",
-      "sources": ["SwToLaserPlugin", "RhinoKit"],
+      "sources": ["Plugins Rhino/SwToLaserPlugin", "Plugins Rhino/RhinoKit"],
       "links": [
-        { "id": "swl-folder",   "label": "Quellordner",    "kind": "folder", "path": "SwToLaserPlugin" },
-        { "id": "swl-rhp",      "label": "Release-Ordner", "kind": "select", "path": "SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp" },
-        { "id": "swl-code",     "label": "In VS Code",     "kind": "vscode", "path": "SwToLaserPlugin" },
-        { "id": "swl-releases", "label": "Kundenpakete",   "kind": "folder", "path": "Releases/SW to Laser" },
-        { "id": "swl-concept",  "label": "Konzept",        "kind": "file",   "path": "Schwarzplan Plugin Konzept 22_09_26.md" },
-        { "id": "swl-icons",    "label": "Icons",          "kind": "folder", "path": "SwToLaserPlugin/icons" }
+        { "id": "swl-folder",   "label": "Quellordner",    "kind": "folder", "path": "Plugins Rhino/SwToLaserPlugin" },
+        { "id": "swl-rhp",      "label": "Release-Ordner", "kind": "select", "path": "Plugins Rhino/SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp" },
+        { "id": "swl-code",     "label": "In VS Code",     "kind": "vscode", "path": "Plugins Rhino/SwToLaserPlugin" },
+        { "id": "swl-releases", "label": "Kundenpakete",   "kind": "folder", "path": "Plugins Rhino/Releases/SW to Laser" },
+        { "id": "swl-concept",  "label": "Konzept",        "kind": "file",   "path": "Plugins Rhino/Schwarzplan Plugin Konzept 22_09_26.md" },
+        { "id": "swl-icons",    "label": "Icons",          "kind": "folder", "path": "Plugins Rhino/SwToLaserPlugin/icons" }
+      ]
+    },
+    {
+      "id": "autodim",
+      "name": "AutoDim",
+      "kind": "extra",
+      "icon": "rhino",
+      "folder": "Plugins Rhino/AutoDimPlugin",
+      "note": "Zeigt in Rhino die Maße von Objekten an, ohne eine Bemaßung zu zeichnen – für die ausgewählten oder für alle sichtbaren Objekte, je Maßart ein- und ausschaltbar, mit einem Knopf, der das Gezeigte zu echten Rhino-Bemaßungen macht. Ein eigenes Werkzeug: ohne Aktivierung, nicht zum Verkauf. Liegt im Repository „Plugins Rhino“, RhinoKit ist einkompiliert. Befehl AutoDim öffnet das Panel.",
+      "project": "Plugins Rhino/AutoDimPlugin/AutoDimPlugin.csproj",
+      "output": "Plugins Rhino/AutoDimPlugin/bin/Release/AutoDimPlugin.rhp",
+      "pluginGuid": "1FEA354F-3097-4F89-A093-2D1650AF72CC",
+      "startCommand": "AutoDim",
+      "versionFile": "Plugins Rhino/AutoDimPlugin/Version.props",
+      "sources": ["Plugins Rhino/AutoDimPlugin", "Plugins Rhino/RhinoKit"],
+      "links": [
+        { "id": "autodim-folder", "label": "Quellordner",    "kind": "folder", "path": "Plugins Rhino/AutoDimPlugin" },
+        { "id": "autodim-rhp",    "label": "Release-Ordner", "kind": "select", "path": "Plugins Rhino/AutoDimPlugin/bin/Release/AutoDimPlugin.rhp" },
+        { "id": "autodim-code",   "label": "In VS Code",     "kind": "vscode", "path": "Plugins Rhino/AutoDimPlugin" },
+        { "id": "autodim-mac",    "label": "Mac-Paket (.yak)", "kind": "folder", "path": "Plugins Rhino/AutoDimPlugin/bin/Release/package" }
+      ]
+    },
+    {
+      "id": "sectionkit",
+      "name": "SectionKit",
+      "kind": "extra",
+      "icon": "rhino",
+      "folder": "Plugins Rhino/SectionKitPlugin",
+      "project": "Plugins Rhino/SectionKitPlugin/SectionKitPlugin.csproj",
+      "output": "Plugins Rhino/SectionKitPlugin/bin/Release/SectionKitPlugin.rhp",
+      "versionFile": "Plugins Rhino/SectionKitPlugin/Version.props",
+      "pluginGuid": "92886D35-A082-42E9-A36B-F76076DA7014",
+      "startCommand": "SectionKit",
+      "sources": ["Plugins Rhino/SectionKitPlugin", "Plugins Rhino/RhinoKit"],
+      "note": "Fertige Architektur-Schnitte direkt aus Rhino: Ein Material an Ebene oder Objekt zeigt sein Muster in jeder Schnittfläche einer Schnittebene – die Dämmung füllt die Dicke der Schicht und folgt jeder Änderung. Stufe 2 (15.11.2026): Dämmung weich, live. Eigenes Werkzeug ohne Aktivierung, später Teil des Plugin-Bundles. Liegt im Repository „Plugins Rhino“, RhinoKit ist einkompiliert. Befehl SectionKit öffnet das Panel. Prüf-Labor: SectionKitPlugin/Lab.",
+      "links": [
+        {"id": "sectionkit-folder", "kind": "folder", "label": "Quellordner", "path": "Plugins Rhino/SectionKitPlugin"},
+        {"id": "sectionkit-rhp", "kind": "select", "label": "Release-Ordner", "path": "Plugins Rhino/SectionKitPlugin/bin/Release/SectionKitPlugin.rhp"},
+        {"id": "sectionkit-code", "kind": "vscode", "label": "In VS Code", "path": "Plugins Rhino/SectionKitPlugin"},
+        {"id": "sectionkit-auftrag", "kind": "file", "label": "Auftrag", "path": "Plugins Rhino/Schnitt Plugin Prompt 14_11_26.md"},
+        {"id": "sectionkit-erkundung", "kind": "file", "label": "Erkundung (Bericht)", "path": "Plugins Rhino/Schnitt Plugin Erkundung 14_11_26.md"}
       ]
     },
     {
@@ -72,12 +113,12 @@
       "name": "RhinoKit",
       "kind": "library",
       "icon": "layers",
-      "folder": "RhinoKit",
-      "note": "Wird in beide Plugins einkompiliert – eine Änderung hier braucht einen neuen Build von beiden.",
-      "sources": ["RhinoKit"],
+      "folder": "Plugins Rhino/RhinoKit",
+      "note": "Wird in beide Plugins einkompiliert – eine Änderung hier braucht einen neuen Build von beiden. Auch der Plugin Hub nimmt zwei Dateien daraus (wie ein Code aussieht, wie die Geräte-ID entsteht).",
+      "sources": ["Plugins Rhino/RhinoKit"],
       "links": [
-        { "id": "kit-folder", "label": "Ordner",     "kind": "folder", "path": "RhinoKit" },
-        { "id": "kit-code",   "label": "In VS Code", "kind": "vscode", "path": "RhinoKit" }
+        { "id": "kit-folder", "label": "Ordner",     "kind": "folder", "path": "Plugins Rhino/RhinoKit" },
+        { "id": "kit-code",   "label": "In VS Code", "kind": "vscode", "path": "Plugins Rhino/RhinoKit" }
       ]
     },
     {
@@ -85,13 +126,17 @@
       "name": "Plugin Hub",
       "kind": "tool",
       "icon": "grid",
-      "folder": "PluginHub",
-      "note": "Dieses Werkzeug. Claude baut es neu – dafür muss der Hub kurz beendet sein.",
-      "sources": ["PluginHub"],
+      "folder": "Plugin Hub",
+      "note": "Dieses Werkzeug, seit dem 10.10.2026 in seinem eigenen Ordner „Plugin Hub“ neben „Plugins Rhino“ – mit eigenem Git-Repository. Seine Daten (Planung, Einstellungen, Vorlagen) liegen darin unter Hub\\. Claude baut es neu – dafür muss der Hub kurz beendet sein.",
+      "sources": ["Plugin Hub"],
+      "formerFolders": ["Plugins Rhino/PluginHub", "Plugins Rhino/Hub"],
+      "historySince": "a048dede44e28e63041e76d2fae28beac135fdbd",
       "links": [
-        { "id": "hub-folder", "label": "Quellordner", "kind": "folder", "path": "PluginHub" },
-        { "id": "hub-vscode", "label": "In VS Code",  "kind": "vscode", "path": "PluginHub" },
-        { "id": "hub-readme", "label": "README",      "kind": "file",   "path": "PluginHub/README.md" }
+        { "id": "hub-folder", "label": "Quellordner",          "kind": "folder", "path": "Plugin Hub" },
+        { "id": "hub-vscode", "label": "In VS Code",           "kind": "vscode", "path": "Plugin Hub" },
+        { "id": "hub-readme", "label": "README",               "kind": "file",   "path": "Plugin Hub/README.md" },
+        { "id": "hub-data",   "label": "Daten (Hub)",          "kind": "folder", "path": "Plugin Hub/Hub" },
+        { "id": "hub-wol",    "label": "Wake-on-LAN-Anleitung", "kind": "file",  "path": "Plugin Hub/Wake-on-LAN Anleitung 26_09_26.md" }
       ]
     },
     {
@@ -100,12 +145,14 @@
       "kind": "website",
       "icon": "globe",
       "folder": "Website",
-      "note": "Die Website „AutoCreate“ für Kunden – noch Vorschau, nicht im Netz. „Website ansehen“ öffnet sie aus dem Hub, am Handy über den Handy-Zugang. Der Plan bis zum Live-Gang steht im Dokument „Website Plan“ und als Karten unter Planung.",
+      "note": "Die Website „AutoCreate“ für Kunden – noch Vorschau, nicht im Netz. Seit dem 10.10.2026 in ihrem eigenen Ordner „Website“ neben „Plugins Rhino“, mit eigenem Git-Repository. „Website ansehen“ öffnet sie aus dem Hub, am Handy über den Handy-Zugang. Der Plan bis zum Live-Gang steht im Dokument „Website Plan“ und als Karten unter Planung.",
       "sources": ["Website"],
+      "formerFolders": ["Plugins Rhino/Website"],
+      "historySince": "9c1205d6ca626ef42fc0434a4d7fcea6c0b228cf",
       "links": [
         { "id": "web-folder", "label": "Ordner",                         "kind": "folder", "path": "Website" },
         { "id": "web-code",   "label": "In VS Code",                     "kind": "vscode", "path": "Website" },
-        { "id": "web-plan",   "label": "Plan: Website live schalten",    "kind": "file",   "path": "Website Plan 01_10_26.md" },
+        { "id": "web-plan",   "label": "Plan: Website live schalten",    "kind": "file",   "path": "Website/Website Plan 01_10_26.md" },
         { "id": "web-theme",  "label": "Aussehen (theme.css) in VS Code", "kind": "vscode", "path": "Website/css/theme.css" },
         { "id": "web-config", "label": "Einstellungen (config.js) in VS Code", "kind": "vscode", "path": "Website/js/config.js" }
       ]
@@ -115,31 +162,52 @@
       "name": "TISS Bot",
       "kind": "extra",
       "icon": "calendar",
-      "folder": "../TISS Bot",
+      "folder": "TISS Bot",
       "note": "Meldet in TISS (TU Wien) für Lehrveranstaltungen, Gruppen und Prüfungen an, sobald die Anmeldung öffnet, und zeigt deine Termine als Kalender. Ein eigenes Projekt – mit den Plugins hat es nichts zu tun, sein Ordner „TISS Bot“ liegt neben „Plugins Rhino“. Seine Daten (TU-Login, Plan, Kalender) liegen unter %LOCALAPPDATA%\\TissBot, nie in Git.",
       "url": "http://127.0.0.1:51740/",
       "urlLabel": "Bot öffnen",
       "phonePort": 8443,
-      "sources": ["../TISS Bot"],
+      "sources": ["TISS Bot"],
       "links": [
-        { "id": "tiss-folder", "label": "Quellordner",            "kind": "folder", "path": "../TISS Bot" },
-        { "id": "tiss-code",   "label": "In VS Code",             "kind": "vscode", "path": "../TISS Bot" },
-        { "id": "tiss-readme", "label": "README",                 "kind": "file",   "path": "../TISS Bot/README.md" },
-        { "id": "tiss-exe",    "label": "Programm (TissBot.exe)", "kind": "select", "path": "../TISS Bot/bin/Release/TissBot.exe" },
-        { "id": "tiss-zip",    "label": "ZIP zum Weitergeben",    "kind": "select", "path": "../TISS Bot/Weitergabe/TISS Bot.zip" }
+        { "id": "tiss-folder", "label": "Quellordner",            "kind": "folder", "path": "TISS Bot" },
+        { "id": "tiss-code",   "label": "In VS Code",             "kind": "vscode", "path": "TISS Bot" },
+        { "id": "tiss-readme", "label": "README",                 "kind": "file",   "path": "TISS Bot/README.md" },
+        { "id": "tiss-exe",    "label": "Programm (TissBot.exe)", "kind": "select", "path": "TISS Bot/bin/Release/TissBot.exe" },
+        { "id": "tiss-zip",    "label": "ZIP zum Weitergeben",    "kind": "select", "path": "TISS Bot/Weitergabe/TISS Bot.zip" }
+      ]
+    },
+    {
+      "id": "milkdrop",
+      "name": "MilkDrop",
+      "kind": "extra",
+      "icon": "sliders",
+      "folder": "MilkDrop",
+      "note": "Der Musik-Visualizer aus Spotifast, nachgebaut zum Herumspielen: dasselbe Bild (libprojectM), dazu ein Bedienfeld mit Bibliothek, Reglern, Preset-Editor und einem eigenen Nachbau der Kernschleife. Ein eigenes Projekt – mit den Plugins hat es nichts zu tun, sein Ordner „MilkDrop“ liegt neben „Plugins Rhino“. „Bedienfeld öffnen“ geht nur, solange MilkDrop läuft; gestartet wird es über „MilkDrop starten“ im Ordner.",
+      "url": "http://127.0.0.1:51780/",
+      "urlLabel": "Bedienfeld öffnen",
+      "shareScript": "MilkDrop/tools/paket.ps1",
+      "shareFolder": "MilkDrop/Weitergabe",
+      "sources": ["MilkDrop"],
+      "links": [
+        { "id": "milk-folder", "label": "Quellordner",             "kind": "folder", "path": "MilkDrop" },
+        { "id": "milk-code",   "label": "In VS Code",              "kind": "vscode", "path": "MilkDrop" },
+        { "id": "milk-notes",  "label": "Aufbau (CLAUDE.md)",      "kind": "file",   "path": "MilkDrop/CLAUDE.md" },
+        { "id": "milk-exe",    "label": "Programm (MilkDrop.exe)", "kind": "select", "path": "MilkDrop/bin/Release/MilkDrop.exe" },
+        { "id": "milk-presets", "label": "Presets",                "kind": "folder", "path": "MilkDrop/presets" }
       ]
     }
   ],
   "links": [
-    { "id": "root",          "label": "Plugins Rhino",        "kind": "folder", "path": "." },
-    { "id": "root-code",     "label": "Alles in VS Code",     "kind": "vscode", "path": "." },
-    { "id": "releases",      "label": "Kundenpakete",         "kind": "folder", "path": "Releases" },
-    { "id": "legal",         "label": "Lizenzbedingungen",    "kind": "folder", "path": "Hub/legal" },
+    { "id": "root",          "label": "Plugins Rhino",        "kind": "folder", "path": "Plugins Rhino" },
+    { "id": "root-code",     "label": "Alles in VS Code",     "kind": "vscode", "path": "Plugin Hub/Alle Projekte.code-workspace" },
+    { "id": "releases",      "label": "Kundenpakete",         "kind": "folder", "path": "Plugins Rhino/Releases" },
+    { "id": "legal",         "label": "Lizenzbedingungen",    "kind": "folder", "path": "Plugin Hub/Hub/legal" },
     { "id": "private",       "label": "Privater Hub-Ordner",  "kind": "folder", "path": "{private}" },
     { "id": "backups",       "label": "Backups",              "kind": "folder", "path": "{private}/Backups" },
     { "id": "rhino-appdata", "label": "Rhino-Einstellungen",  "kind": "folder", "path": "%APPDATA%/McNeel/Rhinoceros" }
   ],
   "cleanup": [
-    { "path": "LaserExportPlugin_BACKUP_2026-06-25", "note": "Voll-Backup vom 25.06.2026 – Git ersetzt es, der Ordner kann weg." }
-  ]
+    { "path": "Plugins Rhino/LaserExportPlugin_BACKUP_2026-06-25", "note": "Voll-Backup vom 25.06.2026 – Git ersetzt es, der Ordner kann weg." }
+  ],
+  "releases": "Plugins Rhino/Releases"
 }

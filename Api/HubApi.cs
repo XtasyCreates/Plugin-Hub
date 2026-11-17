@@ -47,6 +47,45 @@ public static class HubApi
         // ── Overview, projects, files ─────────────────────────────────────────
         app.MapGet("/api/overview", (Status status) => status.Overview());
         app.MapGet("/api/stats", (Stats stats) => stats.View());
+        // The milestones on the overview. Every change answers with the chain as it is now, and
+        // touches a file in Git - hence the fresh overview.
+        app.MapGet("/api/milestones", (Milestones milestones) => milestones.View());
+        app.MapPost("/api/milestones", (MilestoneRequest request, Milestones milestones, Status status) =>
+        {
+            var view = milestones.Add(request);
+            status.Invalidate();
+            return view;
+        });
+        app.MapPost("/api/milestones/order", (MilestoneOrderRequest request, Milestones milestones, Status status) =>
+        {
+            var view = milestones.Reorder(request.Ids);
+            status.Invalidate();
+            return view;
+        });
+        app.MapPut("/api/milestones/{id}", (string id, MilestoneRequest request, Milestones milestones, Status status) =>
+        {
+            var view = milestones.Update(id, request);
+            status.Invalidate();
+            return view;
+        });
+        app.MapDelete("/api/milestones/{id}", (string id, Milestones milestones, Status status) =>
+        {
+            var view = milestones.Delete(id);
+            status.Invalidate();
+            return view;
+        });
+        app.MapPost("/api/milestones/{id}/hidden", (string id, MilestoneHiddenRequest request, Milestones milestones, Status status) =>
+        {
+            var view = milestones.Hide(id, request.Hidden);
+            status.Invalidate();
+            return view;
+        });
+        app.MapPost("/api/milestones/{id}/recount", (string id, MilestoneRecountRequest request, Milestones milestones, Status status) =>
+        {
+            var view = milestones.Recount(id, request.On);
+            status.Invalidate();
+            return view;
+        });
         app.MapGet("/api/projects/{id}", (string id, Status status) => status.ProjectDetail(id));
         app.MapPost("/api/open", (OpenRequest request, Config config, HubPaths paths) =>
         {
@@ -69,7 +108,7 @@ public static class HubApi
         // ── Builds and releases ───────────────────────────────────────────────
         app.MapPost("/api/builds", (BuildRequest request, Builds builds, Status status) =>
         {
-            var job = builds.Start(request.Projects);
+            var job = builds.Start(request.Projects, request.Develop);
             status.Invalidate();
             return job.View(0);
         });
@@ -80,6 +119,8 @@ public static class HubApi
             if (job.IsFinished) status.Invalidate();
             return Results.Ok(job.View(from ?? 0));
         });
+        // A copy of a project to hand on - a job like a build, followed the same way
+        app.MapPost("/api/share/{id}", (string id, Share share) => share.Start(id).View(0));
         app.MapGet("/api/releases", (Config config, Releases releases) =>
             config.Current.Projects.Where(p => p.IsPlugin).Select(releases.State).ToList());
         app.MapGet("/api/releases/{id}/plan", (string id, Config config, Releases releases) =>
@@ -112,12 +153,25 @@ public static class HubApi
 
             // Replacing a key makes every code made with it worthless - the name is the proof
             bool replaces = keys.Info(project.Id) != null || PluginActivationFile.ReadKey(paths, project) != null;
+            bool suiteKey = project.Id == Suite.KeyProduct;
             if (replaces && !string.Equals(request.Confirm?.Trim(), project.Name, StringComparison.Ordinal))
-                throw new HubError($"Ein neuer Schlüssel macht alle bisherigen Codes für {project.Name} ungültig. " +
+                throw new HubError($"Ein neuer Schlüssel macht alle bisherigen Codes für {project.Name} ungültig" +
+                                   (suiteKey ? " – und als Suite-Schlüssel auch jeden Code mit Produkten, für alle Plugins. " : ". ") +
                                    $"Tipp zur Bestätigung „{project.Name}“ ein.");
 
             var info = keys.Generate(project.Id);
-            PluginActivationFile.WriteKey(paths, project, info.PublicKey);
+            if (suiteKey)
+            {
+                // Laser Create's key is the suite key: every plug-in of the suite checks against it
+                PluginActivationFile.WriteKey(paths, project, info.PublicKey, info.PublicKey);
+                foreach (var other in config.Current.Projects.Where(p => p.IsPlugin && p.KeyFile != null && p.Id != project.Id))
+                    if (PluginActivationFile.ReadKey(paths, other) != null)
+                        PluginActivationFile.WriteSuiteKey(paths, other, info.PublicKey);
+            }
+            else
+            {
+                PluginActivationFile.WriteKey(paths, project, info.PublicKey, keys.Info(Suite.KeyProduct)?.PublicKey);
+            }
             Log.Info($"New key pair for {project.Id}: {info.Fingerprint}");
             status.Invalidate();
             return info;
@@ -178,9 +232,11 @@ public static class HubApi
             new { ready = settings.MailReady, due = mailer.Due(), sent = status.RegisterView().Mails.OrderByDescending(m => m.Sent).ToList() });
         app.MapPost("/api/mails/preview", (MailRequest request, Mailer mailer) =>
             mailer.Draft(request.Kind, request.LicenseId, request.Language));
-        app.MapPost("/api/mails/send", (MailRequest request, Mailer mailer, Status status) =>
+        app.MapPost("/api/mails/send", (MailRequest request, Mailer mailer, Inbox inbox, Status status) =>
         {
             var record = mailer.Send(request.Kind, request.LicenseId, request.Subject ?? "", request.Body ?? "", request.InReplyTo);
+            // The code is on its way: only now is the request it answers done
+            if (request.Kind is "code" or "extension") inbox.Answered(request.InReplyTo, request.LicenseId);
             status.Invalidate();
             return record;
         });
@@ -324,17 +380,31 @@ public static class HubApi
         });
         app.MapGet("/api/places", (Places places) => places.All());
 
-        // ── The copy of the repository outside this PC ────────────────────────
+        // ── The copies of the repositories outside this PC ────────────────────
         app.MapGet("/api/git/remote", (RepoBackup repo) => repo.State());
         app.MapPut("/api/git/remote", (RemoteRequest request, RepoBackup repo, Status status) =>
         {
-            var state = repo.Connect(request.Url);
+            var state = repo.Connect(request.Repo, request.Url);
             status.Invalidate();
             return state;
         });
         app.MapPost("/api/git/push", (RepoBackup repo, Status status) =>
         {
             var job = repo.Push();
+            status.Invalidate();
+            return job.View(0);
+        });
+        // A project of its own in a repository of its own (MilkDrop): one commit of everything
+        // open, and the upload of that repository alone - the button on its page does both
+        app.MapPost("/api/git/commit-project", (CommitRequest request, Config config, Repos repos, Status status) =>
+        {
+            int changes = repos.CommitProject(config.Project(request.Project), request.Message);
+            status.Invalidate();
+            return new { changes };
+        });
+        app.MapPost("/api/git/push/{id}", (string id, Config config, RepoBackup repo, Status status) =>
+        {
+            var job = repo.Push(config.Project(id));
             status.Invalidate();
             return job.View(0);
         });
@@ -363,7 +433,10 @@ public sealed record PushRequest(string Version);
 
 public sealed record ProjectRequest(string Project);
 
-public sealed record BuildRequest(List<string> Projects);
+public sealed record CommitRequest(string Project, string? Message);
+
+/// <summary>Develop: the developer build, with the plug-in's own developer tool (LaserDevelop).</summary>
+public sealed record BuildRequest(List<string> Projects, bool Develop = false);
 
 public sealed record GenerateKeyRequest(string? Confirm);
 

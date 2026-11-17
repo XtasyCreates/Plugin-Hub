@@ -217,14 +217,25 @@ public sealed class HubState
         get { lock (_gate) return Json.Read<StateData>(_paths.StateFile)?.LastBackup; }
     }
 
-    public PushRecord? LastPush
+    /// <summary>The last upload to this address - each repository has its own.</summary>
+    public PushRecord? PushTo(string url)
     {
-        get { lock (_gate) return Json.Read<StateData>(_paths.StateFile)?.LastPush; }
+        lock (_gate)
+        {
+            var state = Json.Read<StateData>(_paths.StateFile);
+            return state?.Pushes.FirstOrDefault(p => p.Url == url)
+                   ?? (state?.LastPush?.Url == url ? state.LastPush : null);
+        }
     }
 
     public void RecordBackup(BackupRecord record) => Change(state => state.LastBackup = record);
 
-    public void RecordPush(PushRecord record) => Change(state => state.LastPush = record);
+    public void RecordPush(PushRecord record) => Change(state =>
+    {
+        state.Pushes.RemoveAll(p => p.Url == record.Url);
+        state.Pushes.Add(record);
+        if (state.LastPush?.Url == record.Url) state.LastPush = null;
+    });
 
     private void Change(Action<StateData> change)
     {
@@ -240,7 +251,10 @@ public sealed class HubState
 public sealed class StateData
 {
     public BackupRecord? LastBackup { get; set; }
+    /// <summary>From when there was one repository for everything - read until that address is uploaded to again.</summary>
     public PushRecord? LastPush { get; set; }
+    /// <summary>The last upload to each address.</summary>
+    public List<PushRecord> Pushes { get; set; } = new();
 }
 
 public sealed class BackupRecord

@@ -3,8 +3,22 @@
   "contact": "support.autocreate@gmail.com",
   "seller": "",
   "sellerAddress": "",
-  "trialDays": 30,
+  "trialDays": 14,
   "followUpDays": 3,
-  "endingSoonDays": 7,
-  "defaultLanguage": "de"
+  "endingSoonDays": 3,
+  "defaultLanguage": "de",
+  "products": {
+    "laser": {
+      "trialDays": 14,
+      "followUpDays": 3,
+      "endingSoonDays": 3
+    },
+    "swtolaser": {
+      "trialDays": 14,
+      "followUpDays": 3,
+      "endingSoonDays": 3
+    }
+  },
+  "salesChannel": "mail",
+  "siteStats": "off"
 }

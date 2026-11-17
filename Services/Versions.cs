@@ -6,8 +6,13 @@ namespace PluginHub.Services;
 /// The version history, read from Git: every tag with the commits since the tag before it, and
 /// which projects those commits touched - v1 to v47 are Claude's internal count for Laser
 /// Create, "laser-1.0.0" and the like are releases. What came after the last tag is listed as
-/// work that has no version yet. Put together from two git calls and kept until HEAD or the
-/// tags change.
+/// work that has no version yet.
+///
+/// Plug-ins, hub and website each have a repository of their own. A version that was tagged in
+/// several of them - "v55" in all three - is one version here, with the projects of each. A
+/// repository that was split off another one brought its past along; that past is read where
+/// it happened (see <see cref="ProjectDef.HistorySince"/>), so nothing is counted twice. Put
+/// together from two git calls per repository and kept until a HEAD or the tags change.
 /// </summary>
 public sealed class Versions
 {
@@ -15,46 +20,42 @@ public sealed class Versions
 
     private readonly HubPaths _paths;
     private readonly Config _config;
+    private readonly Repos _repos;
     private readonly object _gate = new();
     private string? _stamp;
     private VersionsView? _cached;
 
-    public Versions(HubPaths paths, Config config)
+    public Versions(HubPaths paths, Config config, Repos repos)
     {
         _paths  = paths;
         _config = config;
+        _repos  = repos;
     }
 
     public VersionsView All()
     {
-        string tags = Git.TagRefs(_paths.Root);
-        string stamp = Git.Head(_paths.Root) + "|" + tags;
+        var repos = _repos.All().Select(r => (Repo: r, Tags: Git.TagRefs(r.Dir), Head: Git.Head(r.Dir))).ToList();
+        string stamp = string.Join("\n", repos.Select(r => $"{r.Repo.Dir}|{r.Head}|{r.Tags}"))
+                       + "\n" + File.GetLastWriteTimeUtc(_paths.ConfigFile).Ticks;
         lock (_gate)
         {
             if (_cached == null || _stamp != stamp)
             {
-                _cached = Build(tags);
+                _cached = Build(repos.Select(r => (r.Repo, r.Tags)).ToList());
                 _stamp  = stamp;
             }
             return _cached;
         }
     }
 
-    private VersionsView Build(string tagRefs)
+    private VersionsView Build(List<(Repo Repo, string Tags)> repos)
     {
-        // commit -> its tags (an annotated tag names its commit in the third column)
-        var tagsOf = new Dictionary<string, List<string>>();
-        foreach (string line in tagRefs.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var parts = line.TrimEnd('\r').Split(' ');
-            if (parts.Length < 2) continue;
-            string commit = parts.Length > 2 && parts[2].Length > 0 ? parts[2] : parts[1];
-            if (!tagsOf.TryGetValue(commit, out var list)) tagsOf[commit] = list = new();
-            list.Add(parts[0]);
-        }
+        var config = _config.Current;
 
-        var projects = _config.Current.Projects
+        // A project's commits: those in its folders - and in the ones it had before it moved
+        var projects = config.Projects
             .Select(p => (p.Id, Folders: (p.Sources.Count > 0 ? p.Sources : new List<string> { p.Folder })
+                .Concat(p.FormerFolders)
                 .Select(f => f.Replace('\\', '/').TrimEnd('/') + "/").ToList()))
             .ToList();
         List<string> Touched(IEnumerable<string> files) => projects
@@ -62,31 +63,76 @@ public sealed class Versions
             .Select(p => p.Id).ToList();
 
         var versions = new List<VersionView>();
-        var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var pending = new List<GitCommit>();
-        foreach (var commit in Git.History(_paths.Root))
+        var untagged = new List<UntaggedCommit>();
+        foreach (var (repo, tagRefs) in repos)
         {
-            pending.Add(commit);
-            files.UnionWith(commit.Files);
-            if (!tagsOf.TryGetValue(commit.Hash, out var tags)) continue;
-
-            var touched = Touched(files);
-            foreach (string tag in tags.OrderBy(t => t, StringComparer.Ordinal))
+            // commit -> its tags (an annotated tag names its commit in the third column)
+            var tagsOf = new Dictionary<string, List<string>>();
+            foreach (string line in tagRefs.Split('\n', StringSplitOptions.RemoveEmptyEntries))
             {
-                var release = ReleaseTag.Match(tag);
-                bool isRelease = release.Success && projects.Any(p => p.Id == release.Groups[1].Value);
-                versions.Add(new VersionView(tag, commit.Date, commit.Subject, commit.Hash[..7], isRelease,
-                    isRelease ? release.Groups[2].Value : null,
-                    isRelease ? new List<string> { release.Groups[1].Value } : touched, pending.Count));
+                var parts = line.TrimEnd('\r').Split(' ');
+                if (parts.Length < 2) continue;
+                string commit = parts.Length > 2 && parts[2].Length > 0 ? parts[2] : parts[1];
+                if (!tagsOf.TryGetValue(commit, out var list)) tagsOf[commit] = list = new();
+                list.Add(parts[0]);
             }
-            files.Clear();
-            pending.Clear();
+
+            // The past a split-off repository brought along is told by the one it came from
+            var history = Git.History(repo.Dir);
+            string? since = config.Projects
+                .Where(p => p.HistorySince is { Length: >= 7 } && _repos.Of(p) is { } own && Repos.Same(own.Dir, repo.Dir))
+                .Select(p => p.HistorySince).FirstOrDefault();
+            int start = since == null ? 0 : history.FindIndex(c => c.Hash.StartsWith(since, StringComparison.OrdinalIgnoreCase)) + 1;
+
+            var mine = new List<VersionView>();
+            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var pending = new List<GitCommit>();
+            foreach (var commit in history.Skip(start))
+            {
+                pending.Add(commit);
+                files.UnionWith(commit.Files.Select(f => repo.Prefix + f));
+                if (!tagsOf.TryGetValue(commit.Hash, out var tags)) continue;
+
+                var touched = Touched(files);
+                foreach (string tag in tags.OrderBy(t => t, StringComparer.Ordinal))
+                {
+                    var release = ReleaseTag.Match(tag);
+                    bool isRelease = release.Success && projects.Any(p => p.Id == release.Groups[1].Value);
+                    mine.Add(new VersionView(tag, commit.Date, commit.Subject, commit.Hash[..7], isRelease,
+                        isRelease ? release.Groups[2].Value : null,
+                        isRelease ? new List<string> { release.Groups[1].Value } : touched, pending.Count));
+                }
+                files.Clear();
+                pending.Clear();
+            }
+
+            mine.Reverse();   // newest first
+            versions.AddRange(mine);
+            untagged.AddRange(pending.AsEnumerable().Reverse().Select(c =>
+                new UntaggedCommit(c.Hash[..7], c.Date, c.Subject, Touched(c.Files.Select(f => repo.Prefix + f)))));
         }
 
-        versions.Reverse();   // newest first
-        var untagged = pending.AsEnumerable().Reverse()
-            .Select(c => new UntaggedCommit(c.Hash[..7], c.Date, c.Subject, Touched(c.Files)))
-            .ToList();
+        // One repository: its own order, as Git tells it. Several: by date, and the same tag in
+        // more than one of them is one version - the newest commit names it, the projects and
+        // commits of all of them count.
+        if (repos.Count > 1)
+        {
+            versions = versions
+                .GroupBy(v => v.Tag, StringComparer.Ordinal)
+                .Select(g =>
+                {
+                    var first = g.OrderByDescending(v => v.Date).First();
+                    return g.Count() == 1 ? first : first with
+                    {
+                        Projects = projects.Select(p => p.Id).Where(id => g.Any(v => v.Projects.Contains(id))).ToList(),
+                        Commits  = g.Sum(v => v.Commits)
+                    };
+                })
+                .OrderByDescending(v => v.Date)
+                .ToList();
+            untagged = untagged.OrderByDescending(c => c.Date).ToList();
+        }
+
         return new VersionsView(versions, untagged);
     }
 }

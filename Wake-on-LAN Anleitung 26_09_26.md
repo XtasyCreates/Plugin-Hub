@@ -1,7 +1,8 @@
 # Hub vom Handy: den PC aufwecken (Wake-on-LAN)
 
-Ziel: Der PC schläft, und du weckst ihn vom Handy aus, wenn du den Hub brauchst. Zuerst testen wir das
-im Heimnetz. Ob und wie es von unterwegs geht, entscheiden wir danach.
+Ziel: Der PC schläft, und du weckst ihn vom Handy aus, wenn du den Hub brauchst. Im Heimnetz hat das
+geklappt (Aufgabe „Wake-on-LAN testen“ erledigt). Von unterwegs weckt ihn ein Raspberry Pi – siehe
+„Von unterwegs: der Raspberry Pi als Wecker“ weiter unten.
 
 ## Was schon passt
 
@@ -55,14 +56,60 @@ Der Reihe nach probieren und danach jeweils die Schritte 3 und 4 wiederholen:
 Klappt es danach immer noch nicht, kann dein Laptop Wake-on-LAN vermutlich nicht. Dann bleiben der
 Heimserver oder der durchlaufende PC.
 
-## Von unterwegs (später)
+## Von unterwegs: der Raspberry Pi als Wecker
 
-Ein Wecksignal kommt nicht über das Internet, es muss aus dem Heimnetz kommen. Dafür braucht es ein Gerät,
-das immer an ist. Dein Router, die Magenta Home Box Fiber, kann das nicht: Laut Magentas Anleitungen bietet
-er kein „Wake on LAN“. Bleibt ein kleiner Raspberry Pi mit Tailscale (mit LAN-Anschluss, Netzteil und
-Speicherkarte rund 70–100 €, etwa 3 W), den du vom Handy aus bittest, den PC zu wecken.
+Ein Wecksignal kommt nicht über das Internet, es muss aus dem Heimnetz kommen. Dein Router, die Magenta
+Home Box Fiber, kann das nicht. Deshalb übernimmt es ein Raspberry Pi am Router: Er ist immer an (etwa
+3 W), hängt mit Tailscale in deinem Tailnet und hat eine kleine Seite, `https://wecker.tail03edd2.ts.net`.
+Öffnest du sie auf dem iPhone, weckt er den PC, und sobald der Plugin Hub antwortet, öffnet sich der Hub.
+Solange er lädt, steht daneben ein Knopf für den TISS Bot. Wie der Wecker gebaut ist: `wecker\README.md`.
 
-Das richten wir ein, sobald der Test im Heimnetz geklappt hat.
+### Dein Teil: die Speicherkarte
+
+1. **Raspberry Pi Imager** von raspberrypi.com/software laden und installieren – Version 2.0.7 oder
+   neuer. Ältere übernehmen bei aktuellen Raspberry-Pi-OS-Versionen die Einstellungen nicht.
+2. Die microSD-Karte in den PC stecken und im Imager wählen:
+   - Gerät: **Raspberry Pi 4**
+   - Betriebssystem: **Raspberry Pi OS (other) → Raspberry Pi OS Lite (64-bit)** – ohne Desktop
+   - Speicher: die microSD-Karte (genau hinsehen – sie wird gelöscht)
+3. Bei den Einstellungen (Anpassen):
+   - Hostname: `wecker`
+   - Ort: Wien – das setzt Zeitzone und Tastatur
+   - Benutzer: `gustav` und ein Passwort deiner Wahl. Das brauchst du nur, falls du dich je mit
+     Bildschirm und Tastatur direkt am Pi anmeldest.
+   - WLAN: leer lassen – der Pi hängt am LAN-Kabel
+   - Fernzugriff: **SSH einschalten**, **nur mit öffentlichem Schlüssel**, und diese eine Zeile
+     einfügen (das ist der öffentliche Teil eines Schlüssels, den nur dein PC hat):
+
+         ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIChrrr1YmU/kH5brbxxseeNBJzAqp2bKsJK7hk6ASuW+ wecker-einrichtung@gustavs-legion
+
+   - Raspberry Pi Connect: aus
+4. Schreiben lassen. Danach die Karte **noch einmal in den PC stecken** und Claude Bescheid sagen:
+   Claude prüft, ob die Einstellungen wirklich auf der Karte stehen.
+5. Karte in den Pi, **LAN-Kabel** vom Pi in die Magenta-Box, zuletzt das **Netzteil**. Der erste Start
+   dauert ein paar Minuten; er startet dabei einmal von selbst neu.
+
+### Claudes Teil: über das Heimnetz einrichten
+
+Claude kopiert den Wecker per SSH auf den Pi und startet die Einrichtung in deinem Terminal: Sie bringt
+das System auf den neuesten Stand, schaltet die automatischen Sicherheits-Updates ein (wenn eines einen
+Neustart verlangt, um 4:30 Uhr) und installiert Tailscale und den Wecker. Drei Dinge dabei sind deine:
+
+- **Dein Pi-Passwort** einmal eintippen, wenn das Terminal danach fragt – der Imager legt deinen
+  Benutzer so an, dass Admin-Befehle es verlangen.
+- **Tailscale anmelden:** Im Terminal erscheint ein Link – den öffnen und mit deinem Tailscale-Konto
+  anmelden.
+- **Ablaufdatum abschalten:** auf login.tailscale.com unter „Machines“ bei `wecker` → „…“ →
+  **Disable key expiry**. Sonst fällt der Pi nach 180 Tagen aus deinem Tailnet. Dasselbe am besten
+  auch bei `gustavs-legion` – sonst erreicht dein Handy irgendwann auch den Hub nicht mehr.
+
+### Auf dem iPhone
+
+1. Tailscale an, in Safari `https://wecker.tail03edd2.ts.net` öffnen und mit Teilen →
+   **Zum Home-Bildschirm** als Symbol ablegen.
+2. **Test:** am PC Start → Ein/Aus → Energie sparen. Auf dem iPhone das WLAN ausschalten (damit es
+   wirklich „von unterwegs“ ist), das Symbol antippen: „PC wird geweckt …“, nach 10–30 Sekunden
+   „Der PC ist wach“, dann öffnet sich der Hub.
 
 ## Gut zu wissen
 

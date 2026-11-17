@@ -1,0 +1,7 @@
+{
+  "folders": [
+    { "name": "Plugins Rhino", "path": "../Plugins Rhino" },
+    { "name": "Plugin Hub", "path": "." },
+    { "name": "Website", "path": "../Website" }
+  ]
+}

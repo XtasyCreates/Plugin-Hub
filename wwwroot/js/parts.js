@@ -50,10 +50,11 @@ export function actionButton(action, { task = null, step = null, primary = false
  * Returns true when the click was one of them.
  */
 export async function sharedClick(e) {
-  const el = e.target.closest('[data-act],[data-open],[data-build]');
+  const el = e.target.closest('[data-act],[data-open],[data-build],[data-build-dev]');
   if (!el) return false;
 
   if (el.dataset.open) await openLink(el.dataset.open, el);
+  else if (el.dataset.buildDev) await startBuild(el.dataset.buildDev.split(','), el, true);
   else if (el.dataset.build) await startBuild(el.dataset.build.split(','), el);
   else await runAction({ kind: el.dataset.act, target: el.dataset.target ?? '' }, el, { task: el.dataset.task, step: el.dataset.stepRef });
   return true;
@@ -135,6 +136,7 @@ export function buildLine(build) {
   if (!build?.exists) return 'Noch keine .rhp im Release-Ordner.';
   let text = `Gebaut ${fmtWhen(build.rhpTime)}`;
   if (build.productVersion) text += ` · Version ${build.productVersion}`;
+  if (build.develop) text += ' · Entwickler-Build mit LaserDevelop – vor dem Weitergeben „Bauen“';
   if (build.outdated) text += ` · geändert ${fmtWhen(build.newestSource)}: ${build.newestFile}`;
   if (build.locked) text += ' · Rhino hält die .rhp fest';
   return esc(text);
@@ -285,8 +287,8 @@ let lines = [];
 let timer = 0;
 let expanded = false;
 
-export async function startBuild(projects, button) {
-  const view = await busy(button, () => post('/api/builds', { projects }));
+export async function startBuild(projects, button, develop = false) {
+  const view = await busy(button, () => post('/api/builds', { projects, develop }));
   if (view) follow(view);
 }
 

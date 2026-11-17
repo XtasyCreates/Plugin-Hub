@@ -6,7 +6,8 @@
 
 $ErrorActionPreference = 'Stop'
 
-$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)   # the "Plugins Rhino" folder
+# The plug-ins lie in "Plugins Rhino", the folder beside the hub's
+$root = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'Plugins Rhino'
 $edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
           "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $edge) { throw 'Microsoft Edge not found.' }

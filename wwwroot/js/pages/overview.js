@@ -1,12 +1,16 @@
-// Übersicht: the figures at a glance, then what needs doing and the open tasks - each line leads
-// to where it gets done - and beside them the projects with their next step.
+// Übersicht: the figures at a glance, the milestones as a chain of dimensions, then what needs
+// doing and the open tasks - each line leads to where it gets done - and beside them the
+// projects with their next step.
 
 import { changed, loadOverview } from '../store.js';
 import { actionButton, buildBadge, issueList, sharedClick } from '../parts.js';
 import { esc, fmtDate, fmtDateTime, fmtWhen, icon, plural } from '../ui.js';
+import { loadMilestones, milestoneClick, milestoneStrip, milestonesArrived } from '../milestones.js';
 
 export async function render(main) {
-  const o = await loadOverview();
+  const [o, milestones] = await Promise.all([loadOverview(), loadMilestones()]);
+  // Where the reader had the chain, should this be a redraw of the page he is looking at
+  const chainAt = main.querySelector('.ms-chain')?.scrollLeft ?? null;
   const problems = o.health.filter((h) => h.level === 'problem').length;
   const hints = o.health.length - problems;
   const state = problems || hints
@@ -32,6 +36,8 @@ export async function render(main) {
         ${kpi('#/kunden', 'euro', 'Nicht bezahlt', r.unpaid, r.unpaid ? 'offen' : 'alles bezahlt', r.unpaid ? 'attn' : '')}
         ${backupKpi(o.backup)}
       </div>
+
+      ${milestoneStrip(milestones)}
 
       <div class="dash">
         <section class="d-todo">
@@ -65,8 +71,10 @@ export async function render(main) {
   main.onchange = null;
   main.onclick = async (e) => {
     if (await sharedClick(e)) return;
+    if (await milestoneClick(e)) return;
     if (e.target.closest('[data-refresh]')) changed();
   };
+  milestonesArrived(main, milestones, chainAt);
 }
 
 const kpi = (href, iconName, label, value, note, mark = '') => `

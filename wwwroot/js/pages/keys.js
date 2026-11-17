@@ -1,17 +1,16 @@
-// Schlüssel und Backup: one key pair per plug-in, the backup that keeps them safe, and the copy
-// of the whole repository outside this PC.
+// Schlüssel und Backup: one key pair per plug-in, the backup that keeps them safe, and the
+// copies of the repositories - plug-ins, hub, website - outside this PC.
 
 import { post, put } from '../api.js';
 import { changed, loadOverview } from '../store.js';
 import { issueList, pushRepo, sharedClick } from '../parts.js';
 import { busy, dialog, esc, fmtDateTime, icon, notice, plural, toast } from '../ui.js';
 
-let changingRemote = false;
+let changingRemote = null;   // the repository whose address is being entered
 
 export async function render(main) {
   const o = await loadOverview();
   const issues = o.health.filter((h) => ['keys', 'backup', 'secrets'].includes(h.area));
-  const remote = o.remote;
 
   main.innerHTML = `
     <div class="page">
@@ -44,11 +43,11 @@ export async function render(main) {
         </div>
       </div>
 
-      ${remote ? repoCard(remote) : ''}
+      ${o.remotes.length ? reposCard(o.remotes) : ''}
 
       <div class="card">
         <div class="card-head"><h3>${icon('lock')} Wo alles liegt</h3></div>
-        <p class="card-note">Schlüssel und Register liegen außerhalb von „Plugins Rhino“, damit sie nie in Git, ein ZIP oder einen geteilten Ordner geraten.
+        <p class="card-note">Schlüssel und Register liegen außerhalb der Projektordner, damit sie nie in Git, ein ZIP oder einen geteilten Ordner geraten.
           Die Schlüssel sind mit deinem Windows-Konto verschlüsselt: Nur du kannst sie lesen, und nur auf diesem PC. Auf einem neuen PC holst du sie aus dem Backup.</p>
         <div class="actions">
           <code class="mono">${esc(o.privateDir)}</code>
@@ -67,69 +66,97 @@ export async function render(main) {
     if (t.closest('[data-backup]')) return createBackup();
     if (t.closest('[data-restore]')) return restoreBackup();
     if (t.closest('[data-push]')) return pushRepo(t.closest('[data-push]'));
-    if (t.closest('[data-change-remote]')) {
-      changingRemote = true;
+    const change = t.closest('[data-change-remote]');
+    if (change) {
+      changingRemote = change.dataset.changeRemote;
       changed();
     }
     if (t.closest('[data-keep-remote]')) {
-      changingRemote = false;
+      changingRemote = null;
       changed();
     }
   };
   main.querySelector('[data-remote-form]')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const url = new FormData(e.target).get('url');
-    const state = await busy(e.target.querySelector('[type=submit]'), () => put('/api/git/remote', { url }));
+    const repo = e.target.dataset.remoteForm;
+    const state = await busy(e.target.querySelector('[type=submit]'), () => put('/api/git/remote', { repo, url }));
     if (!state) return;
-    changingRemote = false;
+    changingRemote = null;
     toast('Verbunden – jetzt „Hochladen“ klicken');
     changed();
   });
 }
 
+const behindOf = (r) =>
+  [r.ahead && plural(r.ahead, 'Commit', 'Commits'), r.tags && plural(r.tags, 'Version', 'Versionen')].filter(Boolean);
+
 /**
- * The repository outside this PC. Not set up: three steps and the address field. Set up: how
- * much is not uploaded yet, and the button that does it.
+ * The repositories and their copies outside this PC - each project folder is a repository of
+ * its own. One line each: where its copy is and how much is not uploaded yet, or the way to
+ * give it one. One button uploads all that have a copy.
  */
-function repoCard(remote) {
-  const connected = remote.url && !changingRemote;
-  const last = remote.lastPush && remote.lastPush.url === remote.url ? remote.lastPush : null;
-  const behind = [remote.ahead && plural(remote.ahead, 'Commit', 'Commits'), remote.tags && plural(remote.tags, 'Version', 'Versionen')].filter(Boolean);
+function reposCard(remotes) {
+  const connected = remotes.filter((r) => r.url);
+  const stale = connected.filter((r) => behindOf(r).length);
+  const alone = remotes.length - connected.length;
+  const [badgeClass, badge] = !connected.length ? ['bad', 'nicht eingerichtet']
+    : stale.length ? ['accent', 'nicht aktuell']
+    : alone ? ['accent', `${alone} ohne Kopie`]
+    : ['ok', 'gesichert'];
+
+  return `
+    <div class="card" id="git-remote-card" data-place="git-remote">
+      <div class="card-head">
+        <h3>${icon('cloud')} Repositories sichern</h3>
+        <span class="badge ${badgeClass}">${badge}</span>
+      </div>
+      <p class="card-note">Quelltext, Versionen und Kundenpakete liegen nur auf diesem PC – jeder Projektordner als eigenes Git-Repository. Eine Kopie in je einem privaten
+        GitHub-Repository schützt vor einem Festplattenausfall – das Backup oben sichert nur Schlüssel und Kundenregister. Der Hub lädt nur hoch, wenn du klickst.</p>
+      <div class="repos">${remotes.map(repoRow).join('')}</div>
+      ${connected.length ? `
+        <div class="actions" style="margin-top:14px">
+          <button class="btn primary" data-push>${icon('cloud')} ${connected.length > 1 ? 'Alle hochladen' : 'Hochladen'}</button>
+          ${alone ? `<span class="faint">${connected.map((r) => esc(r.name)).join(' und ')} – ${alone === 1 ? 'ein Ordner hat' : `${alone} Ordner haben`} noch keine Kopie.</span>` : ''}
+        </div>` : ''}
+    </div>`;
+}
+
+function repoRow(r) {
+  const editing = changingRemote === r.repo;
+  const behind = behindOf(r);
+  // What the address on GitHub could be called: "Plugin Hub" -> plugin-hub
+  const slug = r.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'repository';
 
   const setup = `
     <ol class="steps-list">
       <li>Bei GitHub ein <strong>privates</strong>, leeres Repository anlegen – ohne README.
         <a href="https://github.com/new" target="_blank" rel="noopener">github.com/new ${icon('external')}</a>
-        <div class="faint">Privat, weil der Quelltext der Plugins darin liegt. Schlüssel und Kunden sind nicht in Git.</div></li>
-      <li>Die Adresse kopieren: auf GitHub der grüne Knopf „Code“ → HTTPS, z. B. https://github.com/name/plugins-rhino.git</li>
+        <div class="faint">Privat, weil dein Quelltext darin liegt. Schlüssel und Kunden sind nicht in Git. Jeder Ordner braucht sein eigenes Repository.</div></li>
+      <li>Die Adresse kopieren: auf GitHub der grüne Knopf „Code“ → HTTPS, z. B. https://github.com/name/${slug}.git</li>
       <li>Hier eintragen, „Verbinden“, dann „Hochladen“. Beim ersten Mal öffnet Git ein Fenster, in dem du dich bei GitHub anmeldest.</li>
     </ol>
-    <form class="inline" data-remote-form>
-      <input type="text" name="url" data-place="git-remote" value="${esc(remote.url ?? '')}" placeholder="https://github.com/name/plugins-rhino.git" spellcheck="false" autocomplete="off">
+    <form class="inline" data-remote-form="${esc(r.repo)}">
+      <input type="text" name="url" value="${esc(r.url ?? '')}" placeholder="https://github.com/name/${slug}.git" spellcheck="false" autocomplete="off">
       <button class="btn primary" type="submit">Verbinden</button>
-      ${remote.url ? '<button class="btn" type="button" data-keep-remote>Abbrechen</button>' : ''}
+      <button class="btn" type="button" data-keep-remote>Abbrechen</button>
     </form>`;
 
-  const state = `
+  const state = r.url ? `
     <div class="facts">
-      <div class="fact"><span>Repository</span><span class="mono" title="${esc(remote.url)}">${esc(remote.url)}</span></div>
-      <div class="fact"><span>Zuletzt hochgeladen</span><span>${last ? esc(fmtDateTime(last.at)) : 'noch nie'}</span></div>
+      <div class="fact"><span>Repository</span><span class="mono" title="${esc(r.url)}">${esc(r.url)}</span></div>
+      <div class="fact"><span>Zuletzt hochgeladen</span><span>${r.lastPush ? esc(fmtDateTime(r.lastPush.at)) : 'noch nie'}</span></div>
       <div class="fact"><span>Stand</span><span>${behind.length ? `${behind.join(' und ')} noch nicht oben` : `${icon('check')} alles gesichert`}</span></div>
-    </div>
-    <div class="actions" style="margin-top:14px">
-      <button class="btn primary" data-push data-place="git-remote">${icon('cloud')} Hochladen</button>
-      <button class="btn ghost" data-change-remote>Adresse ändern</button>
-    </div>`;
+    </div>`
+    : '<p class="faint">Noch keine Kopie – dieser Ordner liegt nur auf diesem PC.</p>';
 
   return `
-    <div class="card" id="git-remote-card">
-      <div class="card-head">
-        <h3>${icon('cloud')} Repository sichern</h3>
-        <span class="badge ${connected ? (behind.length ? 'accent' : 'ok') : 'bad'}">${connected ? (behind.length ? 'nicht aktuell' : 'gesichert') : 'nicht eingerichtet'}</span>
+    <div class="repo">
+      <div class="repo-head">
+        <div class="t">${icon('folder')} ${esc(r.name)}</div>
+        ${editing ? '' : `<button class="btn small ${r.url ? 'ghost' : ''}" data-change-remote="${esc(r.repo)}">${r.url ? 'Adresse ändern' : 'Verbinden …'}</button>`}
       </div>
-      <p class="card-note">Quelltext, Versionen und Kundenpakete liegen nur auf diesem PC. Eine Kopie in einem privaten GitHub-Repository schützt vor einem Festplattenausfall –
-        das Backup oben sichert nur Schlüssel und Kundenregister. Der Hub lädt nur hoch, wenn du klickst.</p>
-      ${connected ? state : setup}
+      ${editing ? setup : state}
     </div>`;
 }
 

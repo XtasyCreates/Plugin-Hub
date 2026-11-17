@@ -32,18 +32,35 @@ public sealed class Builds
         get { lock (_gate) return _current is { IsFinished: false }; }
     }
 
-    /// <summary>Test builds: the version from Version.props with "-test".</summary>
-    public BuildJob Start(IReadOnlyList<string>? ids)
+    /// <summary>
+    /// Test builds: the version from Version.props with "-test". A developer build adds the
+    /// plug-in's own developer tool (LaserDevelop) and says "-dev" - only for a project whose
+    /// .csproj knows DevTools, and never as a release.
+    /// </summary>
+    public BuildJob Start(IReadOnlyList<string>? ids, bool develop = false)
     {
         var projects = (ids ?? Array.Empty<string>()).Distinct().Select(_config.Project).ToList();
         if (projects.Count == 0) throw new HubError("Wähl mindestens ein Plugin.");
-        var other = projects.FirstOrDefault(p => !p.IsPlugin || p.Project == null || p.Output == null);
+        var other = projects.FirstOrDefault(p => !p.IsBuildable);
         if (other != null) throw new HubError($"{other.Name} lässt sich nicht bauen – es ist kein Plugin.");
+        if (develop && projects.FirstOrDefault(p => !CanDevelop(p)) is { } plain)
+            throw new HubError($"{plain.Name} hat kein Entwickler-Werkzeug.");
 
-        return StartJob(projects, null, job =>
+        return StartJob(projects, develop ? "Entwickler-Build" : null, job =>
         {
-            foreach (var p in projects) Build(job, p, release: false);
+            foreach (var p in projects) Build(job, p, release: false, develop);
         });
+    }
+
+    /// <summary>The project's .csproj compiles a developer tool in when DevTools=true is passed.</summary>
+    public bool CanDevelop(ProjectDef p)
+    {
+        try
+        {
+            return p.Project != null && File.Exists(_paths.Resolve(p.Project)) &&
+                   File.ReadAllText(_paths.Resolve(p.Project)).Contains("'$(DevTools)'", StringComparison.Ordinal);
+        }
+        catch { return false; }
     }
 
     /// <summary>
@@ -89,11 +106,11 @@ public sealed class Builds
     /// <summary>
     /// One dotnet build; a release build passes HubRelease=true, so Version.props leaves out "-test".
     /// </summary>
-    public bool Build(BuildJob job, ProjectDef p, bool release)
+    public bool Build(BuildJob job, ProjectDef p, bool release, bool develop = false)
     {
-        job.Add($"── {p.Name}{(release ? " (Release)" : "")} ──");
+        job.Add($"── {p.Name}{(release ? " (Release)" : develop ? " (Entwickler-Build)" : "")} ──");
         int code;
-        try { code = Dotnet(job, _paths.Resolve(p.Project!), release); }
+        try { code = Dotnet(job, _paths.Resolve(p.Project!), release, develop && !release); }
         catch (Exception ex)
         {
             job.Add("Fehler: " + ex.Message);
@@ -103,11 +120,11 @@ public sealed class Builds
         string rhp = _paths.Resolve(p.Output!);
         DateTime? time = File.Exists(rhp) ? File.GetLastWriteTime(rhp) : null;
         job.AddResult(new BuildResult(p.Id, p.Name, code == 0,
-            code == 0 ? "Gebaut" : $"Fehlgeschlagen (Code {code})", time));
+            code == 0 ? (develop && !release ? "Gebaut, mit Entwickler-Werkzeug" : "Gebaut") : $"Fehlgeschlagen (Code {code})", time));
         return code == 0;
     }
 
-    private static int Dotnet(BuildJob job, string csproj, bool release)
+    private static int Dotnet(BuildJob job, string csproj, bool release, bool develop = false)
     {
         var psi = new ProcessStartInfo("dotnet")
         {
@@ -123,6 +140,7 @@ public sealed class Builds
         foreach (string a in new[] { "build", csproj, "-c", "Release", "-nologo", "-v:minimal", "-nodeReuse:false" })
             psi.ArgumentList.Add(a);
         if (release) psi.ArgumentList.Add("-p:HubRelease=true");
+        if (develop) psi.ArgumentList.Add("-p:DevTools=true");
         psi.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         psi.Environment["DOTNET_NOLOGO"] = "1";
 

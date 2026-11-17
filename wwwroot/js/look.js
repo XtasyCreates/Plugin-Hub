@@ -1,5 +1,5 @@
 // How the hub looks on this device: mode, lettering, surfaces, the dot grid, the table in the
-// title block, movement. Kept in this browser - the phone may look different from the PC - and
+// title block, the milestones on the overview, movement. Kept in this browser - the phone may look different from the PC - and
 // put on before the first paint by the few lines in index.html, which read the same entry.
 
 const KEY = 'hub.look';
@@ -14,6 +14,8 @@ export const LOOK = {
   surfaces: { label: 'Flächen', values: [['lines', 'Linien'], ['cards', 'Karten']], cls: { cards: 'cards' } },
   grid: { label: 'Punktraster', values: [['on', 'An'], ['off', 'Aus']], cls: { off: 'no-grid' } },
   block: { label: 'Tabelle im Plankopf', values: [['on', 'An'], ['off', 'Aus']], cls: { off: 'no-plankopf' } },
+  milestones: { label: 'Meilensteine', values: [['on', 'An'], ['off', 'Aus']], cls: { off: 'no-milestones' },
+    hint: 'Die Maßkette auf der Übersicht – aus heißt: Dieses Gerät zeigt und meldet sie nicht.' },
   motion: { label: 'Bewegung', values: [['on', 'An'], ['off', 'Aus']], cls: { off: 'no-motion' },
     hint: 'Der Hub entscheidet das selbst – auch wenn in Windows die Animationseffekte aus sind.' },
 };

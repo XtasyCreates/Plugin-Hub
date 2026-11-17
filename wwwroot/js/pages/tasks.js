@@ -53,7 +53,7 @@ export async function render(main) {
       <header class="page-head">
         <div>
           <h1>Aufgaben</h1>
-          <p class="sub">${open.length} offen${open.some((t) => t.priority === 'hoch') ? `, davon ${open.filter((t) => t.priority === 'hoch').length} wichtig` : ''} · liegt in Hub\\tasks.json – Claude sieht dieselbe Liste.</p>
+          <p class="sub">${open.length} offen${open.some((t) => t.priority === 'hoch') ? `, davon ${open.filter((t) => t.priority === 'hoch').length} wichtig` : ''} · liegt in ${esc(o.dataDir)}\\tasks.json – Claude sieht dieselbe Liste.</p>
         </div>
         <button class="btn primary" data-new>${icon('plus')} Aufgabe</button>
       </header>

@@ -40,7 +40,7 @@ Die fünf Dateien, die sich gegenüber `wwwroot` unterscheiden – Stand der Sei
 
 ## Einbauen (falls du dich dafür entscheidest)
 
-Die fünf Dateien über die gleichnamigen in `PluginHub\wwwroot` legen – vorher prüfen, ob sich die
+Die fünf Dateien über die gleichnamigen in `wwwroot` (im Ordner des Hubs) legen – vorher prüfen, ob sich die
 Seiten seit dem 08.10.2026 geändert haben, sonst gehen neuere Änderungen an `app.js`, `parts.js`,
 `overview.js` oder `customers.js` verloren. Die Seiten werden ohne Neubau des Hubs geladen.
 

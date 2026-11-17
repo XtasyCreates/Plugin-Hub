@@ -70,13 +70,21 @@ public sealed class Settings
 
         lock (_gate)
         {
-            string oldContact = Shared.Contact;
+            var old = Shared;
+
+            // First what can fail: a website whose settings file the hub cannot read must not
+            // leave the switch saved as "open" while its pages still say "available soon"
+            if (old.ShopOpen != settings.ShopOpen) WebsiteConfig.SetShopOpen(_config.WebsiteFolder(), settings.ShopOpen);
+
             Json.Write(SharedFile, settings);
 
-            // The contact is compiled into the plug-ins: write it where they read it
-            if (oldContact != settings.Contact)
+            // The contact and the shop switch are compiled into the plug-ins: write them where
+            // they read them. A plug-in without a key pair has no such file yet - it gets
+            // both when its key is made.
+            if (old.Contact != settings.Contact || old.ShopOpen != settings.ShopOpen)
                 foreach (var project in _config.Current.Projects.Where(p => p.IsPlugin && p.KeyFile != null))
-                    PluginActivationFile.WriteContact(_paths, project, settings.Contact);
+                    if (PluginActivationFile.ReadKey(_paths, project) != null || old.Contact != settings.Contact)
+                        PluginActivationFile.WriteSettings(_paths, project, settings.Contact, settings.ShopOpen);
         }
         return settings;
     }
@@ -173,6 +181,13 @@ public sealed class HubSettings
     public string SalesChannel { get; set; } = "mail";
     /// <summary>Where the website's visit numbers come from - "off" while the site is not online.</summary>
     public string SiteStats { get; set; } = "off";
+
+    /// <summary>
+    /// Licenses can be bought. From then on "Buy" is the button that stands out and the free
+    /// trial steps back - on the website (shopOpen in its config.js) and in the plug-ins'
+    /// activation window (Activation.cs, with the next build). The hub writes both.
+    /// </summary>
+    public bool ShopOpen { get; set; }
 }
 
 /// <summary>What one plug-in may set for itself (Hub\settings.json, "products").</summary>

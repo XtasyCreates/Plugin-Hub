@@ -522,6 +522,38 @@ public sealed class PhoneAccess
         catch { return false; }
     }
 
+    /// <summary>
+    /// The entry that starts the hub with Windows names the .exe by its full path. After the
+    /// hub's folder was moved or renamed it would start nothing, and the phone would find no
+    /// hub after the next restart - so a hub that finds another path there writes its own.
+    /// Only while phone access is on, and only an entry that exists: one the user removed
+    /// stays removed.
+    /// </summary>
+    public void FollowAutostart()
+    {
+        if (!_state.Enabled) return;
+        try
+        {
+            string? now = AutostartCommand();
+            if (now == null || string.Equals(now, Command(), StringComparison.OrdinalIgnoreCase)) return;
+            SetAutostart(true);
+            Log.Info($"Autostart now points here: {Command()} (was {now})");
+        }
+        catch (Exception ex) when (ex is HubError or IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            Log.Error("Autostart could not follow the hub: " + ex.Message);
+        }
+    }
+
+    /// <summary>What starts with Windows under the hub's name; null when nothing does.</summary>
+    private static string? AutostartCommand()
+    {
+        if (TestHub())
+            return TestAutostartFile() is string f && File.Exists(f) ? File.ReadAllText(f).Trim() : null;
+        using var key = Registry.CurrentUser.OpenSubKey(RunKey);
+        return key?.GetValue(RunValue) is string value && value.Length > 0 ? value : null;
+    }
+
     private static void SetAutostart(bool on)
     {
         if (TestHub())

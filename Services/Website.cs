@@ -4,10 +4,10 @@ using Microsoft.Extensions.FileProviders;
 namespace PluginHub.Services;
 
 /// <summary>
-/// The customers' website (the Website folder next to the plug-ins) as a preview under
-/// /website/ - on the PC and, with phone access on, on the phone. It only reads, and only what
-/// belongs to the site (pages, styles, scripts, images, fonts); notes such as the README stay
-/// unserved.
+/// The customers' website (the folder of the project of kind "website", beside the hub's) as a
+/// preview under /website/ - on the PC and, with phone access on, on the phone. It only reads,
+/// and only what belongs to the site (pages, styles, scripts, images, fonts); notes such as
+/// the README stay unserved.
 /// </summary>
 public static class Website
 {
@@ -22,10 +22,9 @@ public static class Website
         [".pdf"]  = "application/pdf", [".mp4"] = "video/mp4"
     };
 
-    public static void Serve(WebApplication app, HubPaths paths)
+    public static void Serve(WebApplication app, string? folder)
     {
-        string folder = Path.Combine(paths.Root, "Website");
-        if (!Directory.Exists(folder)) return;
+        if (folder == null || !Directory.Exists(folder)) return;
 
         // "/website" without the slash gets a relative redirect - the built-in one is absolute
         // and would send the phone to http://, while it reaches the hub only over https

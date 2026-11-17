@@ -29,7 +29,7 @@ function sectionOf(field, plugins, website) {
   const number = NUMBERS.find((n) => field === n || field.startsWith(`${n}-`));
   // Links from before each plug-in had its own numbers name no plug-in: the first one
   if (number) return field.includes('-') ? field.slice(number.length + 1) : plugins[0]?.id;
-  if (['verkaufsweg', 'website-statistik', 'salesChannel', 'siteStats', 'channel'].includes(field)) return website?.id;
+  if (['verkaufsweg', 'website-statistik', 'kauf', 'salesChannel', 'siteStats', 'shopOpen', 'channel'].includes(field)) return website?.id;
   return GENERAL;
 }
 
@@ -58,7 +58,7 @@ export async function render(main, { params = {} } = {}) {
       <header class="page-head">
         <div>
           <h1>Einstellungen</h1>
-          <p class="sub">Für den Hub allgemein und für jedes Projekt einzeln. Allgemeines liegt in Hub\\settings.json (in Git), das Mailkonto nur auf diesem PC, das Aussehen in diesem Browser.</p>
+          <p class="sub">Für den Hub allgemein und für jedes Projekt einzeln. Allgemeines liegt in ${esc(o.dataDir)}\\settings.json (in Git), das Mailkonto nur auf diesem PC, das Aussehen in diesem Browser.</p>
         </div>
       </header>
       <div class="filters" role="group" aria-label="Bereich">${sections.map((x) => `
@@ -78,6 +78,7 @@ export async function render(main, { params = {} } = {}) {
     contact: s.contact, signature: s.signature, seller: s.seller, sellerAddress: s.sellerAddress,
     trialDays: s.trialDays, followUpDays: s.followUpDays, endingSoonDays: s.endingSoonDays, defaultLanguage: s.defaultLanguage,
     salesChannel: s.salesChannel ?? 'mail', siteStats: s.siteStats ?? 'off', products: s.products ?? {},
+    shopOpen: s.shopOpen === true,
     ...changes,
   });
   const on = (id, handler) => { const form = main.querySelector(`#${id}`); if (form) form.onsubmit = handler; };
@@ -100,8 +101,12 @@ export async function render(main, { params = {} } = {}) {
 
   on('channel', (e) => save(e, () => {
     const f = new FormData(e.target);
-    return put('/api/settings/shared', sharedBody({ salesChannel: f.get('salesChannel'), siteStats: f.get('siteStats') }));
-  }, 'Gespeichert – neue Codes merken sich diesen Verkaufsweg'));
+    return put('/api/settings/shared', sharedBody({
+      salesChannel: f.get('salesChannel'), siteStats: f.get('siteStats'), shopOpen: f.get('shopOpen') === 'true',
+    }));
+  }, (s.shopOpen === true) !== (new FormData(e.target).get('shopOpen') === 'true')
+    ? 'Gespeichert. Die Website zeigt es sofort, die Plugins mit dem nächsten Build.'
+    : 'Gespeichert – neue Codes merken sich diesen Verkaufsweg'));
 
   // One "Speichern" for address and password: two buttons meant saving one and forgetting the other
   on('mail', (e) => save(e, async () => {
@@ -154,6 +159,17 @@ export async function render(main, { params = {} } = {}) {
       if (result !== undefined) {
         toast('Alle Plugins haben jetzt dieselben Werte');
         changed();
+      }
+      return;
+    }
+
+    const shop = e.target.closest('[data-shop]');
+    if (shop) {
+      const form = shop.closest('form');
+      form.querySelector('[name=shopOpen]').value = shop.dataset.shop;
+      for (const b of form.querySelectorAll('[data-shop]')) {
+        b.classList.toggle('on', b === shop);
+        b.setAttribute('aria-checked', String(b === shop));
       }
       return;
     }
@@ -354,6 +370,16 @@ function websiteSection(s) {
             </div>
             <input type="hidden" name="salesChannel" value="${esc(s.salesChannel ?? 'mail')}">
             <span class="hint">Per Mail: Anfrage per Mail, Code aus dem Hub. Online: Website und Zahlungsanbieter.</span>
+          </div>
+          <div class="field" data-place="kauf">
+            <span>Kauf <em>ab wann „Buy“ der orange Knopf ist</em></span>
+            <div class="seg" role="radiogroup" aria-label="Kauf">
+              <button type="button" role="radio" aria-checked="${s.shopOpen !== true}" class="${s.shopOpen !== true ? 'on' : ''}" data-shop="false">Noch nicht möglich</button>
+              <button type="button" role="radio" aria-checked="${s.shopOpen === true}" class="${s.shopOpen === true ? 'on' : ''}" data-shop="true">Geöffnet</button>
+            </div>
+            <input type="hidden" name="shopOpen" value="${s.shopOpen === true}">
+            <span class="hint">Geöffnet: „Buy“ ist überall orange und „Free trial“ schlicht – auf der Website sofort
+              (shopOpen in js/config.js, dort werden auch die Kauf-Knöpfe aktiv), im Aktivierungsfenster der Plugins nach dem nächsten Build.</span>
           </div>
           <label class="field" data-place="website-statistik"><span>Website-Statistik <em>Quelle der Aufrufe</em></span>
             <select name="siteStats">

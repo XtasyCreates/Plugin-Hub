@@ -40,6 +40,30 @@ public sealed class Config
         ?? throw new HubError($"Unbekanntes Projekt „{id}“.");
 
     /// <summary>
+    /// The folders directly under the root that belong to a project - "Plugins Rhino", "Plugin
+    /// Hub", "Website" … What the hub looks through (documents, sources) it looks through in
+    /// these, never in the whole root: other things lie there too.
+    /// </summary>
+    public List<string> TopFolders() =>
+        Current.Projects
+            .Select(p => p.Folder.Replace('\\', '/').Trim('/').Split('/')[0])
+            .Where(f => f.Length > 0 && f != "." && f != "..")
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(_paths.Resolve)
+            .Where(Directory.Exists)
+            .ToList();
+
+    /// <summary>The customers' website: the folder of the project of kind "website"; null without one.</summary>
+    public string? WebsiteFolder()
+    {
+        var site = Current.Projects.FirstOrDefault(p => p.Kind == "website");
+        return site == null ? null : _paths.Resolve(site.Folder);
+    }
+
+    /// <summary>Where the customer packages go: a folder per plug-in and version.</summary>
+    public string ReleasesFolder(ProjectDef p) => Path.Combine(_paths.Resolve(Current.Releases), p.Name);
+
+    /// <summary>
     /// A link from projects.json by its id - the page never sends a path of its own. The one
     /// exception, "path:&lt;relative path&gt;", points at a file the hub itself named (in a
     /// warning, say) and must lie inside the root folder.
@@ -55,7 +79,7 @@ public sealed class Config
             string relative = id[5..];
             string full = Path.GetFullPath(Path.Combine(_paths.Root, relative));
             if (!_paths.InsideRoot(full))
-                throw new HubError("Dieser Pfad liegt außerhalb von „Plugins Rhino“.");
+                throw new HubError("Dieser Pfad liegt außerhalb der Projektordner.");
             return new LinkDef { Id = id, Kind = Directory.Exists(full) ? "folder" : "select", Path = relative };
         }
 
@@ -68,6 +92,8 @@ public sealed class HubConfig
     public List<ProjectDef> Projects { get; set; } = new();
     public List<LinkDef> Links { get; set; } = new();
     public List<CleanupDef> Cleanup { get; set; } = new();
+    /// <summary>The folder the customer packages of the plug-ins are kept in - in their repository.</summary>
+    public string Releases { get; set; } = "Releases";
 }
 
 public sealed class ProjectDef
@@ -76,13 +102,25 @@ public sealed class ProjectDef
     public string Name { get; set; } = "";
     /// <summary>
     /// "plugin" (built, sold, activated), "library" (compiled into the plug-ins), "tool" (the hub
-    /// itself), "website" - or "extra": a project of its own, in this folder or next to it
-    /// ("../TISS Bot"). An extra project stands in the side bar and has its planning; the
-    /// overview, its notices and everything about selling leave it out.
+    /// itself), "website" - or "extra": a project of its own ("TISS Bot"). An extra project
+    /// stands in the side bar and has its planning; the overview, its notices and everything
+    /// about selling leave it out.
     /// </summary>
     public string Kind { get; set; } = "plugin";
     public string Icon { get; set; } = "";
+    /// <summary>Relative to the root, like every path here: "Plugins Rhino/LaserExportPlugin".</summary>
     public string Folder { get; set; } = "";
+    /// <summary>
+    /// Where the project lay before it moved, as old commits name it - the version history
+    /// still counts those commits as its own.
+    /// </summary>
+    public List<string> FormerFolders { get; set; } = new();
+    /// <summary>
+    /// For a project whose repository was split off another one: the last commit it brought
+    /// along. Everything up to it is also in the repository it came from, and the version
+    /// history reads it there.
+    /// </summary>
+    public string? HistorySince { get; set; }
     public string? Note { get; set; }
     /// <summary>A page the project runs itself - its project page in the hub offers to open it.</summary>
     public string? Url { get; set; }
@@ -93,6 +131,13 @@ public sealed class ProjectDef
     /// phone gets there. None: the phone is not offered the page.
     /// </summary>
     public int? PhonePort { get; set; }
+    /// <summary>
+    /// A PowerShell script of the project that makes a copy of it to hand on - everything
+    /// another PC needs - as a new subfolder of <see cref="ShareFolder"/> with a ZIP beside it.
+    /// With both set, the project page offers "Paket erstellen" and lists the copies.
+    /// </summary>
+    public string? ShareScript { get; set; }
+    public string? ShareFolder { get; set; }
     public string? Project { get; set; }
     public string? Output { get; set; }
     public string? PluginGuid { get; set; }
@@ -121,6 +166,12 @@ public sealed class ProjectDef
 
     [JsonIgnore] public bool IsPlugin => Kind == "plugin";
     [JsonIgnore] public bool IsExtra => Kind == "extra";
+
+    /// <summary>
+    /// Built with "Bauen": a plug-in, or a project of its own that names its .csproj and its
+    /// output - AutoDim, a Rhino plug-in that is not sold.
+    /// </summary>
+    [JsonIgnore] public bool IsBuildable => (IsPlugin || IsExtra) && Project != null && Output != null;
 }
 
 public sealed class LinkDef

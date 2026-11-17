@@ -210,7 +210,7 @@ public sealed class Register
         foreach (var l in data.Licenses.OrderBy(l => l.Issued))
         {
             var customer = data.Customers.FirstOrDefault(c => c.Id == l.CustomerId);
-            string product = config.Projects.FirstOrDefault(p => p.Id == l.Product)?.Name ?? l.Product;
+            string product = Suite.Name(l, config);
             Row(sb, customer?.Name, customer?.Email, product, l.MachineId, l.Issued.ToString("dd.MM.yyyy HH:mm", german),
                 l.End?.ToString("dd.MM.yyyy", german) ?? "unbegrenzt", l.Trial ? "ja" : "nein",
                 l.Price?.ToString("0.00", german), l.Paid ? "ja" : "nein", l.Note, l.Code);
@@ -259,7 +259,13 @@ public sealed class License
 {
     public string Id { get; set; } = "";
     public string? CustomerId { get; set; }
+    /// <summary>
+    /// The plug-in a code from before the suite belongs to - or, for a suite code, its products
+    /// joined with '+' ("autodim+laser", "suite"). Show and count it through <see cref="Suite"/>.
+    /// </summary>
     public string Product { get; set; } = "";
+    /// <summary>The products a suite code names (since 17.11.2026); null for a code from before.</summary>
+    public List<string>? Products { get; set; }
     public string MachineId { get; set; } = "";
     public string Code { get; set; } = "";
     /// <summary>Which key signed it - a code dies with its key.</summary>

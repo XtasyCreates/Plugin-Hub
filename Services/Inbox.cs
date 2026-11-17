@@ -16,6 +16,10 @@ namespace PluginHub.Services;
 /// The requests and what became of them are kept in the private folder (inbox.json) - they hold
 /// customers' addresses. While the hub runs it looks every two minutes, and on request.
 ///
+/// A request is done when its answer has gone out: making the code only notes the code on it,
+/// and it stays among the open ones until the mail with that code was really sent - or the
+/// user files it by hand.
+///
 /// Tests: PLUGINHUB_MAIL_DROP=&lt;folder&gt; reads the .eml files there instead of a mailbox, and
 /// PLUGINHUB_IMAP=host:port talks to that server without TLS. A test never logs in to a real account.
 /// </summary>
@@ -114,7 +118,10 @@ public sealed class Inbox
         }
     }
 
-    /// <summary>Marks a request as handled (with the code made for it), turned down, or open again.</summary>
+    /// <summary>
+    /// Files a request by hand - done, turned down, or open again - or notes the code that was
+    /// made for it ("neu" with a code: it stays open until that code is mailed).
+    /// </summary>
     public CodeRequest Handle(string id, string status, string? licenseId)
     {
         if (!Statuses.Contains(status)) throw new HubError($"Unbekannter Stand „{status}“.");
@@ -124,7 +131,35 @@ public sealed class Inbox
             var request = state.Requests.FirstOrDefault(r => r.Id == id) ?? throw new HubError("Diese Anfrage gibt es nicht mehr.");
             request.Status    = status;
             request.HandledAt = status == "neu" ? null : DateTimeOffset.Now;
-            if (!string.IsNullOrEmpty(licenseId)) request.LicenseId = licenseId;
+            if (!string.IsNullOrEmpty(licenseId) && licenseId != request.LicenseId)
+            {
+                // Another code than the one before: that one has not been mailed yet
+                request.LicenseId = licenseId;
+                request.MailedAt  = null;
+            }
+            Json.Write(StateFile, state);
+            return request;
+        }
+    }
+
+    /// <summary>
+    /// A mail with a code has gone out: the request it answers - named by the message it replies
+    /// to, or the open one this code was made for - is done now. Returns it, or null when the
+    /// mail answered no request.
+    /// </summary>
+    public CodeRequest? Answered(string? inReplyTo, string licenseId)
+    {
+        string? parent = string.IsNullOrWhiteSpace(inReplyTo) ? null : inReplyTo.Trim();
+        lock (_file)
+        {
+            var state = State();
+            var request = (parent == null ? null : state.Requests.FirstOrDefault(r => r.MessageId == parent))
+                          ?? state.Requests.FirstOrDefault(r => r.Status == "neu" && r.LicenseId == licenseId);
+            if (request == null) return null;
+
+            request.Status    = "erledigt";
+            request.LicenseId = licenseId;
+            request.MailedAt  = request.HandledAt = DateTimeOffset.Now;
             Json.Write(StateFile, state);
             return request;
         }
@@ -134,7 +169,6 @@ public sealed class Inbox
     public InboxView View(RegisterView register)
     {
         var state = State();
-        var names = _config.Current.Projects.ToDictionary(p => p.Id, p => p.Name);
 
         RequestView Describe(CodeRequest r)
         {
@@ -142,9 +176,17 @@ public sealed class Inbox
             var customer =
                 register.Customers.FirstOrDefault(c => r.FromEmail.Length > 0 && string.Equals(c.Email, r.FromEmail, StringComparison.OrdinalIgnoreCase))
                 ?? register.Customers.FirstOrDefault(c => codes.Any(l => l.License.CustomerId == c.Id));
+
+            // When the code made for it went out - noted on the request since the hub waits for
+            // that, and read from the sent mails for requests from before
+            DateTimeOffset? mailed = r.MailedAt;
+            if (mailed == null && r.LicenseId != null)
+            {
+                var sent = register.Mails.Where(m => m.LicenseId == r.LicenseId && m.Kind is "code" or "extension").ToList();
+                if (sent.Count > 0) mailed = sent.Max(m => m.Sent);
+            }
             return new RequestView(r, customer?.Id, customer?.Name, customer?.Language,
-                codes.Select(l => new KnownCode(l.License.Id, names.GetValueOrDefault(l.License.Product, l.License.Product),
-                    l.Status.State, l.Status.Label)).ToList());
+                codes.Select(l => new KnownCode(l.License.Id, l.Name, l.Status.State, l.Status.Label)).ToList(), mailed);
         }
 
         return new InboxView(Ready, state.Account.Length > 0 ? state.Account : _settings.Mail.SenderEmail,
@@ -309,15 +351,24 @@ public sealed class CodeRequest
     public string Status { get; set; } = "neu";
     /// <summary>The code made for it.</summary>
     public string? LicenseId { get; set; }
+    /// <summary>When the mail with that code went out - that is what makes a request done.</summary>
+    public DateTimeOffset? MailedAt { get; set; }
     public DateTimeOffset? HandledAt { get; set; }
+
+    /// <summary>A code was made for it, but the mail with the code has not gone out.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool AwaitsMail => Status == "neu" && LicenseId != null && MailedAt == null;
 }
 
 public sealed record InboxView(bool Ready, string Account, DateTimeOffset? LastCheck, string? Error, int IntervalMinutes,
     List<RequestView> Requests);
 
-/// <summary>Customer: matched by address, else by a code for the same device. Codes: every code that device has.</summary>
+/// <summary>
+/// Customer: matched by address, else by a code for the same device. Codes: every code that
+/// device has. MailSent: when the code made for the request was mailed; null while it was not.
+/// </summary>
 public sealed record RequestView(CodeRequest Request, string? CustomerId, string? CustomerName, string? CustomerLanguage,
-    List<KnownCode> Codes);
+    List<KnownCode> Codes, DateTimeOffset? MailSent);
 
 public sealed record KnownCode(string LicenseId, string Product, string State, string Label);
 

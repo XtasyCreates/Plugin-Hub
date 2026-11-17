@@ -11,9 +11,10 @@ namespace PluginHub.Services;
 /// <summary>
 /// Releases. The version customers see lives in each plug-in's Version.props; a release builds
 /// with it (no "-test"), packs the customer package - the built files from projects.json plus
-/// guide, licence terms and changes, nothing else - into Releases\&lt;plug-in&gt;\&lt;version&gt;\, commits
-/// that with a tag "&lt;id&gt;-&lt;version&gt;", and moves Version.props on to the next version. The roadmap
-/// cards that were tested go along: they move to "veröffentlicht" in the same commit.
+/// guide, licence terms and changes, nothing else - into Releases\&lt;plug-in&gt;\&lt;version&gt;\ beside the
+/// plug-ins, commits that in their repository with a tag "&lt;id&gt;-&lt;version&gt;", and moves
+/// Version.props on to the next version. The roadmap cards that were tested go along: they
+/// move to "veröffentlicht", committed where the planning lives - the hub's repository.
 /// </summary>
 public sealed class Releases
 {
@@ -33,10 +34,12 @@ public sealed class Releases
     private readonly Builds _builds;
     private readonly Plan _plan;
     private readonly YakPackages _yak;
+    private readonly Repos _repos;
 
     public Releases(HubPaths paths, Config config, Settings settings, Tasks tasks, KeyStore keys, Builds builds, Plan plan,
-        YakPackages yak)
+        YakPackages yak, Repos repos)
     {
+        _repos    = repos;
         _plan     = plan;
         _paths    = paths;
         _config   = config;
@@ -58,7 +61,7 @@ public sealed class Releases
 
     public List<ReleaseRecord> History(ProjectDef p)
     {
-        string dir = Path.Combine(_paths.Root, "Releases", p.Name);
+        string dir = _config.ReleasesFolder(p);
         if (!Directory.Exists(dir)) return new();
         return Directory.GetDirectories(dir)
             .Select(d => Json.Read<ReleaseRecord>(Path.Combine(d, "manifest.json")))
@@ -99,7 +102,7 @@ public sealed class Releases
         var record = History(p).FirstOrDefault(r => r.Version == version)
                      ?? throw new HubError($"{p.Name} {version} gibt es nicht als Release.");
         if (record.Yak == null) throw new HubError($"{p.Name} {version} wurde ohne Rhino-Paket veröffentlicht (vor v52).");
-        return _yak.Push(p, version, Path.Combine(_paths.Root, "Releases", p.Name, version, record.Yak));
+        return _yak.Push(p, version, Path.Combine(_config.ReleasesFolder(p), version, record.Yak));
     }
 
     public ReleasePlan Plan(ProjectDef p)
@@ -133,9 +136,13 @@ public sealed class Releases
     {
         string versionFile = _paths.Resolve(p.VersionFile!);
         string previous    = File.ReadAllText(versionFile);
-        string folder      = Path.Combine(_paths.Root, "Releases", p.Name, version);
+        string folder      = Path.Combine(_config.ReleasesFolder(p), version);
         string tag         = Tag(p, version);
-        string baseCommit  = Git.Head(_paths.Root);
+        // Version, package and tag belong to the plug-in's repository
+        var repo           = _repos.Of(p) ?? throw new HubError($"{p.Name} liegt in keinem Git-Repository.");
+        if (_repos.Find(folder) is not { } home || !Repos.Same(home.Dir, repo.Dir))
+            throw new HubError($"Der Ordner für die Kundenpakete ({_paths.Relative(_config.ReleasesFolder(p))}) liegt nicht im Repository von {p.Name}.");
+        string baseCommit  = Git.Head(repo.Dir);
         string roadmapFile = _plan.RoadmapFile;
         string? roadmap    = File.Exists(roadmapFile) ? File.ReadAllText(roadmapFile) : null;
         int published      = 0;
@@ -164,20 +171,23 @@ public sealed class Releases
                                        : $"Roadmap: {published} getestete Punkte stehen jetzt auf „Veröffentlicht“");
 
             job.Add($"Git: Commit und Tag {tag}");
-            string relFolder = _paths.Relative(folder).Replace('\\', '/');
-            string relVersion = p.VersionFile!.Replace('\\', '/');
-            var files = new List<string> { relVersion, relFolder };
-            if (published > 0) files.Add(_paths.Relative(roadmapFile).Replace('\\', '/'));
-            Git.Exec(_paths.Root, new[] { "add", "--" }.Concat(files).ToArray());
-            Git.Exec(_paths.Root, new[] { "commit", "-q", "-m", $"{p.Name} {version}", "-m",
+            string relVersion = Repos.InRepo(repo, versionFile);
+            var files = new List<string> { relVersion, Repos.InRepo(repo, folder) };
+            // The roadmap goes into the same commit only where it lies in the same repository
+            bool roadmapHere = published > 0 && _repos.Find(roadmapFile) is { } planRepo && Repos.Same(planRepo.Dir, repo.Dir);
+            if (roadmapHere) files.Add(Repos.InRepo(repo, roadmapFile));
+            Git.Exec(repo.Dir, new[] { "add", "--" }.Concat(files).ToArray());
+            Git.Exec(repo.Dir, new[] { "commit", "-q", "-m", $"{p.Name} {version}", "-m",
                 "Released with the Plugin Hub:\n\n" + changes, "--" }.Concat(files).ToArray());
-            Git.Exec(_paths.Root, "tag", tag);
+            Git.Exec(repo.Dir, "tag", tag);
             committed = true;
+
+            if (published > 0 && !roadmapHere) CommitRoadmap(job, p, version, roadmapFile);
 
             string next = NextPatch(version);
             job.Add($"Nächste Version: {next} (Testbuilds heißen ab jetzt {next}-test)");
             WriteVersion(versionFile, File.ReadAllText(versionFile), next);
-            Git.Exec(_paths.Root, "commit", "-q", "-m", $"{p.Name}: next version {next}", "--", relVersion);
+            Git.Exec(repo.Dir, "commit", "-q", "-m", $"{p.Name}: next version {next}", "--", relVersion);
 
             job.Add($"Fertig: {_paths.Relative(Path.Combine(folder, record.Zip))}");
         }
@@ -196,30 +206,68 @@ public sealed class Releases
     }
 
     /// <summary>
-    /// Files the hub itself writes - settings, tasks and templates under Hub\, and each plug-in's
-    /// Activation.cs, and the documents at the top of the folder it edits - that are not committed yet.
+    /// The tested cards of a release now stand on "veröffentlicht" - committed in the repository
+    /// the planning lies in. Not worth failing a finished release for: what cannot be committed
+    /// here stays for "Hub-Änderungen committen".
+    /// </summary>
+    private void CommitRoadmap(BuildJob job, ProjectDef p, string version, string roadmapFile)
+    {
+        if (_repos.Find(roadmapFile) is not { } planRepo) return;
+        try
+        {
+            string file = Repos.InRepo(planRepo, roadmapFile);
+            Git.Exec(planRepo.Dir, "add", "--", file);
+            Git.Exec(planRepo.Dir, "commit", "-q", "-m", $"{p.Name} {version}: Roadmap", "--", file);
+            job.Add($"Git: Roadmap in „{planRepo.Name}“ committed");
+        }
+        catch (HubError ex)
+        {
+            job.Add($"Die Roadmap ließ sich nicht committen ({ex.Message}) – „Hub-Änderungen committen“ holt das nach.");
+        }
+    }
+
+    /// <summary>
+    /// Files the hub itself writes - settings, tasks, planning and templates in its data folder,
+    /// each plug-in's Activation.cs, and the documents it edits - that are not committed yet.
+    /// Relative to the root, whichever repository they lie in.
     /// </summary>
     public List<string> DirtyHubFiles() =>
-        Git.Changes(_paths.Root).Select(c => c.Path).Where(IsHubFile).ToList();
+        _repos.Changes().Select(c => c.Path).Where(IsHubFile).ToList();
 
-    /// <summary>Commits the hub's own files, on request - the only commit the hub makes outside a release.</summary>
+    /// <summary>
+    /// Commits the hub's own files, on request - the only commit the hub makes outside a
+    /// release. Each file is committed in the repository it lies in.
+    /// </summary>
     public int CommitHubFiles()
     {
         var files = DirtyHubFiles();
-        if (files.Count == 0) return 0;
-        Git.Exec(_paths.Root, new[] { "add", "--" }.Concat(files).ToArray());
-        Git.Exec(_paths.Root, new[] { "commit", "-q", "-m", "Plugin Hub: Einstellungen, Aufgaben und Planung", "--" }
-            .Concat(files).ToArray());
-        Log.Info($"Committed hub files: {string.Join(", ", files)}");
-        return files.Count;
+        var placed = files.Select(f => _repos.Locate(f)).Where(l => l != null).Select(l => l!.Value).ToList();
+        foreach (var group in placed.GroupBy(l => l.Repo.Dir, StringComparer.OrdinalIgnoreCase))
+        {
+            var inRepo = group.Select(l => l.Path).ToArray();
+            Git.Exec(group.Key, new[] { "add", "--" }.Concat(inRepo).ToArray());
+            Git.Exec(group.Key, new[] { "commit", "-q", "-m", "Plugin Hub: Einstellungen, Aufgaben und Planung", "--" }
+                .Concat(inRepo).ToArray());
+        }
+        if (placed.Count > 0) Log.Info($"Committed hub files: {string.Join(", ", files)}");
+        return placed.Count;
     }
 
+    // Notes Claude keeps at the top of a folder - part of the project, not the hub's documents
+    private static readonly HashSet<string> OwnNotes = new(StringComparer.OrdinalIgnoreCase) { "README.md", "CLAUDE.md" };
+
+    /// <summary>
+    /// True for a file the hub itself writes (path relative to the root): anything in its data
+    /// folder, a plug-in's Activation.cs, and a document at the top of a project's home folder.
+    /// </summary>
     public bool IsHubFile(string path)
     {
         string p = path.Replace('\\', '/');
-        return p.StartsWith("Hub/", StringComparison.OrdinalIgnoreCase)
-            || (!p.Contains('/') && p.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
-            || _config.Current.Projects.Any(x => x.KeyFile != null && string.Equals(x.KeyFile.Replace('\\', '/'), p, StringComparison.OrdinalIgnoreCase));
+        if (p.StartsWith(_paths.RelativeSlash(_paths.DataDir) + "/", StringComparison.OrdinalIgnoreCase)) return true;
+        if (_config.Current.Projects.Any(x => x.KeyFile != null && string.Equals(x.KeyFile.Replace('\\', '/'), p, StringComparison.OrdinalIgnoreCase)))
+            return true;
+        return p.EndsWith(".md", StringComparison.OrdinalIgnoreCase) && p.Count(c => c == '/') <= 1
+            && !OwnNotes.Contains(Path.GetFileName(p));
     }
 
     private List<ReleaseCheck> Checks(ProjectDef p, string version, ReleaseRecord? last)
@@ -228,17 +276,19 @@ public sealed class Releases
         var checks = new List<ReleaseCheck>();
 
         // What the build is made of must be committed; the hub's own files it can commit itself
-        var folders = (p.Sources.Count > 0 ? p.Sources : new List<string> { p.Folder }).Select(f => f.TrimEnd('/') + "/");
-        var dirty = Git.Changes(_paths.Root).Select(c => c.Path).ToList();
+        var repo = _repos.Of(p);
+        var folders = (p.Sources.Count > 0 ? p.Sources : new List<string> { p.Folder }).Select(f => f.Replace('\\', '/').TrimEnd('/') + "/");
+        var dirty = _repos.Changes().Select(c => c.Path).ToList();
         var work = dirty.Where(d => !IsHubFile(d) && folders.Any(f => d.StartsWith(f, StringComparison.OrdinalIgnoreCase))).ToList();
         bool hubDirty = dirty.Any(IsHubFile);
-        checks.Add(new("clean", "Alles committed", work.Count == 0 && !hubDirty, false, true,
-            work.Count > 0
+        checks.Add(new("clean", "Alles committed", repo != null && work.Count == 0 && !hubDirty, false, true,
+            repo == null ? $"{p.Name} liegt in keinem Git-Repository – ohne lässt sich keine Version festhalten."
+            : work.Count > 0
                 ? $"Nicht committete Arbeit am Plugin: {string.Join(", ", work.Take(3))}{(work.Count > 3 ? " …" : "")}. Lass sie committen, bevor du veröffentlichst."
                 : hubDirty ? "Geänderte Hub-Dateien (Einstellungen, Aufgaben, Planung) – „Hub-Änderungen committen“ erledigt das." : null));
 
         string? versionProblem = !VersionShape.IsMatch(version) ? $"„{version}“ ist keine Version wie 1.2.0."
-            : Git.TagExists(_paths.Root, Tag(p, version)) ? $"Version {version} gibt es schon."
+            : repo != null && Git.TagExists(repo.Dir, Tag(p, version)) ? $"Version {version} gibt es schon."
             : last != null && ParseVersion(version) <= ParseVersion(last.Version) ? $"Die Version muss über {last.Version} liegen."
             : null;
         checks.Add(new("version", "Version ist neu", versionProblem == null, false, true, versionProblem));
@@ -362,9 +412,14 @@ public sealed class Releases
 
     private List<string> Changes(ProjectDef p, ReleaseRecord? last)
     {
-        var folders = p.Sources.Count > 0 ? p.Sources : new List<string> { p.Folder };
+        if (_repos.Of(p) is not { } repo) return new();
+        // The sources that lie in the plug-in's repository, as that repository names them
+        var folders = (p.Sources.Count > 0 ? p.Sources : new List<string> { p.Folder })
+            .Select(_paths.Resolve)
+            .Where(f => _repos.Find(f) is { } r && Repos.Same(r.Dir, repo.Dir))
+            .Select(f => Repos.InRepo(repo, f));
         var own = new Regex($@"^{Regex.Escape(p.Name)}(:| \d)");
-        return Git.SubjectsSince(_paths.Root, last?.Tag, folders)
+        return Git.SubjectsSince(repo.Dir, last?.Tag, folders)
             .Where(s => !own.IsMatch(s))                  // the release's own commits
             .Select(s => InternalTag.Replace(s, ""))      // "v45 - ..." is Claude's numbering
             .ToList();

@@ -1,7 +1,7 @@
 # Draws the Plugin Hub icon - the orange tile of wwwroot\favicon.svg with its white hub of
 # four nodes - at every size Windows asks for, and packs them into hub.ico (PNG entries).
 #
-#   powershell -ExecutionPolicy Bypass -File tools\make_icon.ps1      (from the PluginHub folder)
+#   powershell -ExecutionPolicy Bypass -File tools\make_icon.ps1      (from the hub's folder)
 
 Add-Type -AssemblyName System.Drawing
 

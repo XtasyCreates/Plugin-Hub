@@ -37,7 +37,8 @@ public sealed class Stats
         var sales = views.Select(v => v.License)
             .Where(l => !l.Trial && Previous(l) is not { Trial: false })
             .ToList();
-        var saleRows = sales.Select(l => new SaleRow(Month(l.Issued), l.Product, Channel(l), l.Price, l.Paid)).ToList();
+        var saleRows = sales.Select(l => new SaleRow(Month(l.Issued), l.Product, Channel(l), l.Price, l.Paid,
+            Suite.ProductsOf(l).ToList())).ToList();
 
         // A trial: where a device's run of trial codes starts - its extensions belong to it
         var trialRows = new List<TrialRow>();
@@ -53,24 +54,29 @@ public sealed class Stats
                 if (next.Trial) trialCodes++;
             }
 
-            // Bought: the run ends in a full licence, or the same customer or device bought this
-            // plug-in afterwards
+            // Bought: the run ends in a full licence, or the same customer or device bought one of
+            // the trial's products afterwards - or the suite
+            var tried = Suite.ProductsOf(trial);
             var bought = sales
-                .Where(s => s.Product == trial.Product && s.Issued >= trial.Issued
+                .Where(s => Suite.ProductsOf(s).Any(p => p == RhinoKit.Licensing.Products.Suite || tried.Contains(p))
+                         && s.Issued >= trial.Issued
                          && (s.MachineId == trial.MachineId || (trial.CustomerId != null && s.CustomerId == trial.CustomerId)))
                 .OrderBy(s => s.Issued)
                 .FirstOrDefault();
             bool running = last.License.Trial && last.Status.State is "valid" or "ending";
 
             trialRows.Add(new TrialRow(Month(trial.Issued), trial.Product, Channel(trial), running, bought != null,
-                bought == null ? null : Math.Max(0, (int)(bought.Issued - trial.Issued).TotalDays), trialCodes > 1));
+                bought == null ? null : Math.Max(0, (int)(bought.Issued - trial.Issued).TotalDays), trialCodes > 1,
+                tried.ToList()));
         }
 
         var requestRows = _inbox.State().Requests
-            .Select(r => new RequestRow(Month(r.Received), r.Product, r.Wants, r.Status == "neu"))
+            .Select(r => new RequestRow(Month(r.Received), r.Product, r.Wants, r.Status == "neu",
+                r.Product == null ? new List<string>() : new List<string> { Suite.ProductOf(r.Product) }))
             .ToList();
 
-        var plugins = _config.Current.Projects.Where(p => p.IsPlugin).Select(p => new StatsProduct(p.Id, p.Name)).ToList();
+        // The products for sale, the suite last - an older SW to Laser code counts as Laser Create
+        var plugins = RhinoKit.Licensing.Products.All.Select(p => new StatsProduct(p.Id, p.Name)).ToList();
         return new StatsView(shared.SalesChannel, shared.SiteStats, Month(DateTimeOffset.Now), plugins,
             saleRows, trialRows, requestRows);
     }
@@ -90,11 +96,15 @@ public sealed record StatsView(string Channel, string SiteStats, string Now, Lis
 
 public sealed record StatsProduct(string Id, string Name);
 
+// Products on every row: what it covers as product ids (see Suite.ProductsOf) - the page's filter
+// for a product matches a row that names it, or the suite
+
 /// <summary>One sale: month, plug-in, way of sale (mail | online), price (null when none was given), paid.</summary>
-public sealed record SaleRow(string Month, string Product, string Channel, decimal? Price, bool Paid);
+public sealed record SaleRow(string Month, string Product, string Channel, decimal? Price, bool Paid, List<string> Products);
 
 /// <summary>One device's trial: still running, bought afterwards and after how many days, extended.</summary>
-public sealed record TrialRow(string Month, string Product, string Channel, bool Running, bool Bought, int? DaysToBuy, bool Extended);
+public sealed record TrialRow(string Month, string Product, string Channel, bool Running, bool Bought, int? DaysToBuy, bool Extended,
+    List<string> Products);
 
 /// <summary>One code request from the mailbox: wants trial | full | null (nothing ticked), still open.</summary>
-public sealed record RequestRow(string Month, string? Product, string? Wants, bool Open);
+public sealed record RequestRow(string Month, string? Product, string? Wants, bool Open, List<string> Products);

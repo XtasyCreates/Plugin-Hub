@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <!--
-    Plugin Hub - the local control room for the Rhino plug-ins in this folder:
-    activation codes, the customer register, builds, quick access and warnings.
+    Plugin Hub - the local control room for the Rhino plug-ins in the folder beside this one
+    ("Plugins Rhino"): activation codes, the customer register, builds, quick access and warnings.
 
     It runs on this PC only (http://127.0.0.1) and is used in the browser. It holds
     the private activation keys (encrypted, outside this folder), so it must never
@@ -26,6 +26,10 @@
     <ApplicationIcon>hub.ico</ApplicationIcon>
     <!-- Only for the icon in the notification area (Services/TrayIcon.cs) -->
     <UseWindowsForms>true</UseWindowsForms>
+    <!-- The hub's data (Hub\) and the design drafts lie in this folder, but are no part of the
+         program: a web project would otherwise copy every .json beside the .exe - and the hub,
+         looking for Hub\projects.json from there upwards, would find that stale copy first. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Hub\**;design\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <!-- Windows Forms names (Control, Timer, Application …) stay out of the other files;
@@ -37,10 +41,13 @@
 
   <!-- What an activation code is and how the machine id is made come from RhinoKit,
        compiled in from the very files the plug-ins use: codes made here are checked
-       by the same lines inside Rhino. -->
+       by the same lines inside Rhino. RhinoKit lies with the plug-ins, in the folder
+       beside this one - without "Plugins Rhino" there, the hub does not build. -->
   <ItemGroup>
-    <Compile Include="..\RhinoKit\Licensing\ActivationCode.cs" Link="RhinoKit\ActivationCode.cs" />
-    <Compile Include="..\RhinoKit\Licensing\MachineId.cs" Link="RhinoKit\MachineId.cs" />
+    <Compile Include="..\Plugins Rhino\RhinoKit\Licensing\ActivationCode.cs" Link="RhinoKit\ActivationCode.cs" />
+    <Compile Include="..\Plugins Rhino\RhinoKit\Licensing\MachineId.cs" Link="RhinoKit\MachineId.cs" />
+    <!-- What is for sale - the ids a suite code names, their names, which have a trial -->
+    <Compile Include="..\Plugins Rhino\RhinoKit\Licensing\Products.cs" Link="RhinoKit\Products.cs" />
   </ItemGroup>
 
 </Project>

@@ -61,7 +61,9 @@ public sealed class Mailer
         if (!Kinds.Contains(kind)) throw new HubError($"Unbekannte Mail-Art „{kind}“.");
         var license = _register.FindLicense(licenseId) ?? throw new HubError("Diese Lizenz gibt es nicht mehr.");
         var customer = license.CustomerId == null ? null : _register.FindCustomer(license.CustomerId);
-        var project = _config.Project(license.Product);
+        // A suite code: its first product with a project of its own gives the commands - one code
+        // entered in any of the plug-ins activates all it names
+        var project = _config.Project(Suite.ProjectOf(license, _config.Current));
         string lang = language is "de" or "en" ? language : customer?.Language ?? _settings.Shared.DefaultLanguage;
 
         var template = Templates.GetValueOrDefault(kind)?.GetValueOrDefault(lang)
@@ -71,7 +73,7 @@ public sealed class Mailer
         var values = new Dictionary<string, string>
         {
             ["name"]              = customer?.Name ?? "",
-            ["product"]           = project.Name,
+            ["product"]           = Suite.Name(license, _config.Current),
             ["code"]              = license.Code,
             ["deviceId"]          = license.MachineId,
             ["end"]               = license.End is DateOnly end ? DateText(end, lang) : "",
@@ -98,13 +100,13 @@ public sealed class Mailer
             if (!l.Trial || l.End is not DateOnly end || l.ReplacedBy != null || l.FollowUp != null) continue;
             int left = end.DayNumber - Today.DayNumber;
             // Due from FollowUpDays before the end; after two weeks past it, the moment has gone
-            if (left > shared.For(l.Product).FollowUpDays || left < -14) continue;
-            if (_keys.Info(l.Product)?.Fingerprint != l.KeyFingerprint) continue;
+            if (left > shared.For(Suite.ProjectOf(l, _config.Current)).FollowUpDays || left < -14) continue;
+            if (_keys.Info(Suite.KeyOf(l))?.Fingerprint != l.KeyFingerprint) continue;
 
             var customer = data.Customers.FirstOrDefault(c => c.Id == l.CustomerId);
             if (customer == null || !customer.MailConsent || !Settings.IsMailAddress(customer.Email)) continue;
 
-            string product = _config.Current.Projects.FirstOrDefault(p => p.Id == l.Product)?.Name ?? l.Product;
+            string product = Suite.Name(l, _config.Current);
             list.Add(new DueMail(l.Id, customer.Id, customer.Name, product, end, left, Draft("followup", l.Id)));
         }
         return list.OrderBy(d => d.DaysLeft).ToList();

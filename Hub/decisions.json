@@ -239,14 +239,14 @@
   },
   {
     "id": "d68694ec1",
-    "decision": "Jedes Plugin hat einen eigenen, unabhängigen Lizenzcode.",
+    "decision": "Ersetzt am 10.10.2026 (noch nicht umgesetzt) – ein Code schaltet künftig beide Plugins frei, siehe dort. Vorher: Jedes Plugin hat einen eigenen, unabhängigen Lizenzcode.",
     "date": "2026-09-24",
     "source": "Gespräch zum Plugin Hub",
     "created": "2026-09-25T13:39:26+02:00"
   },
   {
     "id": "df32fdca3",
-    "decision": "Ein Git-Repository für den ganzen Ordner „Plugins Rhino“.",
+    "decision": "Ersetzt am 10.10.2026 – Plugins, Hub und Website sind jetzt drei Repositories, siehe dort. Vorher: Ein Git-Repository für den ganzen Ordner „Plugins Rhino“.",
     "date": "2026-09-24",
     "source": "Gespräch zum Plugin Hub",
     "created": "2026-09-25T13:39:26+02:00"
@@ -747,7 +747,7 @@
     "id": "d5c33b340",
     "project": "hub",
     "question": "Wie soll der Hub aussehen?",
-    "decision": "Neues Design „Planblatt“ (Entwurf 2): Normschrift, auf jeder Seite ein Plankopf, Linien statt Kästen, Punktraster, Seitenleiste mit Reitern in ihrer Farbe, kompakt. Entwurf 1 „Werkbank“ und der Stand davor bleiben in PluginHub\\design zum Zurückgehen.",
+    "decision": "Neues Design „Planblatt“ (Entwurf 2): Normschrift, auf jeder Seite ein Plankopf, Linien statt Kästen, Punktraster, Seitenleiste mit Reitern in ihrer Farbe, kompakt. Entwurf 1 „Werkbank“ und der Stand davor bleiben in Plugin Hub\\design zum Zurückgehen.",
     "date": "2026-10-08",
     "source": "Chat 08.10.2026, Auswahl-Dialog",
     "created": "2026-10-08T12:09:35.9344554+02:00"
@@ -787,5 +787,917 @@
     "date": "2026-10-08",
     "source": "Chat 08.10.2026",
     "created": "2026-10-08T12:44:22.3678079+02:00"
+  },
+  {
+    "id": "d926aa164",
+    "decision": "Laser Create und SW to Laser gibt es als ein Paket: zwei Plugins in einem Download und einem Rhino-Paket, ein Code schaltet beide frei, eine Symbolleiste mit dem Import-Knopf von SW to Laser. Bauen, Testen und Planen bleiben je Plugin wie bisher.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, ein Download für beide Plugins)",
+    "created": "2026-10-10T19:26:41.4051281+02:00"
+  },
+  {
+    "id": "dd416fc29",
+    "decision": "Das gemeinsame Produkt heißt „Laser Create“ – im Verkauf, auf der Website und auf der Rhino-Seite. SW to Laser ist ein Teil davon.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, ein Download für beide Plugins)",
+    "created": "2026-10-10T19:26:41.4329139+02:00"
+  },
+  {
+    "id": "dcc343ade",
+    "decision": "Verkauft wird nur das Paket, die Plugins gibt es nicht mehr einzeln: ein Preis, ein Code, eine Testphase, eine Zeile in der Statistik.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, ein Download für beide Plugins)",
+    "created": "2026-10-10T19:26:41.4645321+02:00"
+  },
+  {
+    "id": "d471b7630",
+    "project": "laser",
+    "decision": "Objekte mit mehreren gleich großen, verschieden geformten Seiten: Vor dem Erzeugen fragt ein Fenster, welche Seiten Teile werden – ein Objekt nach dem anderen, alle Seiten sind zunächst angehakt. Nur was angehakt bleibt, kommt auf die Platten.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, CHECK vor dem Erzeugen)",
+    "created": "2026-10-10T19:46:06.1693406+02:00"
+  },
+  {
+    "id": "dffa2d55c",
+    "project": "laser",
+    "decision": "Die im Fenster gewählten Teile liegen weiter gelb markiert auf der Platte, mit dem Punkt „CHECKED“ statt „CHECK“. Sie gelten nicht mehr als ungeprüft.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, CHECK vor dem Erzeugen)",
+    "created": "2026-10-10T19:46:06.200325+02:00"
+  },
+  {
+    "id": "d553f3b67",
+    "project": "laser",
+    "decision": "Die Flächenwahl wird je Objekt in der Datei gemerkt: „Create“ fragt jedes Mal, vorbelegt mit der letzten Wahl; ein Update (Kreispfeil) übernimmt sie still, solange das Objekt unverändert ist.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, CHECK vor dem Erzeugen)",
+    "created": "2026-10-10T19:46:06.2129573+02:00"
+  },
+  {
+    "id": "d1bd149eb",
+    "project": "laser",
+    "decision": "LaserInspect zeigt zu jedem Wand- und Bodenteil die Fläche des Objekts, aus der es geschnitten wurde: flach und orange gefüllt, zusätzlich zum Kasten um das Objekt.",
+    "date": "2026-10-10",
+    "source": "Deine Nachricht vom 10.10.2026",
+    "created": "2026-10-10T19:46:06.2277093+02:00"
+  },
+  {
+    "id": "db9d54888",
+    "project": "laser",
+    "decision": "Ein Satz Platten behält nur die Ebenen, die etwas enthalten.",
+    "date": "2026-10-10",
+    "source": "Deine Nachricht vom 10.10.2026",
+    "created": "2026-10-10T19:46:06.2422852+02:00"
+  },
+  {
+    "id": "d6afae586",
+    "project": "laser",
+    "decision": "„Optimal“ legt Teile gerade – so, wie ihr kleinstes umschließendes Rechteck an den Plattenkanten liegt – und dreht nur in Vierteldrehungen; schräg liegt nur, was sonst nicht auf die Platte passt. Es braucht nie mehr Platten als „Fast“. Eigener Code, keine fremde Bibliothek.",
+    "date": "2026-10-10",
+    "source": "Dein Auftrag vom 10.10.2026 (Nesting ist das Verkaufsargument), Umsetzung von Claude",
+    "created": "2026-10-10T19:46:06.2625979+02:00"
+  },
+  {
+    "id": "d1a937851",
+    "project": "laser",
+    "decision": "Plattennutzung: Das Laser-Panel zeigt, wie viel einer Platte verbraucht ist (bis wohin die Teile reichen – der Rest bleibt am Stück), und je Satz, wie viele Platten Material verbraucht sind und wie dicht die Teile darin liegen („1.3 sheets used · 75 % dense“). Die alte Zahl „Teilefläche ÷ ganze Platte“ entfällt, weil sie bei gleicher Plattenzahl für jedes Nesting dasselbe sagt.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, entschiedene Karten)",
+    "created": "2026-10-10T20:52:52.9691226+02:00"
+  },
+  {
+    "id": "d624e2c89",
+    "project": "swtolaser",
+    "decision": "Ursprung setzen: Der im Modell angeklickte Punkt ist die Mitte des Plans – für die Vorschau und für die gebaute Geometrie. Ohne Klick bleibt es beim Ursprung.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, entschiedene Karten)",
+    "created": "2026-10-10T20:52:52.9842009+02:00"
+  },
+  {
+    "id": "d3a4b6693",
+    "project": "swtolaser",
+    "decision": "Nach dem Bauen bilden alle Umrisse eines Plans eine Gruppe. Die Teile für Laser Create bleiben einzeln.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, entschiedene Karten)",
+    "created": "2026-10-10T20:52:53.0021802+02:00"
+  },
+  {
+    "id": "d5763104a",
+    "decision": "„Kauf geöffnet“ ist ein Schalter im Hub (Einstellungen → Verkaufsweg und Website). Er macht „Buy“ zum orangen Knopf und „Free trial“ zum schlichten – auf der Website sofort, im Aktivierungsfenster der Plugins mit dem nächsten Build.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, entschiedene Karten)",
+    "created": "2026-10-10T20:52:53.0173781+02:00"
+  },
+  {
+    "id": "d7cd4d691",
+    "decision": "Plugin Hub und Website liegen in eigenen Ordnern unter Desktop\\Claude, neben „Plugins Rhino“. Die Daten des Hubs (Planung, Einstellungen, Vorlagen, Lizenztexte) liegen in seinem Ordner unter Hub\\; der Website-Plan liegt bei der Website, die Wake-on-LAN-Anleitung beim Hub.",
+    "date": "2026-10-10",
+    "source": "Dein Auftrag vom 10.10.2026",
+    "created": "2026-10-10T22:35:41+02:00"
+  },
+  {
+    "id": "dda969c72",
+    "decision": "Jeder Ordner ist ein eigenes Git-Repository – Plugins, Hub, Website. „Hochladen“ lädt alle mit einem Klick; für Hub und Website braucht es auf GitHub je ein eigenes privates Repository.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, Umzug)",
+    "created": "2026-10-10T22:35:41+02:00"
+  },
+  {
+    "id": "d1eccbc6c",
+    "decision": "In den Ordnern „Plugin Hub“ und „Website“ liegt je eine CLAUDE.md mit den Arbeitsregeln für Claude – damit sie auch in einem Chat gelten, der direkt in diesem Ordner geöffnet wird.",
+    "date": "2026-10-10",
+    "source": "Deine Wahl im Auswahl-Dialog (10.10.2026, Umzug)",
+    "created": "2026-10-10T22:35:41+02:00"
+  },
+  {
+    "id": "d8508cfe9",
+    "project": "hub",
+    "decision": "Eine Code-Anfrage gilt erst als erledigt, wenn die Mail mit dem Code wirklich gesendet ist. Bis dahin bleibt sie offen und zeigt, dass der Code erzeugt, aber noch nicht verschickt ist.",
+    "date": "2026-10-10",
+    "source": "Deine Notiz an der Karte „Code-Anfragen aus dem Postfach“",
+    "created": "2026-10-10T22:35:41+02:00"
+  },
+  {
+    "id": "d998a0b24",
+    "project": "hub",
+    "decision": "Am Handy zeigt das Board der Planung zwei Spalten nebeneinander (quer drei) und rastet spaltenweise ein.",
+    "date": "2026-10-10",
+    "source": "Deine Notiz an der Karte „Neues Design „Planblatt““",
+    "created": "2026-10-10T22:35:41+02:00"
+  },
+  {
+    "id": "db163b119",
+    "project": "hub",
+    "decision": "Die Meilensteine auf der Übersicht zeigen einen Weg – den zum Verkauf: Erstes Release, Im Rhino Package Manager, Erste Code-Anfrage von außen, Erste Testperson, Erster Kauf, 10 Käufe. Weitere Gruppen gibt es nicht. Codes und Anfragen für den eigenen PC zählen nicht.",
+    "date": "2026-10-11",
+    "source": "Deine Wahl im Auswahl-Dialog (11.10.2026, Meilensteine)",
+    "created": "2026-10-11T14:39:51.6199371+02:00"
+  },
+  {
+    "id": "d5b51b7b0",
+    "project": "hub",
+    "decision": "Eigene Meilensteine sind möglich: Du legst sie an und stempelst sie selbst. Jeder Meilenstein lässt sich ausblenden, auch ein automatischer.",
+    "date": "2026-10-11",
+    "source": "Deine Wahl im Auswahl-Dialog (11.10.2026, Meilensteine)",
+    "created": "2026-10-11T14:39:51.6374127+02:00"
+  },
+  {
+    "id": "ddeec736c",
+    "project": "hub",
+    "decision": "Die Meilensteine sehen aus wie eine Maßkette: ein Strich je Meilenstein, darunter der Stempel mit Datum.",
+    "date": "2026-10-11",
+    "source": "Deine Wahl im Auswahl-Dialog (11.10.2026, Meilensteine)",
+    "created": "2026-10-11T14:39:51.6625085+02:00"
+  },
+  {
+    "id": "d24844e45",
+    "project": "website",
+    "decision": "Die Nesting-Vorführung vergleicht „Fast“ mit „Optimal“, so wie das Plugin heute rechnet – nicht altes gegen neues Optimal. Sie zeigt zwei Beispiele: Geschossplatten und einen Stadtplan.",
+    "date": "2026-10-11",
+    "source": "Deine Wahl im Auswahl-Dialog (11.10.2026, Nesting-Vorführung)",
+    "created": "2026-10-11T14:39:51.6799225+02:00"
+  },
+  {
+    "id": "d5bffd299",
+    "project": "website",
+    "decision": "Die Nesting-Vorführung steht auf der Website, auf der Seite „Laser Create“ – nicht im Plugin.",
+    "date": "2026-10-11",
+    "source": "Deine Wahl im Auswahl-Dialog (11.10.2026, Nesting-Vorführung)",
+    "created": "2026-10-11T14:39:51.6959924+02:00"
+  },
+  {
+    "id": "d48a336e1",
+    "project": "hub",
+    "decision": "Den Pi richtet Claude per SSH über das Heimnetz ein: Du trägst im Imager Claudes öffentlichen Schlüssel ein; Claude installiert Updates, Tailscale und die Weck-Seite. Die Tailscale-Anmeldung und die Freigaben klickst du.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Wecker)",
+    "created": "2026-10-15T17:32:36.2130622+02:00"
+  },
+  {
+    "id": "d67eb27c4",
+    "project": "hub",
+    "decision": "Die Weck-Seite weckt den PC sofort beim Öffnen – ein Tipp auf das Symbol genügt.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Wecker)",
+    "created": "2026-10-15T17:32:36.2424075+02:00"
+  },
+  {
+    "id": "dab6ebbf4",
+    "project": "hub",
+    "decision": "Sobald der PC wach ist, öffnet sich der Plugin Hub von selbst; solange er lädt, steht ein Knopf für den TISS Bot daneben.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Wecker)",
+    "created": "2026-10-15T17:32:36.2732426+02:00"
+  },
+  {
+    "id": "d94a0cfa2",
+    "project": "hub",
+    "decision": "Der Pi spielt Sicherheits-Updates selbst ein (Debian, Kernel und Firmware des Pi, Tailscale) und startet, wenn eines das verlangt, um 4:30 Uhr kurz neu.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Wecker)",
+    "created": "2026-10-15T17:32:36.2885607+02:00"
+  },
+  {
+    "id": "d0d47c2fa",
+    "project": "tiss",
+    "decision": "TISS-Helfer: Der Bot liefert, der Pi verteilt. Nach jedem Lesen (Start, alle 12 Stunden) schickt der Bot das Kalender-Abo und die anstehenden Termine deiner LVAs an den Pi; der Pi stellt das Abo rund um die Uhr bereit und erinnert per Push. TISS liest der Pi nie selbst.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Pi-Projekte)",
+    "created": "2026-10-15T21:56:31.5637876+02:00"
+  },
+  {
+    "id": "d2aa737af",
+    "project": "tiss",
+    "decision": "Erinnerungen vom Pi per ntfy: Abmeldefrist endet (1 Tag vorher, für angemeldete Prüfungen), Anmeldung öffnet (1 Stunde vorher, für Prüfungen deiner LVAs ohne Anmeldung), neuer Prüfungstermin. Keine Erinnerung „Prüfung morgen“.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Pi-Projekte)",
+    "created": "2026-10-15T21:56:31.596609+02:00"
+  },
+  {
+    "id": "d3ccdacca",
+    "project": "tiss",
+    "decision": "Ein Tippen auf eine Erinnerung des Pi öffnet die Prüfungsanmeldung der LVA in TISS – das geht auch, wenn der Laptop schläft.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, TISS-Helfer)",
+    "created": "2026-10-15T21:56:31.6238334+02:00"
+  },
+  {
+    "id": "d3b8cbad7",
+    "project": "tiss",
+    "decision": "Nachts (22–8 Uhr) keine Erinnerungen: „Abmeldung endet“ kommt dann um 21 Uhr davor, ein neuer Prüfungstermin um 8 Uhr; „Anmeldung öffnet“ kommt immer genau 1 Stunde vorher.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, TISS-Helfer)",
+    "created": "2026-10-15T21:56:31.647241+02:00"
+  },
+  {
+    "id": "da5bf01e8",
+    "project": "tiss",
+    "decision": "Nur Push: Ist ein Pi eingetragen, hat „Abmeldung endet“ im Kalender-Abo keinen eigenen Alarm mehr – sonst erinnerten iPhone-Kalender und ntfy doppelt.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, TISS-Helfer)",
+    "created": "2026-10-15T21:56:31.6699026+02:00"
+  },
+  {
+    "id": "db7c60199",
+    "project": "hub",
+    "decision": "Code-Anfragen-Melder auf dem Pi: Er schaut alle 2 Minuten ins Postfach – nur lesend wie der Hub – und meldet neue Code-Anfragen per ntfy auf dem Push-Namen des TISS Bots, nur mit Plugin und Art, ohne Kundendaten. Er erinnert alle 12 Stunden, bis der Code raus ist, und prüft dazu die Gesundheit des Pi. Zugang über ein eigenes Gmail-App-Passwort nur für den Pi, das du selbst eintippst.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Pi-Projekte)",
+    "created": "2026-10-16T10:26:43.9050923+02:00"
+  },
+  {
+    "id": "d390fd1a9",
+    "project": "hub",
+    "decision": "Melder: Die Erinnerungen enden bei jeder Antwort auf die Anfrage (In-Reply-To oder References im Gesendet-Ordner), bei einer Antwort auf dieselbe Anfrage desselben Geräts (doppelt geschickt) und wenn die Mail in Gmail archiviert oder gelöscht ist. Nach 7 Tagen ohne all das kommt eine letzte Meldung, danach Ruhe.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Code-Anfragen-Melder)",
+    "created": "2026-10-16T10:26:43.9304006+02:00"
+  },
+  {
+    "id": "d1105d861",
+    "project": "hub",
+    "decision": "Melder: Eine Erinnerung alle 12 Stunden für alle offenen Anfragen. Fällt sie zwischen 22 und 8 Uhr, kommt sie um 8 Uhr; neue Anfragen meldet er sofort, auch nachts.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Code-Anfragen-Melder)",
+    "created": "2026-10-16T10:26:43.9615902+02:00"
+  },
+  {
+    "id": "da71019df",
+    "project": "hub",
+    "decision": "Melder: Ein Tippen auf die Meldung öffnet die Wecker-Seite – sie weckt den PC und führt im Hub direkt zu den Code-Anfragen (#/mails?feld=anfragen).",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Code-Anfragen-Melder)",
+    "created": "2026-10-16T10:26:43.9911448+02:00"
+  },
+  {
+    "id": "d8356f070",
+    "project": "hub",
+    "decision": "Melder: Die Gesundheit des Pi meldet er, wenn etwas nicht stimmt und wenn es wieder gut ist (ab 75 °C, unter 2 GB frei, Unterspannung, AdGuard oder Wecker nehmen keine Verbindung an, Postfach 30 Minuten nicht lesbar), dazu sonntags um 10 Uhr eine leise Zeile „Pi läuft“.",
+    "date": "2026-10-15",
+    "source": "Deine Wahl im Auswahl-Dialog (15.10.2026, Code-Anfragen-Melder)",
+    "created": "2026-10-16T10:26:44.0074414+02:00"
+  },
+  {
+    "id": "dbfd04d84",
+    "project": "autodim",
+    "question": "Wofür ist das Plugin gedacht?",
+    "decision": "Eigenes Werkzeug: ohne Aktivierung, nicht zum Verkauf – später noch zum Verkaufs-Plugin machbar.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.6154214+02:00"
+  },
+  {
+    "id": "d06edcf52",
+    "project": "autodim",
+    "question": "Wie sollen die Maße erscheinen?",
+    "decision": "Live auf dem Bildschirm, nie ungefragt im Modell; ein Knopf macht das Gezeigte zu echten Rhino-Bemaßungen.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.6470888+02:00"
+  },
+  {
+    "id": "d6232ad6b",
+    "project": "autodim",
+    "question": "Welche Objekte bekommen Maße?",
+    "decision": "Kurven, Körper und Flächen, Meshes und SubD (nur Gesamtmaße, Fläche, Volumen), Blöcke (die ganze Instanz).",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.6774841+02:00"
+  },
+  {
+    "id": "da8925744",
+    "project": "autodim",
+    "question": "Wie wird das Plugin bedient?",
+    "decision": "Panel in der Seitenleiste plus Befehle AutoDim, AutoDimSelected, AutoDimAll, AutoDimOff, AutoDimBake.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.7091301+02:00"
+  },
+  {
+    "id": "d1394468a",
+    "project": "autodim",
+    "question": "Wie bestimmt man im Klick-Modus das Objekt?",
+    "decision": "Der Modus folgt der Rhino-Auswahl – eins oder mehrere Objekte.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.7385842+02:00"
+  },
+  {
+    "id": "d856586d5",
+    "project": "autodim",
+    "question": "Wie heißt das Plugin?",
+    "decision": "AutoDim.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.7689351+02:00"
+  },
+  {
+    "id": "dfb978d5f",
+    "project": "autodim",
+    "question": "In welcher Sprache sind Panel und Meldungen?",
+    "decision": "Englisch, wie Laser Create und SW to Laser.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.7990164+02:00"
+  },
+  {
+    "id": "d11710a4c",
+    "project": "autodim",
+    "question": "Steht AutoDim im Plugin Hub?",
+    "decision": "Ja, als Projekt mit Karten (gebaut mit Test-Schritten) und Bauen-Knopf.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.8134916+02:00"
+  },
+  {
+    "id": "d2d1a0d3e",
+    "project": "autodim",
+    "question": "Welche Objekte bekommen im Modus „All“ Maße?",
+    "decision": "Alle sichtbaren Objekte, ohne Layer-Filter.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.8253475+02:00"
+  },
+  {
+    "id": "d28b39831",
+    "project": "autodim",
+    "question": "Woran richten sich Länge × Breite × Höhe aus?",
+    "decision": "Am Objekt: ein gedrehtes Objekt bekommt seine echten Maße; die Höhe bleibt senkrecht, außer es ist selbst geneigt.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.8461514+02:00"
+  },
+  {
+    "id": "dc35265a0",
+    "project": "autodim",
+    "question": "Wie sehen die Maße aus?",
+    "decision": "Gemischt: Gesamtmaße als Maßlinien neben dem Objekt, Kantenlängen, Winkel und Radien als Zahl an der Kante; Kanten mit Gesamtmaß werden nicht wiederholt.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.8769325+02:00"
+  },
+  {
+    "id": "d9c56614f",
+    "project": "autodim",
+    "question": "Braucht es eine Maßstab-Umrechnung?",
+    "decision": "Ja: in Rhino in echter Größe gezeichnet, ein Feld „1 : N“ zeigt die Modellgröße (Längen ÷ N, Winkel gleich).",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.9074451+02:00"
+  },
+  {
+    "id": "d0a2d580f",
+    "project": "autodim",
+    "question": "Welche Längenmaße sind wählbar?",
+    "decision": "Gesamtmaße, Kantenlängen, Radius/Durchmesser, Kurvenlänge/Umfang.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.9378306+02:00"
+  },
+  {
+    "id": "de96506f1",
+    "project": "autodim",
+    "question": "Welche Winkel sind wählbar?",
+    "decision": "Winkel an Ecken, Winkel zwischen Flächen, Neigung und Drehung.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.9539719+02:00"
+  },
+  {
+    "id": "de021cdba",
+    "project": "autodim",
+    "question": "Welche weiteren Werte sind wählbar?",
+    "decision": "Fläche und Volumen, Abstände zwischen Objekten (nicht: Dicke, Höhenkoten).",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.9697467+02:00"
+  },
+  {
+    "id": "d316b0ba1",
+    "project": "autodim",
+    "question": "Gelten die Häkchen für beide Modi gemeinsam?",
+    "decision": "Nein, je Modus eigene; im Modus „All“ zeigt ein ausgewähltes Objekt zusätzlich seine vollen Maße.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, 16 Fragen per Auswahl-Dialog",
+    "created": "2026-10-23T21:28:29.9983735+02:00"
+  },
+  {
+    "id": "d50a63b71",
+    "project": "autodim",
+    "question": "Soll es AutoDim auch für den Mac geben?",
+    "decision": "Ja: zweiter Build für net7.0 ohne WPF, gegen RhinoCommon 8.0 (jedes Rhino 8 für Mac, Intel und Apple-Chip), dazu ein Yak-Paket für den Mac bei jedem Release-Build. Getestet wird auf dem Mac.",
+    "date": "2026-10-23",
+    "source": "Chat 23.10.2026 – AutoDim, Wunsch: Mac-Version mit Yak-Paket",
+    "created": "2026-10-23T22:27:43.0734423+02:00"
+  },
+  {
+    "id": "d346548c9",
+    "project": "hub",
+    "question": "Was passiert mit Text in einer Karte, die man schließt?",
+    "decision": "Er wird immer gespeichert: Schließen, Esc und Schritt-Knöpfe speichern, „Auftrag für Claude kopieren“ speichert vorher und nimmt den Text mit, ein Entwurf im Browser übersteht Neuladen; eine neue Karte fragt vor dem Verwerfen.",
+    "date": "2026-10-24",
+    "source": "Chat 24.10.2026 – langer Testbericht zu AutoDim ging beim „Auftrag für Claude kopieren“ verloren",
+    "created": "2026-10-24T16:24:08.4916603+02:00"
+  },
+  {
+    "id": "d36e1a728",
+    "project": "autodim",
+    "question": "Wie wird die Drehung einer Wand angegeben?",
+    "decision": "Zur näheren Achse, höchstens ±45°, mit gestrichelter Achslinie und Bogen – z. B. „-30° to Y“ statt „Rotated 60°“.",
+    "date": "2026-10-24",
+    "source": "Chat 24.10.2026 – AutoDim, Rückmeldung vom ersten Test, 4 Fragen per Auswahl-Dialog",
+    "created": "2026-10-24T17:43:48.6252337+02:00"
+  },
+  {
+    "id": "d268eb1f7",
+    "project": "autodim",
+    "question": "Welche Einheiten stehen zur Auswahl?",
+    "decision": "Doc · Auto · mm · cm · m · km. Doc: die Einheit der Datei; Auto: je Zahl die Einheit, in der sie sich am besten liest; eine feste Einheit gilt für alle Zahlen, Flächen und Volumen folgen ihr.",
+    "date": "2026-10-24",
+    "source": "Chat 24.10.2026 – AutoDim, Rückmeldung vom ersten Test, 4 Fragen per Auswahl-Dialog",
+    "created": "2026-10-24T17:43:48.6406877+02:00"
+  },
+  {
+    "id": "dbaf90a13",
+    "project": "autodim",
+    "question": "Wie wirken Einheit und Modellmaßstab zusammen?",
+    "decision": "Mit Maßstab steht die Modellgröße in der gewählten Einheit: eine 4000-mm-Wand bei 1 : 100 in cm ergibt 4 cm.",
+    "date": "2026-10-24",
+    "source": "Chat 24.10.2026 – AutoDim, Rückmeldung vom ersten Test, 4 Fragen per Auswahl-Dialog",
+    "created": "2026-10-24T17:43:48.6495718+02:00"
+  },
+  {
+    "id": "db597949d",
+    "project": "autodim",
+    "question": "Wie kommt die Box um die Auswahl ins Modell?",
+    "decision": "Nur mit „Add as Rhino dimensions“: als Kurven auf der Ebene „AutoDim::Box around selection“, ihre Maße als Bemaßungen. Vorher wird sie nur gezeichnet.",
+    "date": "2026-10-24",
+    "source": "Chat 24.10.2026 – AutoDim, Rückmeldung vom ersten Test, 4 Fragen per Auswahl-Dialog",
+    "created": "2026-10-24T17:43:48.6673478+02:00"
+  },
+  {
+    "id": "d88ada5c2",
+    "project": "laser",
+    "decision": "Volumen: eigene Art „Volume“ – vierte Liste im Create-Tab und Art unter „By geometry“. Zerlegt wird nur, was dort zugewiesen ist; Wände und Böden laufen weiter wie bisher.",
+    "date": "2026-10-31",
+    "source": "Deine Wahl im Auswahl-Dialog (31.10.2026, Karte „Volumen Laser Create“)",
+    "created": "2026-10-31T02:03:51.7934262+01:00"
+  },
+  {
+    "id": "d34337fa1",
+    "project": "laser",
+    "decision": "Volumen: Wände und Dach (auch schräge Dachflächen) werden Teile, die Unterseite fällt weg – das Modell steht auf seiner Grundplatte.",
+    "date": "2026-10-31",
+    "source": "Deine Wahl im Auswahl-Dialog (31.10.2026, Karte „Volumen Laser Create“)",
+    "created": "2026-10-31T02:03:51.8322209+01:00"
+  },
+  {
+    "id": "d7058efe8",
+    "project": "laser",
+    "decision": "Volumen: Außenmaß bleibt. An jeder Außenecke läuft die längere Wand durch, die andere wird um die Materialstärke gekürzt; das Dach liegt auf den Wänden, die Wände enden unter ihm.",
+    "date": "2026-10-31",
+    "source": "Deine Wahl im Auswahl-Dialog (31.10.2026, Karte „Volumen Laser Create“)",
+    "created": "2026-10-31T02:03:51.8637041+01:00"
+  },
+  {
+    "id": "d3f59494d",
+    "project": "laser",
+    "decision": "Gekrümmte Flächen werden abgewickelt – bei Volumen und generell bei Wänden und Böden. Eine in zwei Richtungen gekrümmte Fläche (Kuppel) wird flach gedrückt und als „needs a look“ gemeldet.",
+    "date": "2026-10-31",
+    "source": "Deine Antwort im Auswahl-Dialog (31.10.2026)",
+    "created": "2026-10-31T02:03:51.8950805+01:00"
+  },
+  {
+    "id": "d886f1e5f",
+    "project": "laser",
+    "decision": "Platten bleiben in jeder Datei-Einheit Millimeter des echten Blatts: gerechnet und gespeichert wird in mm, erst beim Schreiben ins Modell wird in die Einheit der Datei umgerechnet. DXF immer in mm.",
+    "date": "2026-10-31",
+    "source": "Umsetzung von Claude zur Karte „Dokument Einheiten Beheben“",
+    "created": "2026-10-31T02:03:51.9136935+01:00"
+  },
+  {
+    "id": "d516f8834",
+    "project": "laser",
+    "decision": "LaserInspect: Die erste Lösung (Ansicht schiebt sich zum Gegenstück, Rhinos „Rotate view around auto gumball“ wird umgeschaltet) ist am 31.10.2026 ersetzt – LaserInspect dreht jetzt selbst um das Gegenstück, nichts springt, Rhinos Einstellungen bleiben unberührt.",
+    "date": "2026-10-31",
+    "source": "Umsetzung von Claude zur Karte „Inspect Viewport Korrektur“",
+    "created": "2026-10-31T02:03:51.9297664+01:00"
+  },
+  {
+    "id": "dc5ed774d",
+    "project": "laser",
+    "decision": "LaserDevelop kann alles vier: Daten ansehen, Funktionsweise anpassen, Test-Werkzeuge, Fehlersuche.",
+    "date": "2026-10-31",
+    "source": "Deine Wahl im Auswahl-Dialog (31.10.2026, LaserDevelop)",
+    "created": "2026-10-31T17:27:12.4943071+01:00"
+  },
+  {
+    "id": "db1cebb15",
+    "project": "laser",
+    "decision": "LaserDevelop ist ein eigenes Fenster mit Reitern (Data · Tuning · Test · Debug), wie LaserInspect.",
+    "date": "2026-10-31",
+    "source": "Deine Wahl im Auswahl-Dialog (31.10.2026, LaserDevelop)",
+    "created": "2026-10-31T17:27:12.5061207+01:00"
+  },
+  {
+    "id": "d64f27775",
+    "project": "laser",
+    "decision": "In LaserDevelop angepasste Werte gelten nur bei dir, im Entwickler-Build. Was Kunden bekommen, wird im Code geändert.",
+    "date": "2026-10-31",
+    "source": "Deine Wahl im Auswahl-Dialog (31.10.2026, LaserDevelop)",
+    "created": "2026-10-31T17:27:12.5194697+01:00"
+  },
+  {
+    "id": "d9067536b",
+    "project": "hub",
+    "decision": "LaserDevelop baut der Hub mit dem Knopf „Entwickler-Build“ neben „Bauen“. „Bauen“ und jedes Release bleiben ohne – Kunden bekommen es nie.",
+    "date": "2026-10-31",
+    "source": "Deine Wahl im Auswahl-Dialog (31.10.2026, LaserDevelop)",
+    "created": "2026-10-31T17:27:12.5319152+01:00"
+  },
+  {
+    "id": "dc6a4ba01",
+    "project": "laser",
+    "decision": "LaserInspect dreht selbst: Solange ein Teil gewählt ist, dreht die rechte Maustaste in der Perspektive um das Gegenstück, ohne dass die Ansicht springt. Rechtsklick ohne Ziehen bleibt Enter; Umschalt/Strg + rechte Taste bleiben Rhinos.",
+    "date": "2026-10-31",
+    "source": "Deine Wahl im Auswahl-Dialog (31.10.2026, Karte „Springen Ansicht Inspect Beheben“)",
+    "created": "2026-10-31T17:27:12.54358+01:00"
+  },
+  {
+    "id": "d24a48cc7",
+    "project": "laser",
+    "decision": "Flächen, die ohne Kante ineinander übergehen, sind ein Teil und werden zusammen abgewickelt – bei Volumen, Wänden und Böden.",
+    "date": "2026-10-31",
+    "source": "Deine Antwort im Auswahl-Dialog (31.10.2026, Karte „Abwickeln Beheben“)",
+    "created": "2026-10-31T17:27:12.5561484+01:00"
+  },
+  {
+    "id": "dd3797705",
+    "project": "laser",
+    "decision": "Leere Objekte (Breps ohne eine einzige Fläche) meldet Laser Create weiter mit einem ERROR-Punkt unter der Platte. Überspringen mit Hinweis nur dann, wenn solche Punkte aus der Flächen-Auswahl kämen – das tun sie nicht; was im Fenster „Which faces are parts?“ angehakt ist, muss auf die Platte.",
+    "date": "2026-11-08",
+    "source": "Deine Antwort im Auswahl-Dialog (08.11.2026, Karte „CHECK vor dem Erzeugen“)",
+    "created": "2026-11-08T19:29:42.2917042+01:00"
+  },
+  {
+    "id": "d3f9a3dd8",
+    "project": "laser",
+    "decision": "Laser Create legt bei asymmetrischen Teilen die Sichtseite nach oben – die Unterseite bekommt beim Lasern die Brandmarken. Symmetrische Teile bleiben, wie sie sind.",
+    "date": "2026-11-12",
+    "source": "Deine Antworten in der Planung „Sichtseite wählen“ (12.11.2026)",
+    "created": "2026-11-12T18:07:44.2182255+01:00"
+  },
+  {
+    "id": "d42e0be86",
+    "project": "laser",
+    "decision": "Die Sichtseite wird im Modell angeklickt: Knopf „Sichtseiten“ im Laser-Panel, Klick setzt, Strg+Klick zurück auf automatisch, Enter beendet; die Wahl steht am Objekt, bis es verändert wird.",
+    "date": "2026-11-12",
+    "source": "Deine Antworten in der Planung „Sichtseite wählen“ (12.11.2026)",
+    "created": "2026-11-12T18:07:44.2544932+01:00"
+  },
+  {
+    "id": "da11d4885",
+    "project": "laser",
+    "decision": "Ohne Wahl gilt „außen automatisch“ (Wände von der Modellmitte weg, Böden oben, Volumen Außenhaut). Unklare Innenwände werden als offen markiert, Erzeugen geht mit der besten Schätzung, die Zusammenfassung nennt sie.",
+    "date": "2026-11-12",
+    "source": "Deine Antworten in der Planung „Sichtseite wählen“ (12.11.2026)",
+    "created": "2026-11-12T18:07:44.2706747+01:00"
+  },
+  {
+    "id": "d230b6c9e",
+    "project": "laser",
+    "decision": "Darstellung im Modus: Pfeile aus den Sichtseiten, Füllung der Fläche unter der Maus; Kontext in zwei Stufen (symmetrische Laser-Teile durchscheinend grau, alles andere feine Kanten), nur gezeichnet. LaserInspect zeigt die Sichtseite des gewählten Teils.",
+    "date": "2026-11-12",
+    "source": "Deine Antworten in der Planung „Sichtseite wählen“ (12.11.2026)",
+    "created": "2026-11-12T18:07:44.3029534+01:00"
+  },
+  {
+    "id": "d42c694a1",
+    "project": "sectionkit",
+    "question": "Wie erzeugt SectionKit die Schraffuren?",
+    "decision": "Live über Rhinos Schnittfläche gezeichnet (Druck und PDF direkt), dazu ein Knopf „als echte Kurven einfügen“ auf eigene Ebenen für DWG/DXF.",
+    "date": "2026-11-14",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 14.11.2026",
+    "created": "2026-11-15T01:12:42.4483806+01:00"
+  },
+  {
+    "id": "d37cbad71",
+    "project": "sectionkit",
+    "question": "Woher kommt der Maßstab?",
+    "decision": "Im Layout aus dem Detail-Maßstab, im Modellfenster aus einem Feld „1 : N“.",
+    "date": "2026-11-14",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 14.11.2026",
+    "created": "2026-11-15T01:12:42.4674614+01:00"
+  },
+  {
+    "id": "d442fa467",
+    "project": "sectionkit",
+    "question": "Womit nach der Erkundung weitermachen?",
+    "decision": "Stufe 2: Dämmung live; die Form ist Daten, die Normen-Tafel (Abschnitt 6) kommt danach, vor dem Katalog.",
+    "date": "2026-11-14",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 14.11.2026",
+    "created": "2026-11-15T01:12:42.4898611+01:00"
+  },
+  {
+    "id": "d8ac67612",
+    "project": "sectionkit",
+    "question": "Nur Windows oder auch Mac?",
+    "decision": "Erst nur Windows (Rhino 8 und 9), Mac-Paket später.",
+    "date": "2026-11-14",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 14.11.2026",
+    "created": "2026-11-15T01:12:42.527777+01:00"
+  },
+  {
+    "id": "d7810c01c",
+    "project": "sectionkit",
+    "question": "Name und Befehle?",
+    "decision": "SectionKit, Befehle SectionKit …",
+    "date": "2026-11-14",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 14.11.2026",
+    "created": "2026-11-15T01:12:42.5533796+01:00"
+  },
+  {
+    "id": "d69484fe6",
+    "project": "sectionkit",
+    "question": "Sprache der Oberfläche?",
+    "decision": "Deutsch und Englisch, umschaltbar wie ArchLibrary.",
+    "date": "2026-11-14",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 14.11.2026",
+    "created": "2026-11-15T01:12:42.5765621+01:00"
+  },
+  {
+    "id": "db3892a44",
+    "project": "sectionkit",
+    "question": "Aktivierung?",
+    "decision": "Ohne – eigenes Werkzeug. Später kommen alle Plugins in ein Bundle mit einem Code für alle; SectionKit bleibt dafür nachrüstbar.",
+    "date": "2026-11-14",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 14.11.2026",
+    "created": "2026-11-15T01:12:42.6027159+01:00"
+  },
+  {
+    "id": "de0453cef",
+    "project": "sectionkit",
+    "question": "Wo wird das Material zugewiesen?",
+    "decision": "Eigenes Panel (Ebenen, Auswahl) und eine Seite in Rhinos Eigenschaften für das abweichende Objekt.",
+    "date": "2026-11-14",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 14.11.2026",
+    "created": "2026-11-15T01:12:42.6250218+01:00"
+  },
+  {
+    "id": "d50bef88a",
+    "project": "sectionkit",
+    "question": "Welche Form bekommt „Dämmung weich“?",
+    "decision": "Tropfen über die ganze Dicke, wie in den meisten deutschen Plänen (Variante 2 von 4: Abstand 0,50 × Dicke, Bogen 0,23 × Dicke, Beine kreuzen unter jedem Bogen). Nicht aus ÖNORM/DIN abgeleitet – deren Texte sind nicht gelesen.",
+    "date": "2026-11-15",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 15.11.2026",
+    "created": "2026-11-15T15:25:42.9492866+01:00"
+  },
+  {
+    "id": "d8994fce9",
+    "project": "sectionkit",
+    "question": "Wie ist das SectionKit-Panel aufgebaut?",
+    "decision": "Auswahlfeld je Zeile: jede Ebene und die angeklickten Objekte haben ihr eigenes Feld, das zugleich den Stand zeigt; kein Material-Feld oben, „Wie ihre Ebene“ statt „Von der Ebene“.",
+    "date": "2026-11-15",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 15.11.2026",
+    "created": "2026-11-15T15:25:42.9795935+01:00"
+  },
+  {
+    "id": "d51095784",
+    "project": "sectionkit",
+    "question": "Wie sehen Ebenen-Bäume in den Plugins aus?",
+    "decision": "Wie Rhinos eigener Ebenen-Dialog (aus dem Skript CopyToLayerByLayer): Baum mit Pfeil, Farbfeld, Name, punktierten Linien, blauer Auswahl. SectionKit: im Panel alle Ebenen mit Spalte „Im Schnitt“; der Ebenen-Dialog der anderen Plugins ebenso, mit Suchfeld, belegten Ebenen grau, ohne „Select …“.",
+    "date": "2026-11-15",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 15.11.2026 abends",
+    "created": "2026-11-15T21:42:30.4906714+01:00"
+  },
+  {
+    "id": "da55182e0",
+    "project": "sectionkit",
+    "question": "Gilt die Normen-Tafel für den Katalog?",
+    "decision": "Ja, so einbauen – auch die als Vorschlag markierten Muster (Estrich und Putz als Punkte, fehlende ÖNORM-Holzmuster wie DIN); Unbelegtes bleibt im Katalog vermerkt.",
+    "date": "2026-11-15",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 15.11.2026 abends",
+    "created": "2026-11-15T21:42:30.5215115+01:00"
+  },
+  {
+    "id": "df9bf11c6",
+    "project": "sectionkit",
+    "question": "Wie sieht harte Dämmung im DIN-Satz aus?",
+    "decision": "Zickzack wie in der ÖNORM – DIN 1356-1 kennt nur ein Dämmstoff-Symbol; so bleiben hart und weich im Plan unterscheidbar.",
+    "date": "2026-11-15",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 15.11.2026 abends",
+    "created": "2026-11-15T21:42:30.5522042+01:00"
+  },
+  {
+    "id": "d92536493",
+    "project": "sectionkit",
+    "question": "Welches Muster hat Holz quer zur Faser im ÖNORM-Satz?",
+    "decision": "Das Kreuz über den Querschnitt (ungehobelt, tragend); „Holz quer, gehobelt“ mit Jahresringen kommt als eigenes Material dazu.",
+    "date": "2026-11-15",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 15.11.2026 abends",
+    "created": "2026-11-15T21:42:30.5827434+01:00"
+  },
+  {
+    "id": "dadffa03d",
+    "project": "sectionkit",
+    "question": "Welche Strichstärken haben SectionKits Schnitte auf dem Papier?",
+    "decision": "Im Panel einstellbar, je Datei; Vorgabe Schraffur 0,13 mm, Umriss 0,50 mm.",
+    "date": "2026-11-15",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 15.11.2026 nachts",
+    "created": "2026-11-15T22:36:44.6686744+01:00"
+  },
+  {
+    "id": "d0cae7043",
+    "project": "sectionkit",
+    "question": "Wohin legt „Als echte Kurven einfügen“ die Schnitte?",
+    "decision": "Auf Ebenen je Material: SectionKit::Schnitt::<Material>, mit Druckbreite am Objekt; je Schnittfläche eine Gruppe aus Füllung, Muster und Umriss.",
+    "date": "2026-11-15",
+    "source": "Auswahl-Dialog im Chat zum Schnitt-Plugin, 15.11.2026 nachts",
+    "created": "2026-11-15T22:36:44.6885003+01:00"
+  },
+  {
+    "id": "d7edd27d2",
+    "project": "laser",
+    "question": "Welche Schnittebenen zählen für Laser Create?",
+    "decision": "Jede, die in mindestens einer Ansicht schneidet – mit ihren Listen „nur diese Objekte/Ebenen“ und ihrer Tiefe. Das Ergebnis hängt nicht von der aktiven Ansicht ab.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zu Laser Create, 17.11.2026",
+    "created": "2026-11-17T03:14:35.9648146+01:00"
+  },
+  {
+    "id": "d3cd8546b",
+    "project": "laser",
+    "question": "Wie wird das Beachten der Schnittebenen eingeschaltet?",
+    "decision": "Schalter „Clipping planes“ im Create-Tab, Standard an, je Dokument gemerkt; die Zeile erscheint nur, wenn eine Schnittebene da ist.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zu Laser Create, 17.11.2026",
+    "created": "2026-11-17T03:14:35.9908653+01:00"
+  },
+  {
+    "id": "d361869ec",
+    "project": "laser",
+    "question": "Was passiert an der Schnittfläche eines geschnittenen Volumens?",
+    "decision": "Sie wird ein eigenes Teil (Wand oder Deckel), das Volumen bleibt geschlossen.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zu Laser Create, 17.11.2026",
+    "created": "2026-11-17T03:14:36.0181047+01:00"
+  },
+  {
+    "id": "df87e5cfb",
+    "project": "laser",
+    "question": "Was tut der Plates-Tab, wenn eine Schnittebene verschoben wird?",
+    "decision": "Er meldet den Satz als veraltet, wie bei einem geänderten Objekt; ganz verdeckte Objekte gelten nicht als neu auf der Ebene.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zu Laser Create, 17.11.2026",
+    "created": "2026-11-17T03:14:36.0496781+01:00"
+  },
+  {
+    "id": "dc2c710ef",
+    "project": "laser",
+    "question": "Welche Farbe haben die Schnittlinien im DXF?",
+    "decision": "Alle rot (ACI 1), egal welche Teile-Art oder Dicken-Gruppe.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zu Laser Create, 17.11.2026",
+    "created": "2026-11-17T03:14:36.0714391+01:00"
+  },
+  {
+    "id": "d65363884",
+    "project": "laser",
+    "question": "Was behält im DXF eine eigene Farbe?",
+    "decision": "Teilenummern und Materialdicke-Schrift grau (8), Plattenrand und Name blau (5), CHECK-Teile gelb (2). Von Claude dazu: zu große und fehlerhafte Teile magenta (6) statt rot.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zu Laser Create, 17.11.2026",
+    "created": "2026-11-17T03:14:36.0969877+01:00"
+  },
+  {
+    "id": "d202f846f",
+    "project": "laser",
+    "question": "Gilt die eine Schnittfarbe auch für die Platten in Rhino?",
+    "decision": "Nein, nur im DXF – in Rhino bleiben die Platten farbig je Teile-Art.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zu Laser Create, 17.11.2026",
+    "created": "2026-11-17T03:14:36.1197897+01:00"
+  },
+  {
+    "id": "de8ddca53",
+    "project": "laser",
+    "question": "Nimmt eine markierte Elternebene im Ebenen-Dialog ihre Unterebenen mit?",
+    "decision": "Nein, nur die markierten Ebenen werden übernommen.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zu Laser Create, 17.11.2026",
+    "created": "2026-11-17T03:14:36.1460992+01:00"
+  },
+  {
+    "id": "d18cf466c",
+    "project": "sectionkit",
+    "question": "Wie weit stehen die Tropfen der weichen Dämmung auseinander?",
+    "decision": "Sie berühren sich, wie in Rhinos „Batt Insulation“: Abstand 0,40 × Dicke, Bogen 0,20 × Dicke; die Linie bleibt ein Zug durch die Berührpunkte.",
+    "date": "2026-11-17",
+    "source": "Deine Bitte im Chat zum Schnitt-Plugin, 17.11.2026 (zwei Bilder: unsere und Rhinos Dämmung)",
+    "created": "2026-11-17T16:25:53.8781946+01:00"
+  },
+  {
+    "id": "d7c26e196",
+    "question": "Wie werden AutoDim und ArchLibrary verkauft?",
+    "decision": "Jedes Produkt einzeln: Laser Create (mit SW to Laser), AutoDim, ArchLibrary. Dazu die Suite: alles zusammen günstiger als die Summe. Wer schon ein Produkt hat, kann zur Suite aufsteigen.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026",
+    "created": "2026-11-17T17:02:39.5175459+01:00"
+  },
+  {
+    "id": "ddb83d87d",
+    "question": "Gehört SectionKit in die Suite?",
+    "decision": "Ja, sobald es fertig ist. Bis dahin bleibt es ohne Aktivierung. Ein Suite-Code schaltet es dann ohne neuen Code frei.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026",
+    "created": "2026-11-17T17:02:39.5328089+01:00"
+  },
+  {
+    "id": "d664c10dc",
+    "question": "Wie kommen die Plugins zum Kunden?",
+    "decision": "Ein Paket je Produkt im Rhino Package Manager: Laser Create (beide Plugins), AutoDim, ArchLibrary. Die Suite ist kein eigener Download, sondern ein Code, der alle freischaltet.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026",
+    "created": "2026-11-17T17:02:39.565804+01:00"
+  },
+  {
+    "id": "d6cc89ab2",
+    "question": "Welche Produkte haben eine Testphase?",
+    "decision": "Laser Create und AutoDim. ArchLibrary nicht – sonst hätte der Kunde nach dem Test schon alle Objekte der Bibliothek.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026",
+    "created": "2026-11-17T17:02:39.5959731+01:00"
+  },
+  {
+    "id": "d45b1f44a",
+    "question": "Was zeigt ArchLibrary ohne Code?",
+    "decision": "Eine Vorschau: Panel und Katalog mit Bildern und Maßen sind offen, nur „Einsetzen“ braucht die Lizenz.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026 (zweite Runde)",
+    "created": "2026-11-17T18:57:51.7184977+01:00"
+  },
+  {
+    "id": "d4e529e9d",
+    "question": "Wie viele Testcodes bekommt ein Kunde?",
+    "decision": "Einen für Laser Create und AutoDim zusammen (14 Tage).",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026 (zweite Runde)",
+    "created": "2026-11-17T18:57:51.7518136+01:00"
+  },
+  {
+    "id": "dbd25351f",
+    "question": "Welcher Schlüssel unterschreibt die Suite-Codes, und was passiert mit den alten?",
+    "decision": "Der bisherige Laser-Create-Schlüssel wird der gemeinsame; der Code nennt die Produkte. Alte Codes schalten weiter genau das frei, was sie bisher freigeschaltet haben.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026 (zweite Runde)",
+    "created": "2026-11-17T18:57:51.7822347+01:00"
+  },
+  {
+    "id": "d2316eb43",
+    "question": "Wann werden die Preise festgelegt?",
+    "decision": "Später, vor dem Shop-Start – für den Bau werden sie nicht gebraucht.",
+    "date": "2026-11-17",
+    "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026 (zweite Runde)",
+    "created": "2026-11-17T18:57:51.8121309+01:00"
   }
 ]

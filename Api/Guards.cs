@@ -32,6 +32,7 @@ public sealed class LocalOnly
     {
         ("/api/builds",   "Bauen geht nur am PC."),
         ("/api/releases", "Releases gehen nur am PC."),
+        ("/api/share",    "Ein Paket erstellst du am PC."),
         ("/api/keys",     "Schlüssel gehen nur am PC."),
         ("/api/backup",   "Backups gehen nur am PC."),
         ("/api/git/push", "Hochladen zu GitHub geht nur am PC."),

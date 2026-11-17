@@ -2,7 +2,7 @@
   {
     "id": "t1e9a0c21",
     "title": "Lizenzbedingungen prüfen lassen",
-    "note": "Claude hat einen Entwurf nach deutschem Recht geschrieben (Hub/legal: Lizenzbedingungen.txt und License.txt). Von einer Anwältin oder einem Anwalt für IT-Recht prüfen lassen – besonders Haftung, Gewährleistung, Testphase und Verbraucherrechte. Der Knopf öffnet den Ordner mit beiden Dateien. Bis diese Aufgabe erledigt ist, warnt der Release-Assistent.",
+    "note": "Claude hat einen Entwurf nach deutschem Recht geschrieben (Plugin Hub/Hub/legal: Lizenzbedingungen.txt und License.txt). Von einer Anwältin oder einem Anwalt für IT-Recht prüfen lassen – besonders Haftung, Gewährleistung, Testphase und Verbraucherrechte. Der Knopf öffnet den Ordner mit beiden Dateien. Bis diese Aufgabe erledigt ist, warnt der Release-Assistent.",
     "priority": "hoch",
     "goto": {
       "kind": "open",
@@ -117,7 +117,7 @@
     "project": "hub",
     "goto": {
       "kind": "route",
-      "target": "#/planung/dokumente?datei=Wake-on-LAN%20Anleitung%2026_09_26.md",
+      "target": "#/planung/dokumente?datei=Plugin%20Hub%2FWake-on-LAN%20Anleitung%2026_09_26.md",
       "label": "Zur Anleitung"
     },
     "done": true,
@@ -132,7 +132,7 @@
     "project": "website",
     "goto": {
       "kind": "route",
-      "target": "#/planung/dokumente?datei=Website%20Plan%2001_10_26.md",
+      "target": "#/planung/dokumente?datei=Website%2FWebsite%20Plan%2001_10_26.md",
       "label": "Zum Plan"
     },
     "done": false,

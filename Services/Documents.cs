@@ -3,10 +3,11 @@ using System.Text;
 namespace PluginHub.Services;
 
 /// <summary>
-/// The documents the hub shows and edits: every Markdown file in the root folder - concepts,
-/// progress notes, the hub's README - and the licence drafts in Hub\legal. What a release
-/// archived under Releases\ is shown but never changed. The page names a document by its path,
-/// and the hub only answers for paths that are on this list.
+/// The documents the hub shows and edits: every Markdown file in the projects' folders -
+/// concepts, progress notes, plans, the READMEs - and the licence drafts in Hub\legal. What a
+/// release archived with the customer packages is shown but never changed. The page names a
+/// document by its path relative to the root, and the hub only answers for paths that are on
+/// this list.
 /// </summary>
 public sealed class Documents
 {
@@ -28,10 +29,11 @@ public sealed class Documents
         var config = _config.Current;
         var skipped = config.Cleanup.Select(c => _paths.Resolve(c.Path)).ToList();
 
-        var files = Files.Walk(_paths.Root, Markdown)
+        // Only where projects live - other things lie under the root too
+        var files = _config.TopFolders().SelectMany(f => Files.Walk(f, Markdown))
             .Concat(Files.Walk(Path.Combine(_paths.DataDir, "legal"), Text))
             .Where(f => !skipped.Any(s => f.StartsWith(s + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)))
-            .Where(f => !Relative(f).StartsWith(".claude/", StringComparison.OrdinalIgnoreCase));
+            .Where(f => !("/" + Relative(f)).Contains("/.claude/", StringComparison.OrdinalIgnoreCase));
 
         return files.Select(Info)
             .Where(d => d.Size <= MaxSize)
@@ -86,19 +88,30 @@ public sealed class Documents
         var file = new FileInfo(full);
         return new DocInfo(relative, Path.GetFileNameWithoutExtension(full), ProjectOf(relative),
             Markdown.Contains(file.Extension) ? "md" : "txt",
-            relative.StartsWith("Releases/", StringComparison.OrdinalIgnoreCase),
+            relative.StartsWith(Releases + "/", StringComparison.OrdinalIgnoreCase),
             file.LastWriteTime, file.Length);
     }
 
-    /// <summary>The project whose folder holds it, or that links to it in projects.json.</summary>
+    /// <summary>The folder of the customer packages, relative to the root.</summary>
+    private string Releases => Relative(_paths.Resolve(_config.Current.Releases));
+
+    /// <summary>
+    /// The project that links to it in projects.json, or whose folder or releases hold it. The
+    /// hub's data - the licence drafts - belongs to no single project.
+    /// </summary>
     private string? ProjectOf(string relative)
     {
-        foreach (var p in _config.Current.Projects)
+        var projects = _config.Current.Projects;
+        var linked = projects.FirstOrDefault(p =>
+            p.Links.Any(l => string.Equals(l.Path.Replace('\\', '/'), relative, StringComparison.OrdinalIgnoreCase)));
+        if (linked != null) return linked.Id;
+        if (relative.StartsWith(Relative(_paths.DataDir) + "/", StringComparison.OrdinalIgnoreCase)) return null;
+
+        foreach (var p in projects)
         {
             string folder = p.Folder.Replace('\\', '/').TrimEnd('/') + "/";
             if (relative.StartsWith(folder, StringComparison.OrdinalIgnoreCase)) return p.Id;
-            if (p.Links.Any(l => string.Equals(l.Path.Replace('\\', '/'), relative, StringComparison.OrdinalIgnoreCase))) return p.Id;
-            if (relative.StartsWith($"Releases/{p.Name}/", StringComparison.OrdinalIgnoreCase)) return p.Id;
+            if (relative.StartsWith($"{Releases}/{p.Name}/", StringComparison.OrdinalIgnoreCase)) return p.Id;
         }
         return null;
     }

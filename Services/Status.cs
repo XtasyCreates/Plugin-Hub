@@ -35,8 +35,10 @@ public sealed class Status
     private readonly Releases _releases;
     private readonly Plan _plan;
     private readonly RepoBackup _repo;
+    private readonly Repos _repos;
     private readonly Inbox _inbox;
     private readonly PhoneAccess _phone;
+    private readonly Builds _builds;
 
     private readonly object _gate = new();
     private OverviewView? _cached;
@@ -44,8 +46,10 @@ public sealed class Status
 
     public Status(HubPaths paths, Config config, KeyStore keys, Register register, HubState state,
         Settings settings, Tasks tasks, Mailer mailer, Releases releases, Plan plan, RepoBackup repo, Inbox inbox,
-        PhoneAccess phone)
+        PhoneAccess phone, Repos repos, Builds builds)
     {
+        _builds   = builds;
+        _repos    = repos;
         _phone    = phone;
         _paths    = paths;
         _config   = config;
@@ -84,8 +88,18 @@ public sealed class Status
         var project  = _config.Project(id);
         var overview = Overview();
         var status   = overview.Projects.First(p => p.Id == project.Id);
-        var log      = Git.Log(_paths.Root, project.Folder, 12);
-        return new ProjectDetailView(status, log, overview.Health.Where(h => h.Project == project.Id).ToList());
+        var log      = _repos.Of(project) is { } repo
+            ? Git.Log(repo.Dir, Repos.InRepo(repo, _paths.Resolve(project.Folder)), 12)
+            : new List<Commit>();
+        // A project of its own in a repository of its own is committed and uploaded from its page
+        CommitView? commit = null;
+        if (_repos.CanCommit(project) && _repos.Of(project) is { } own)
+        {
+            var remote = _repo.State(new List<Repo> { own })[0];
+            commit = new CommitView(remote.Url == null ? null : RepoBackup.ShortName(remote.Url), remote.Ahead);
+        }
+        return new ProjectDetailView(status, log, overview.Health.Where(h => h.Project == project.Id).ToList(),
+            Share.State(_paths, project), commit);
     }
 
     /// <summary>The register with where each code stands today.</summary>
@@ -94,32 +108,36 @@ public sealed class Status
         var data = _register.Snapshot();
         var today = DateOnly.FromDateTime(DateTime.Today);
         var shared = _settings.Shared;
-        var fingerprints = _config.Current.Projects.ToDictionary(p => p.Id, p => _keys.Info(p.Id)?.Fingerprint);
+        var config = _config.Current;
+        var fingerprints = config.Projects.ToDictionary(p => p.Id, p => _keys.Info(p.Id)?.Fingerprint);
+        // A suite code belongs to the suite key, whatever products it names
         return new RegisterView(data.Customers,
             data.Licenses.Select(l => new LicenseView(l,
-                LicenseStatus.Of(l, fingerprints.GetValueOrDefault(l.Product), today, shared.For(l.Product).EndingSoonDays))).ToList(),
+                LicenseStatus.Of(l, fingerprints.GetValueOrDefault(Suite.KeyOf(l)), today,
+                    shared.For(Suite.ProjectOf(l, config)).EndingSoonDays),
+                Suite.Name(l, config))).ToList(),
             data.Mails);
     }
 
     private OverviewView Build()
     {
         var config  = _config.Current;
-        bool git    = Git.IsRepo(_paths.Root);
-        var changes = git ? Git.Changes(_paths.Root) : new List<GitChange>();
+        var repos   = _repos.All();
+        var changes = _repos.Changes(repos);
         var rhino   = RhinoInfo.Running();
 
         var roadmap   = SafePlan(_plan.Roadmap);
         var decisions = SafePlan(_plan.Decisions);
         var keys      = config.Projects.Where(p => p.IsPlugin && p.KeyFile != null).Select(KeyStatus).ToList();
         var backup    = BackupStatus();
-        var projects  = config.Projects.Select(p => ProjectStatus(p, git, changes, roadmap, decisions)).ToList();
+        var projects  = config.Projects.Select(p => ProjectStatus(p, changes, roadmap, decisions)).ToList();
         var register  = RegisterView();
         var due       = SafeDue();
         var tasks     = _tasks.All();
-        var remote    = git ? _repo.State() : null;
+        var remotes   = _repo.State(repos);
         var inbox     = _inbox.State();
 
-        var health = Health(config, projects, rhino, keys, backup, git, changes, register, due.Count, roadmap, remote, inbox)
+        var health = Health(config, projects, rhino, keys, backup, repos, changes, register, due.Count, roadmap, remotes, inbox)
             .OrderBy(h => h.Level == "problem" ? 0 : 1)
             .ToList();
 
@@ -127,7 +145,7 @@ public sealed class Status
             .OrderBy(t => PriorityRank.GetValueOrDefault(t.Priority, 3)).ThenBy(t => t.Created).ToList();
 
         return new OverviewView(
-            _paths.Root, _paths.PrivateDir, DateTimeOffset.Now, _settings.Shared.Signature,
+            _paths.Root, _paths.PrivateDir, _paths.Relative(_paths.DataDir), DateTimeOffset.Now, _settings.Shared.Signature,
             rhino, projects, health, keys, backup,
             new RegisterSummary(register.Customers.Count, register.Licenses.Count,
                 register.Licenses.Count(l => !l.License.Paid && l.License.Price is > 0),
@@ -137,7 +155,7 @@ public sealed class Status
             new TaskSummary(openTasks.Count, openTasks.Count(t => t.Priority == "hoch"), openTasks.Take(5).ToList()),
             new PlanOverview(roadmap.Count(x => x.Stage == "gebaut"), roadmap.Count(Plan.HasProblem),
                 decisions.Count(d => d.Decision == null), _plan.Summary(null, roadmap, decisions)),
-            remote,
+            remotes,
             config.Links.Select(l => new LinkView(l.Id, l.Label, l.Kind)).ToList());
     }
 
@@ -158,30 +176,32 @@ public sealed class Status
         catch (HubError) { return new(); }   // a missing template must not take the overview down
     }
 
-    private ProjectStatus ProjectStatus(ProjectDef p, bool git, List<GitChange> changes,
+    private ProjectStatus ProjectStatus(ProjectDef p, List<GitChange> changes,
         List<RoadmapItem> roadmap, List<DecisionItem> decisions)
     {
         string prefix = p.Folder.Replace('\\', '/').TrimEnd('/') + "/";
         int changed = changes.Count(c => c.Path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && !_releases.IsHubFile(c.Path));
 
-        string? version = git && p.TagPattern != null ? Git.LatestTag(_paths.Root, p.TagPattern) : null;
-        Commit? last    = git ? Git.Log(_paths.Root, p.Folder, 1).FirstOrDefault() : null;
+        // Its own repository says which version it has and what was last done to it
+        var repo        = _repos.Of(p);
+        string? version = repo != null && p.TagPattern != null ? Git.LatestTag(repo.Dir, p.TagPattern) : null;
+        Commit? last    = repo != null ? Git.Log(repo.Dir, Repos.InRepo(repo, _paths.Resolve(p.Folder)), 1).FirstOrDefault() : null;
 
         BuildInfo? build = null;
         var registrations = new List<Registration>();
         string? released = null;
-        if (p.IsPlugin && p.Output != null)
+        if (p.IsBuildable)
         {
-            string rhp = _paths.Resolve(p.Output);
+            string rhp = _paths.Resolve(p.Output!);
             build = BuildInfo(p, rhp);
             registrations = RhinoInfo.Registrations(p, rhp);
-            released = _releases.History(p).FirstOrDefault()?.Version;
+            if (p.IsPlugin) released = _releases.History(p).FirstOrDefault()?.Version;
         }
 
         return new ProjectStatus(p.Id, p.Name, p.Kind, p.Icon, p.Folder, p.Note, p.StartCommand, p.ActivationCommand,
             version, released, changed, last, build, registrations, RhinoInfo.ToolbarCache(p),
             p.Links.Select(l => new LinkView(l.Id, l.Label, l.Kind)).ToList(),
-            _plan.Summary(p.Id, roadmap, decisions), p.Url, p.UrlLabel, p.PhonePort);
+            _plan.Summary(p.Id, roadmap, decisions), p.Url, p.UrlLabel, p.PhonePort, repo?.Name);
     }
 
     private BuildInfo BuildInfo(ProjectDef p, string rhp)
@@ -205,18 +225,25 @@ public sealed class Status
         // A second of slack: the build's copy and the file system round times differently
         bool outdated = exists && newest != null && newest.Value > rhpTime!.Value.AddSeconds(1);
         string? productVersion = exists ? FileVersionInfo.GetVersionInfo(rhp).ProductVersion : null;
+
+        // The developer build says "-dev" (see the plug-in's .csproj); only a project that has one offers it
+        bool develop = productVersion?.Contains("-dev", StringComparison.Ordinal) == true;
         return new BuildInfo(_paths.Relative(rhp), exists, rhpTime, newest, newestFile, outdated, productVersion,
-            exists && Files.IsLocked(rhp));
+            exists && Files.IsLocked(rhp), _builds.CanDevelop(p), develop);
     }
 
     private KeyStatus KeyStatus(ProjectDef p)
     {
         var info = _keys.Info(p.Id);
         string? inSource = PluginActivationFile.ReadKey(_paths, p);
+        // The suite key: Laser Create's, which every plug-in of the suite must carry as well
+        var suite = _keys.Info(Suite.KeyProduct);
+        bool suiteMatches = suite != null && PluginActivationFile.ReadSuiteKey(_paths, p) == suite.PublicKey;
         return new KeyStatus(p.Id, p.Name, info != null, info?.Fingerprint, info?.Created, p.KeyFile,
             inSource != null, inSource != null ? KeyStore.Fingerprint(inSource) : null,
             info != null && inSource == info.PublicKey,
-            info != null && PluginActivationFile.InBuild(_paths, p, info.PublicKey));
+            info != null && PluginActivationFile.InBuild(_paths, p, info.PublicKey),
+            suite != null, suiteMatches, suiteMatches && PluginActivationFile.InBuild(_paths, p, suite!.PublicKey));
     }
 
     private BackupView BackupStatus()
@@ -228,8 +255,8 @@ public sealed class Status
     }
 
     private List<HealthItem> Health(HubConfig config, List<ProjectStatus> projects, List<RhinoProcess> rhino,
-        List<KeyStatus> keys, BackupView backup, bool git, List<GitChange> changes, RegisterView register, int dueMails,
-        List<RoadmapItem> roadmap, RemoteView? remote, InboxState inbox)
+        List<KeyStatus> keys, BackupView backup, List<Repo> repos, List<GitChange> changes, RegisterView register, int dueMails,
+        List<RoadmapItem> roadmap, List<RemoteView> remotes, InboxState inbox)
     {
         var items = new List<HealthItem>();
         var toKeys = new HubAction("route", "#/schluessel", "Zu den Schlüsseln");
@@ -258,6 +285,15 @@ public sealed class Status
                 items.Add(new("problem", "keys", $"{k.Name}: Die .rhp kennt den Schlüssel noch nicht",
                     "Codes aus dem Hub funktionieren erst mit einem neu gebauten Plugin.", k.Product,
                     new("build", k.Product, "Jetzt bauen")));
+            // Every code the hub makes now is a suite code: without the suite key it is refused
+            else if (k.SuiteInHub && !k.SuiteMatches)
+                items.Add(new("problem", "keys", $"{k.Name}: Der Suite-Schlüssel fehlt im Plugin",
+                    $"In {k.KeyFile} steht nicht der Schlüssel von Laser Create als SuiteKey. Neue Codes würden abgelehnt.",
+                    k.Product, toKeys));
+            else if (k.SuiteInHub && !k.SuiteInBuild)
+                items.Add(new("problem", "keys", $"{k.Name}: Die .rhp kennt den Suite-Schlüssel noch nicht",
+                    "Neue Codes funktionieren erst mit einem neu gebauten Plugin.", k.Product,
+                    new("build", k.Product, "Jetzt bauen")));
         }
 
         // Backup
@@ -283,7 +319,7 @@ public sealed class Status
                 _settings.MailReady ? "Testphasen enden bald – der Hub hat die Mails vorbereitet."
                                     : "Der Mailversand ist noch nicht eingerichtet (Einstellungen → E-Mail).",
                 null, new("route", "#/mails", "Zu den Mails")));
-        // Code requests that came in by mail
+        // Code requests that came in by mail - open until their answer has gone out
         var fresh = inbox.Requests.Where(r => r.Status == "neu").OrderByDescending(r => r.Received).ToList();
         if (fresh.Count > 0)
         {
@@ -291,10 +327,14 @@ public sealed class Status
             string who = first.FromName.Length > 0 ? first.FromName : first.FromEmail;
             string product = config.Projects.FirstOrDefault(p => p.Id == first.Product)?.Name ?? "ein Plugin";
             string wants = first.Wants switch { "trial" => "Testphase", "full" => "Kauf", _ => "Code" };
+            int unsent = fresh.Count(r => r.AwaitsMail);
             items.Add(new("hint", "mail",
-                fresh.Count == 1 ? $"Code-Anfrage von {who}" : $"{fresh.Count} neue Code-Anfragen",
-                fresh.Count == 1 ? $"{product} · {wants} · Geräte-ID {first.MachineId}"
-                                 : $"Die neueste: {who} – {product}, {wants}.",
+                fresh.Count > 1 ? $"{fresh.Count} offene Code-Anfragen"
+                    : first.AwaitsMail ? $"Code für {who} ist noch nicht verschickt" : $"Code-Anfrage von {who}",
+                fresh.Count > 1 ? $"Die neueste: {who} – {product}, {wants}." +
+                                  (unsent > 0 ? $" Bei {Count(unsent, "Anfrage", "Anfragen")} ist der Code erzeugt, die Mail aber noch nicht gesendet." : "")
+                    : first.AwaitsMail ? $"{product} · der Code ist erzeugt, die Mail an {first.FromEmail} noch nicht gesendet."
+                    : $"{product} · {wants} · Geräte-ID {first.MachineId}",
                 first.Product, new("route", "#/mails?feld=anfragen", "Ansehen")));
         }
         if (_inbox.Ready && inbox.LastError != null)
@@ -337,8 +377,8 @@ public sealed class Status
                 withoutContact.Count == 1 ? withoutContact[0].Id : null,
                 new("build", string.Join(",", withoutContact.Select(p => p.Id)), withoutContact.Count == 1 ? "Jetzt bauen" : "Alle bauen")));
 
-        // Builds
-        foreach (var p in projects.Where(p => p.Build != null))
+        // Builds - an extra project (AutoDim) keeps them to its own page
+        foreach (var p in projects.Where(p => p.Build != null && p.Kind != "extra"))
         {
             var b = p.Build!;
             if (!b.Exists)
@@ -357,7 +397,7 @@ public sealed class Status
         }
 
         // Which file each Rhino loads
-        foreach (var p in projects)
+        foreach (var p in projects.Where(p => p.Kind != "extra"))
             foreach (var r in p.Rhino)
             {
                 if (r.State == "other")
@@ -370,13 +410,20 @@ public sealed class Status
                         p.Build != null ? new("open", "path:" + p.Build.Rhp, "Im Explorer zeigen") : null));
             }
 
-        // Git
-        if (!git)
+        // Git: every home folder of a project is a repository of its own. An extra project
+        // keeps to its own page.
+        foreach (string top in config.Projects.Where(p => !p.IsExtra)
+                     .Select(p => p.Folder.Replace('\\', '/').Trim('/').Split('/')[0])
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
         {
-            items.Add(new("problem", "git", "Der Ordner ist kein Git-Repository",
-                "Ohne Git lassen sich alte Stände nicht wiederherstellen.", null, null));
+            string folder = _paths.Resolve(top);
+            if (Directory.Exists(folder) && _repos.Find(folder) == null)
+                items.Add(new("problem", "git", $"„{top}“ ist kein Git-Repository",
+                    "Ohne Git lassen sich alte Stände nicht wiederherstellen.", null,
+                    new("open", "path:" + top, "Im Explorer zeigen")));
         }
-        else
+
+        if (repos.Count > 0)
         {
             var hubFiles = changes.Where(c => _releases.IsHubFile(c.Path)).ToList();
             if (hubFiles.Count > 0)
@@ -393,16 +440,39 @@ public sealed class Status
                     p.Id, code != null ? new("open", code.Id, "In VS Code öffnen") : null));
             }
 
-            // The copy outside this PC - once there is one, keep it current
-            if (remote?.Url != null && (remote.Ahead > 0 || remote.Tags > 0))
+            // The copies outside this PC - once there is one, keep it current
+            static string Behind(RemoteView r)
             {
                 var parts = new List<string>();
-                if (remote.Ahead > 0) parts.Add(Count(remote.Ahead, "Commit", "Commits"));
-                if (remote.Tags > 0) parts.Add(Count(remote.Tags, "Version", "Versionen"));
-                items.Add(new("hint", "git", $"{string.Join(" und ", parts)} noch nicht gesichert",
-                    $"Die Kopie unter {RepoBackup.ShortName(remote.Url)} ist nicht auf dem neuesten Stand.", null,
-                    new("push", "", "Jetzt hochladen")));
+                if (r.Ahead > 0) parts.Add(Count(r.Ahead, "Commit", "Commits"));
+                if (r.Tags > 0) parts.Add(Count(r.Tags, "Version", "Versionen"));
+                return string.Join(" und ", parts);
             }
+            // A repository that holds nothing but an extra project (MilkDrop) keeps to that
+            // project's page like the project itself: no notice up here about its copy.
+            var loud = config.Projects.Where(p => !p.IsExtra).Select(p => _repos.Of(p)?.Id)
+                .Append(_repos.Find(_paths.DataDir)?.Id)
+                .OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
+            remotes = remotes.Where(r => loud.Contains(r.Repo)).ToList();
+
+            var behind = remotes.Where(r => r.Url != null && (r.Ahead > 0 || r.Tags > 0)).ToList();
+            if (behind.Count == 1)
+                items.Add(new("hint", "git", $"{behind[0].Name}: {Behind(behind[0])} noch nicht gesichert",
+                    $"Die Kopie unter {RepoBackup.ShortName(behind[0].Url!)} ist nicht auf dem neuesten Stand.", null,
+                    new("push", "", "Jetzt hochladen")));
+            else if (behind.Count > 1)
+                items.Add(new("hint", "git", $"{behind.Count} Repositories sind noch nicht gesichert",
+                    string.Join(" · ", behind.Select(r => $"{r.Name}: {Behind(r)}")), null,
+                    new("push", "", "Alle hochladen")));
+
+            // A folder that has no copy yet, while others have: that gap is easy to overlook
+            var alone = remotes.Where(r => r.Url == null).ToList();
+            if (alone.Count > 0 && remotes.Any(r => r.Url != null))
+                items.Add(new("hint", "git",
+                    alone.Count == 1 ? $"{alone[0].Name} hat noch keine Kopie auf GitHub"
+                                     : $"{string.Join(" und ", alone.Select(r => r.Name))} haben noch keine Kopie auf GitHub",
+                    "Bis dahin liegt der Ordner nur auf diesem PC. Leg auf GitHub ein privates Repository an und trag seine Adresse ein.",
+                    null, new("route", "#/schluessel?feld=git-remote", "Einrichten")));
 
             var known = projects.Select(p => p.Folder.Replace('\\', '/').TrimEnd('/') + "/").ToList();
             foreach (var c in changes.Where(c => c.State == "??" && !_releases.IsHubFile(c.Path)
@@ -436,7 +506,8 @@ public sealed class Status
 
     private IEnumerable<string> PlainTextKeys()
     {
-        foreach (string file in Files.Walk(_paths.Root, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".cs" }))
+        var code = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".cs" };
+        foreach (string file in _config.TopFolders().SelectMany(f => Files.Walk(f, code)))
         {
             string text;
             try { text = File.ReadAllText(file, Encoding.UTF8); }
@@ -449,8 +520,9 @@ public sealed class Status
     private static string Count(int n, string one, string many) => n == 1 ? $"1 {one}" : $"{n} {many}";
 }
 
+/// <summary>DataDir: the hub's data folder relative to the root - "Plugin Hub\Hub" - for the pages to name.</summary>
 public sealed record OverviewView(
-    string Root, string PrivateDir, DateTimeOffset Now, string Signature,
+    string Root, string PrivateDir, string DataDir, DateTimeOffset Now, string Signature,
     List<RhinoProcess> Rhino,
     List<ProjectStatus> Projects,
     List<HealthItem> Health,
@@ -461,22 +533,35 @@ public sealed record OverviewView(
     InboxSummary Inbox,
     TaskSummary Tasks,
     PlanOverview Plan,
-    RemoteView? Remote,
+    List<RemoteView> Remotes,
     List<LinkView> Links);
 
 public sealed record ProjectStatus(
     string Id, string Name, string Kind, string Icon, string Folder, string? Note, string? StartCommand,
     string? ActivationCommand, string? Version, string? Released, int Changes, Commit? LastCommit,
     BuildInfo? Build, List<Registration> Rhino, List<string> ToolbarCache, List<LinkView> Links, PlanSummary Plan,
-    string? Url, string? UrlLabel, int? PhonePort);
+    string? Url, string? UrlLabel, int? PhonePort, string? Repo);
 
-public sealed record ProjectDetailView(ProjectStatus Project, List<Commit> Log, List<HealthItem> Health);
+public sealed record ProjectDetailView(ProjectStatus Project, List<Commit> Log, List<HealthItem> Health, ShareView? Share,
+    CommitView? Commit);
 
+/// <summary>
+/// For a project its page commits: where its repository goes on GitHub ("github.com/name/repo",
+/// null without an address) and how many commits are not up there yet.
+/// </summary>
+public sealed record CommitView(string? Remote, int Ahead);
+
+/// <summary>CanDevelop: the project has a developer build; Develop: the .rhp there now is one.</summary>
 public sealed record BuildInfo(string Rhp, bool Exists, DateTime? RhpTime, DateTime? NewestSource, string? NewestFile,
-    bool Outdated, string? ProductVersion, bool Locked);
+    bool Outdated, string? ProductVersion, bool Locked, bool CanDevelop = false, bool Develop = false);
 
+/// <summary>
+/// SuiteInHub: the hub has the suite key (Laser Create's). SuiteMatches / SuiteInBuild: the
+/// plug-in's Activation.cs and its .rhp carry it as SuiteKey - without it, codes with products fail.
+/// </summary>
 public sealed record KeyStatus(string Product, string Name, bool InHub, string? Fingerprint, DateTimeOffset? Created,
-    string? KeyFile, bool InSource, string? SourceFingerprint, bool SourceMatches, bool InBuild);
+    string? KeyFile, bool InSource, string? SourceFingerprint, bool SourceMatches, bool InBuild,
+    bool SuiteInHub = false, bool SuiteMatches = false, bool SuiteInBuild = false);
 
 public sealed record BackupView(BackupRecord? Last, bool KeysChanged, bool RegisterChanged);
 

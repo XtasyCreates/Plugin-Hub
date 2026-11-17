@@ -194,6 +194,12 @@ public sealed class YakPackages
                 .LastOrDefault(r => r.Product == product && r.Version == version);
     }
 
+    /// <summary>Everything that went to the Package Manager, oldest first.</summary>
+    public List<PackagePush> Pushes()
+    {
+        lock (_gate) return (Json.Read<List<PackagePush>>(PushFile) ?? new List<PackagePush>()).OrderBy(r => r.Pushed).ToList();
+    }
+
     // ── The CLI ────────────────────────────────────────────────────────────
 
     private static (int Code, string Output) Run(string exe, string dir, TimeSpan timeout, params string[] args)

@@ -1,0 +1,25 @@
+# Build-Ausgaben (werden beim Bauen neu erzeugt)
+bin/
+obj/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Betriebssystem
+Thumbs.db
+.DS_Store
+
+# Freigaben von Claude Code auf diesem Rechner
+.claude/settings.local.json
+
+# Schlüssel, Kundenregister und Backups liegen nie hier, sondern unter
+# %LOCALAPPDATA%\PluginHub – außerhalb jedes Repositorys.
+
+# Die echten Einstellungen des Weckers nennen das Tailscale-Konto – sie gehören nur auf den Pi
+wecker/wecker.json
+# … und die des Melders den Push-Namen – auch sie gehören nur auf den Pi
+melder.json
+__pycache__/

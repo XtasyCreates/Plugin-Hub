@@ -11,10 +11,11 @@ using PluginHub.Services;
 //
 //   --no-browser     start without opening a page (tests, and the start with Windows)
 //   PLUGINHUB_ROOT, PLUGINHUB_PRIVATE_DIR, PLUGINHUB_PORT
-//                    run against a copy: a test hub touches neither the real keys nor
-//                    the real register
-//   PLUGINHUB_TAILSCALE, PLUGINHUB_AUTOSTART_FILE
-//                    a stand-in for tailscale.exe, and a file instead of the autostart entry
+//                    run against a copy of the folder the projects lie in: a test hub
+//                    touches neither the real keys nor the real register
+//   PLUGINHUB_TAILSCALE, PLUGINHUB_AUTOSTART_FILE, PLUGINHUB_SHORTCUT_DIRS
+//                    a stand-in for tailscale.exe, a file instead of the autostart entry, and
+//                    folders to look for shortcuts in instead of desktop and taskbar
 
 HubPaths paths;
 try
@@ -52,6 +53,7 @@ builder.Services.AddSingleton(paths);
 builder.Services.AddSingleton(new HubPort(port));
 builder.Services.AddSingleton<PhoneAccess>();
 builder.Services.AddSingleton<Config>();
+builder.Services.AddSingleton<Repos>();
 builder.Services.AddSingleton<Settings>();
 builder.Services.AddSingleton<KeyStore>();
 builder.Services.AddSingleton<Register>();
@@ -66,11 +68,13 @@ builder.Services.AddSingleton<Tasks>();
 builder.Services.AddSingleton<Plan>();
 builder.Services.AddSingleton<Versions>();
 builder.Services.AddSingleton<Builds>();
+builder.Services.AddSingleton<Share>();
 builder.Services.AddSingleton<RepoBackup>();
 builder.Services.AddSingleton<YakPackages>();
 builder.Services.AddSingleton<Releases>();
 builder.Services.AddSingleton<Status>();
 builder.Services.AddSingleton<Stats>();
+builder.Services.AddSingleton<Milestones>();
 builder.Services.AddSingleton<IdleWatch>();
 
 var app = builder.Build();
@@ -83,7 +87,7 @@ app.UseStaticFiles(new StaticFileOptions
     // The page is edited in place while the hub runs - always hand out the current file
     OnPrepareResponse = c => c.Context.Response.Headers.CacheControl = "no-store"
 });
-Website.Serve(app, paths);
+Website.Serve(app, app.Services.GetRequiredService<Config>().WebsiteFolder());
 app.MapHubApi();
 
 try
@@ -101,6 +105,9 @@ HubInstance.Announce(paths, port);
 Log.Info($"Started on {url} - root {paths.Root}");
 app.Services.GetRequiredService<IdleWatch>().Start(app.Lifetime);
 app.Services.GetRequiredService<Inbox>().Watch(app.Lifetime.ApplicationStopping);
+// The hub's folder may have moved: what starts it by its full path follows it
+app.Services.GetRequiredService<PhoneAccess>().FollowAutostart();
+_ = Task.Run(Shortcuts.Follow);
 app.Services.GetRequiredService<PhoneAccess>().Watch(app.Lifetime.ApplicationStopping);
 TrayIcon.Show(url, app.Services.GetRequiredService<PhoneAccess>(), app.Lifetime);
 if (openBrowser) Desktop.OpenUrl(url);
