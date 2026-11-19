@@ -63,6 +63,12 @@ export async function render(main) {
     const t = e.target;
     const generate = t.closest('[data-generate]');
     if (generate) return generateKey(o.keys.find((k) => k.product === generate.dataset.generate));
+    const suiteKey = t.closest('[data-suite-key]');
+    if (suiteKey) return busy(suiteKey, async () => {
+      await post(`/api/keys/${suiteKey.dataset.suiteKey}/suite`, {});
+      toast('Suite-Schlüssel eingetragen – jetzt das Plugin neu bauen.');
+      changed();
+    });
     if (t.closest('[data-backup]')) return createBackup();
     if (t.closest('[data-restore]')) return restoreBackup();
     if (t.closest('[data-push]')) return pushRepo(t.closest('[data-push]'));
@@ -163,6 +169,29 @@ function repoRow(r) {
 function keyRow(k, o) {
   const project = o.projects.find((p) => p.id === k.product);
   const line = (ok, text) => `<div class="${ok ? 'yes' : 'no'}">${icon(ok ? 'checkCircle' : 'alert')} ${text}</div>`;
+
+  // No key of its own (AutoDim, ArchLibrary): the suite key signs its codes - nothing to make or replace here
+  if (k.suiteOnly) {
+    const suiteChecks = [line(true, 'Kein eigener Schlüssel – seine Codes unterschreibt der Suite-Schlüssel (der von Laser Create)')];
+    if (!k.inSource) suiteChecks.push(line(false, `${esc(k.keyFile)} fehlt`));
+    else if (!k.suiteInHub) suiteChecks.push(line(false, 'Laser Create hat noch keinen Schlüssel – ohne ihn gibt es auch für dieses Plugin keine Codes'));
+    else {
+      suiteChecks.push(line(k.suiteMatches, k.suiteMatches
+        ? `Suite-Schlüssel im Plugin eingetragen (${esc(k.keyFile)})`
+        : `In ${esc(k.keyFile)} steht nicht der Suite-Schlüssel`));
+      suiteChecks.push(line(k.suiteInBuild, k.suiteInBuild ? 'In der gebauten .rhp enthalten' : 'Die .rhp kennt den Suite-Schlüssel noch nicht'));
+    }
+    const rebuild = k.inSource && k.suiteInHub && !k.suiteMatches
+      ? `<button class="btn small primary" data-suite-key="${esc(k.product)}">${icon('key')} Suite-Schlüssel eintragen</button>`
+      : k.suiteMatches && !k.suiteInBuild
+        ? `<button class="btn small" data-build="${esc(k.product)}">${icon('hammer')} Neu bauen</button>` : '';
+    return `
+    <div class="keyrow">
+      <div class="picon">${icon(project?.icon ?? 'key')}</div>
+      <div><div class="t">${esc(k.name)}</div><div class="checks">${suiteChecks.join('')}</div></div>
+      <div class="actions">${rebuild}</div>
+    </div>`;
+  }
 
   const checks = k.inHub
     ? [

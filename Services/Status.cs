@@ -234,16 +234,24 @@ public sealed class Status
 
     private KeyStatus KeyStatus(ProjectDef p)
     {
-        var info = _keys.Info(p.Id);
-        string? inSource = PluginActivationFile.ReadKey(_paths, p);
         // The suite key: Laser Create's, which every plug-in of the suite must carry as well
         var suite = _keys.Info(Suite.KeyProduct);
         bool suiteMatches = suite != null && PluginActivationFile.ReadSuiteKey(_paths, p) == suite.PublicKey;
+        bool suiteInBuild = suiteMatches && PluginActivationFile.InBuild(_paths, p, suite!.PublicKey);
+
+        // No key of its own: only its file and the suite key count
+        if (p.SuiteOnly)
+            return new KeyStatus(p.Id, p.Name, false, null, null, p.KeyFile,
+                p.KeyFile != null && File.Exists(_paths.Resolve(p.KeyFile)), null, false, false,
+                suite != null, suiteMatches, suiteInBuild, SuiteOnly: true);
+
+        var info = _keys.Info(p.Id);
+        string? inSource = PluginActivationFile.ReadKey(_paths, p);
         return new KeyStatus(p.Id, p.Name, info != null, info?.Fingerprint, info?.Created, p.KeyFile,
             inSource != null, inSource != null ? KeyStore.Fingerprint(inSource) : null,
             info != null && inSource == info.PublicKey,
             info != null && PluginActivationFile.InBuild(_paths, p, info.PublicKey),
-            suite != null, suiteMatches, suiteMatches && PluginActivationFile.InBuild(_paths, p, suite!.PublicKey));
+            suite != null, suiteMatches, suiteInBuild);
     }
 
     private BackupView BackupStatus()
@@ -270,6 +278,23 @@ public sealed class Status
         // Keys: hub, plug-in source and built .rhp must agree
         foreach (var k in keys)
         {
+            // A plug-in without a key of its own (AutoDim, ArchLibrary): only the suite key matters
+            if (k.SuiteOnly)
+            {
+                if (!k.InSource)
+                    items.Add(new("problem", "keys", $"{k.Name}: Activation.cs fehlt",
+                        $"{k.KeyFile} fehlt. Das Plugin lässt sich so nicht bauen.", k.Product, toKeys));
+                else if (k.SuiteInHub && !k.SuiteMatches)
+                    items.Add(new("problem", "keys", $"{k.Name}: Der Suite-Schlüssel fehlt im Plugin",
+                        $"In {k.KeyFile} steht nicht der Schlüssel von Laser Create als SuiteKey. Codes für {k.Name} würden abgelehnt.",
+                        k.Product, toKeys));
+                else if (k.SuiteInHub && !k.SuiteInBuild)
+                    items.Add(new("problem", "keys", $"{k.Name}: Die .rhp kennt den Suite-Schlüssel noch nicht",
+                        "Codes funktionieren erst mit einem neu gebauten Plugin.", k.Product,
+                        new("build", k.Product, "Jetzt bauen")));
+                continue;
+            }
+
             if (!k.InHub)
                 items.Add(new("problem", "keys", $"{k.Name}: kein Schlüssel im Hub",
                     "Ohne Schlüssel kann der Hub für dieses Plugin keine Codes erzeugen.", k.Product,
@@ -558,10 +583,11 @@ public sealed record BuildInfo(string Rhp, bool Exists, DateTime? RhpTime, DateT
 /// <summary>
 /// SuiteInHub: the hub has the suite key (Laser Create's). SuiteMatches / SuiteInBuild: the
 /// plug-in's Activation.cs and its .rhp carry it as SuiteKey - without it, codes with products fail.
+/// SuiteOnly: no key of its own (AutoDim, ArchLibrary) - InSource then says its Activation.cs is there.
 /// </summary>
 public sealed record KeyStatus(string Product, string Name, bool InHub, string? Fingerprint, DateTimeOffset? Created,
     string? KeyFile, bool InSource, string? SourceFingerprint, bool SourceMatches, bool InBuild,
-    bool SuiteInHub = false, bool SuiteMatches = false, bool SuiteInBuild = false);
+    bool SuiteInHub = false, bool SuiteMatches = false, bool SuiteInBuild = false, bool SuiteOnly = false);
 
 public sealed record BackupView(BackupRecord? Last, bool KeysChanged, bool RegisterChanged);
 

@@ -293,10 +293,17 @@ public sealed class Releases
             : null;
         checks.Add(new("version", "Version ist neu", versionProblem == null, false, true, versionProblem));
 
-        var key = _keys.Info(p.Id);
-        bool keyOk = key != null && PluginActivationFile.ReadKey(_paths, p) == key.PublicKey;
-        checks.Add(new("key", "Schlüssel im Hub passt zum Plugin", keyOk, false, true,
-            keyOk ? null : "Hub und Plugin haben nicht denselben Schlüssel (Schlüssel und Backup)."));
+        // A plug-in without a key of its own (AutoDim, ArchLibrary) checks codes with the suite key only
+        var key = _keys.Info(p.SuiteOnly ? Suite.KeyProduct : p.Id);
+        bool keyOk = key != null && (p.SuiteOnly ? PluginActivationFile.ReadSuiteKey(_paths, p) : PluginActivationFile.ReadKey(_paths, p)) == key.PublicKey;
+        checks.Add(new("key", p.SuiteOnly ? "Suite-Schlüssel im Hub passt zum Plugin" : "Schlüssel im Hub passt zum Plugin", keyOk, false, true,
+            keyOk ? null : p.SuiteOnly
+                ? $"In {p.KeyFile} steht nicht der Schlüssel von Laser Create als SuiteKey (Schlüssel und Backup)."
+                : "Hub und Plugin haben nicht denselben Schlüssel (Schlüssel und Backup)."));
+
+        bool package = p.Package.Count > 0;
+        checks.Add(new("package", "Kundenpaket festgelegt", package, false, true,
+            package ? null : $"In projects.json steht für {p.Name} noch nicht, welche Dateien ins Kundenpaket kommen („package“)."));
 
         bool seller = shared.Seller.Length > 0 && shared.SellerAddress.Length > 0;
         checks.Add(new("seller", "Anbieter eingetragen", seller, false, true,

@@ -152,6 +152,8 @@ public static class HubApi
             var project = config.Project(product);
             if (!project.IsPlugin || project.KeyFile == null)
                 throw new HubError($"{project.Name} braucht keinen Schlüssel.");
+            if (project.SuiteOnly)
+                throw new HubError($"{project.Name} hat keinen eigenen Schlüssel – seine Codes unterschreibt der Suite-Schlüssel (der von {Suite.KeyName(config.Current)}).");
 
             // Replacing a key makes every code made with it worthless - the name is the proof
             bool replaces = keys.Info(project.Id) != null || PluginActivationFile.ReadKey(paths, project) != null;
@@ -167,7 +169,7 @@ public static class HubApi
                 // Laser Create's key is the suite key: every plug-in of the suite checks against it
                 PluginActivationFile.WriteKey(paths, project, info.PublicKey, info.PublicKey);
                 foreach (var other in config.Current.Projects.Where(p => p.IsPlugin && p.KeyFile != null && p.Id != project.Id))
-                    if (PluginActivationFile.ReadKey(paths, other) != null)
+                    if (other.SuiteOnly || PluginActivationFile.ReadKey(paths, other) != null)
                         PluginActivationFile.WriteSuiteKey(paths, other, info.PublicKey);
             }
             else
@@ -177,6 +179,20 @@ public static class HubApi
             Log.Info($"New key pair for {project.Id}: {info.Fingerprint}");
             status.Invalidate();
             return info;
+        });
+        // The suite key as the hub has it, into a plug-in's Activation.cs - for one whose file lacks
+        // it (a plug-in that joined the suite later). Only the public half; no code becomes invalid.
+        app.MapPost("/api/keys/{product}/suite", (string product, Config config, KeyStore keys, HubPaths paths, Status status) =>
+        {
+            var project = config.Project(product);
+            if (!project.IsPlugin || project.KeyFile == null)
+                throw new HubError($"{project.Name} braucht keinen Schlüssel.");
+            var suite = keys.Info(Suite.KeyProduct)
+                ?? throw new HubError($"{Suite.KeyName(config.Current)} hat noch keinen Schlüssel – er ist der Suite-Schlüssel. Leg ihn zuerst an.");
+            PluginActivationFile.WriteSuiteKey(paths, project, suite.PublicKey);
+            Log.Info($"Suite key written into {project.Id}: {suite.Fingerprint}");
+            status.Invalidate();
+            return new { ok = true, fingerprint = suite.Fingerprint };
         });
 
         // ── Register and codes ────────────────────────────────────────────────

@@ -80,10 +80,11 @@ public sealed class Settings
 
             // The contact and the shop switch are compiled into the plug-ins: write them where
             // they read them. A plug-in without a key pair has no such file yet - it gets
-            // both when its key is made.
+            // both when its key is made. One with only the suite key (AutoDim, ArchLibrary) has
+            // its file from the start.
             if (old.Contact != settings.Contact || old.ShopOpen != settings.ShopOpen)
                 foreach (var project in _config.Current.Projects.Where(p => p.IsPlugin && p.KeyFile != null))
-                    if (PluginActivationFile.ReadKey(_paths, project) != null || old.Contact != settings.Contact)
+                    if (project.SuiteOnly || PluginActivationFile.ReadKey(_paths, project) != null || old.Contact != settings.Contact)
                         PluginActivationFile.WriteSettings(_paths, project, settings.Contact, settings.ShopOpen);
         }
         return settings;

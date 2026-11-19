@@ -18,6 +18,9 @@ public static class Suite
     /// <summary>The hub key that signs every code with products: Laser Create's.</summary>
     public const string KeyProduct = Kit.Products.LaserCreate;
 
+    /// <summary>The plug-in whose key is the suite key, by name: "Laser Create".</summary>
+    public static string KeyName(HubConfig config) => ProjectName(KeyProduct, config);
+
     /// <summary>Which hub key made this code - a code dies with its key.</summary>
     public static string KeyOf(License l) => l.Products != null ? KeyProduct : l.Product;
 

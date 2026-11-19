@@ -143,6 +143,12 @@ public sealed class ProjectDef
     public string? PluginGuid { get; set; }
     public string? KeyFile { get; set; }
     public string? KeyNamespace { get; set; }
+    /// <summary>
+    /// A plug-in without a key of its own - AutoDim, ArchLibrary: it came after the suite, so every
+    /// code for it names products and is signed with the suite key (Laser Create's). Its
+    /// Activation.cs carries only that key; the hub never makes a key pair for it.
+    /// </summary>
+    public bool SuiteOnly { get; set; }
     /// <summary>A command that asks for activation - named in the reply to a customer.</summary>
     public string? StartCommand { get; set; }
     /// <summary>The command that opens the activation window at any time - to enter a new code early.</summary>
