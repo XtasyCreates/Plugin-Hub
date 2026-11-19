@@ -1,14 +1,18 @@
 // Verkauf und Export: make an activation code - bought or a trial - send it, build the
 // plug-ins, find the files. The code form keeps what was typed in `form`, so a redraw
 // (after a build, say) loses nothing.
+//
+// Since the suite (17.11.2026) a code names products, not a plug-in: Laser Create (with SW to
+// Laser), AutoDim, ArchLibrary - or the suite, which is everything. Laser Create's key signs them all.
 
 import { api, post } from '../api.js';
 import { changed, getOverview, keyOf, loadOverview, productSettings } from '../store.js';
-import { buildBadge, buildLine, dropParam, isoDate, issueList, linkChips, mailDialog, sharedClick, statusBadge } from '../parts.js';
+import { buildBadge, buildLine, defaultProducts, dropParam, isoDate, issueList, linkChips, mailDialog, productPicker,
+  sharedClick, statusBadge, toggleProduct, trialProject } from '../parts.js';
 import { busy, checkMachineId, copy, esc, fmtDate, fmtWhen, icon, toast } from '../ui.js';
 
 const form = {
-  product: null,
+  products: null,
   kind: 'full',
   end: '',
   customerId: '',
@@ -24,11 +28,14 @@ const form = {
 
 let register = { customers: [], licenses: [] };
 let shared = { trialDays: 30, defaultLanguage: 'de' };
+let products = [];
 
 export async function render(main, { params }) {
-  const [o, reg, settings] = await Promise.all([loadOverview(), api('/api/register'), api('/api/settings')]);
+  const [o, reg, settings, catalog] = await Promise.all([loadOverview(), api('/api/register'), api('/api/settings'),
+    api('/api/products')]);
   register = reg;
   shared = settings.shared;
+  products = catalog;
   form.language ??= shared.defaultLanguage;
 
   // "Neuer Code" on a customer page arrives with ?kunde=<id>
@@ -38,12 +45,16 @@ export async function render(main, { params }) {
     dropParam('kunde');
   }
 
-  // A test step brings the form half filled: ?produkt=laser&tage=2&geraet=dieser-pc (or art=kauf)
+  // A test step brings the form half filled: ?produkt=laser&tage=2&geraet=dieser-pc (or art=kauf),
+  // several products as ?produkt=laser,autodim - an older SW to Laser link means Laser Create
   if (params.produkt || params.tage || params.art || params.geraet) {
-    if (params.produkt) form.product = params.produkt;
     const days = Number(params.tage);
     if (days >= 1 && days <= 365) Object.assign(form, { kind: 'trial', end: daysFromNow(days) });
     if (params.art === 'kauf') form.kind = 'full';
+    if (params.produkt) {
+      form.products = [...new Set(params.produkt.split(',').map((p) => (p === 'swtolaser' ? 'laser' : p)))]
+        .filter((p) => products.some((x) => x.id === p));
+    }
     if (params.geraet === 'dieser-pc') {
       form.machineId = (await api('/api/this-machine')).machineId;
       if (!form.note) form.note = 'Eigener Test';
@@ -53,10 +64,8 @@ export async function render(main, { params }) {
   }
 
   const plugins = o.projects.filter((p) => p.kind === 'plugin');
-  if (!plugins.some((p) => p.id === form.product)) {
-    form.product = (plugins.find((p) => keyOf(o, p.id)?.inHub) ?? plugins[0])?.id ?? null;
-  }
-  // Each plug-in has a trial length of its own - the end offered first follows the plug-in
+  if (!form.products?.length) form.products = defaultProducts(form.kind === 'trial');
+  // The trial length comes from Laser Create's settings unless the code is for AutoDim alone
   if (!form.end) form.end = daysFromNow(trialDays());
 
   const salesIssues = o.health.filter((h) =>
@@ -116,15 +125,9 @@ function codeCard(o, plugins) {
     <div class="card-head"><h3>${icon('key')} Lizenzcode erzeugen</h3></div>
     <div class="form-grid">
       <div class="field">
-        <span>Produkt</span>
-        <div class="seg" role="radiogroup" aria-label="Produkt">
-          ${plugins.map((p) => {
-            const hasKey = keyOf(o, p.id)?.inHub;
-            const on = p.id === form.product;
-            return `<button type="button" role="radio" aria-checked="${on}" class="${on ? 'on' : ''}" data-product="${esc(p.id)}"
-              ${hasKey ? '' : 'disabled title="Für dieses Plugin gibt es noch keinen Schlüssel"'}>${icon(p.icon)} ${esc(p.name)}</button>`;
-          }).join('')}
-        </div>
+        <span>Produkte <em>was der Code freischaltet</em></span>
+        ${productPicker(products, form.products, trial)}
+        ${keyOf(o, 'laser')?.inHub ? '' : '<span class="err">Laser Create hat noch keinen Schlüssel – er unterschreibt alle Codes.</span>'}
       </div>
       <div class="field">
         <span>Art</span>
@@ -139,7 +142,7 @@ function codeCard(o, plugins) {
           <div class="inline wrap">
             <input type="date" name="end" value="${esc(form.end)}" min="${isoDate(new Date())}" style="max-width:190px">
             ${[14, 30, 60].map((n) => `<button type="button" class="btn small ${form.end === daysFromNow(n) ? 'on' : ''}" data-days="${n}">${n} Tage</button>`).join('')}
-            <span class="faint">Standard: ${trialDays()} Tage (<a href="#/einstellungen?feld=trialDays-${esc(form.product ?? '')}">Einstellungen</a>)</span>
+            <span class="faint">Standard: ${trialDays()} Tage (<a href="#/einstellungen?feld=trialDays-${esc(trialProject(form.products))}">Einstellungen</a>)</span>
           </div>
         </div>` : ''}
       <label class="field">
@@ -188,12 +191,17 @@ function codeCard(o, plugins) {
 
 function resultBox(o) {
   const r = form.result;
-  const product = o.projects.find((p) => p.id === r.license.product);
-  const fit = !r.matchesPlugin
-    ? `<span class="badge bad">${icon('alert')} passt nicht zum Schlüssel im Plugin</span>`
-    : !r.inBuild
-      ? `<span class="badge bad">${icon('alert')} die .rhp ist noch nicht neu gebaut</span>`
-      : `<span class="badge ok">${icon('check')} passt zum Plugin</span>`;
+  // A product whose plug-in checks no codes yet has nothing to fit - say so instead
+  const fit = !r.matchesPlugin && !r.notYet?.length
+    ? `<span class="badge bad">${icon('alert')} passt nicht zum Suite-Schlüssel im Plugin</span>`
+    : !r.matchesPlugin
+      ? ''
+      : !r.inBuild
+        ? `<span class="badge bad">${icon('alert')} die .rhp ist noch nicht neu gebaut</span>`
+        : `<span class="badge ok">${icon('check')} passt zu den Plugins</span>`;
+  const notYet = r.notYet?.length
+    ? `<span class="badge">${icon('clock')} ${esc(r.notYet.join(', '))} prüft Codes noch nicht</span>`
+    : '';
   const validity = r.license.end
     ? `<span class="badge accent">${icon('hourglass')} ${r.license.trial ? 'Test' : 'gültig'} bis ${esc(fmtDate(r.license.end))}</span>`
     : '<span class="badge">unbegrenzt</span>';
@@ -203,8 +211,9 @@ function resultBox(o) {
       <div class="code-meta">
         <span class="badge ok">${icon('check')} geprüft</span>
         ${fit}
+        ${notYet}
         ${validity}
-        <span class="faint">${esc(product?.name ?? r.license.product)} · ${esc(r.license.machineId)}${r.customer ? ` · ${esc(r.customer.name)}` : ''}</span>
+        <span class="faint">${esc(r.name)} · ${esc(r.license.machineId)}${r.customer ? ` · ${esc(r.customer.name)}` : ''}</span>
       </div>
       <div class="code-text">${esc(r.license.code)}</div>
       <div class="actions">
@@ -256,9 +265,16 @@ async function click(e, main) {
   const t = e.target;
 
   const product = t.closest('[data-product]');
-  if (product && !product.disabled) return pick(main, { product: product.dataset.product });
+  if (product && !product.disabled) {
+    return pick(main, { products: toggleProduct(products, form.products, product.dataset.product, form.kind === 'trial') });
+  }
   const kind = t.closest('[data-kind]');
-  if (kind) return pick(main, { kind: kind.dataset.kind });
+  if (kind && kind.dataset.kind !== form.kind) {
+    // A trial is Laser Create and AutoDim together (decided 17.11.2026) - untick one if wanted.
+    // Back to a purchase, the products stay as they were.
+    const trial = kind.dataset.kind === 'trial';
+    return pick(main, { kind: kind.dataset.kind, products: trial ? defaultProducts(true) : form.products });
+  }
   const days = t.closest('[data-days]');
   if (days) return pick(main, { end: daysFromNow(Number(days.dataset.days)) });
   const language = t.closest('[data-language]');
@@ -286,10 +302,10 @@ async function click(e, main) {
 
 /** Changes a choice and redraws the form - the result below stays until the next code. */
 function pick(main, change) {
-  // An end that is still the old plug-in's standard becomes the new plug-in's standard
+  // An end that is still the old products' standard becomes the new products' standard
   const standard = form.end === daysFromNow(trialDays());
   Object.assign(form, change);
-  if ('product' in change) {
+  if ('products' in change) {
     form.result = null;
     if (standard) form.end = daysFromNow(trialDays());
   }
@@ -308,9 +324,13 @@ async function issue(button, main) {
     toast('Wähl, bis wann der Testcode gilt.', 'bad');
     return;
   }
+  if (!form.products.length) {
+    toast('Wähl mindestens ein Produkt.', 'bad');
+    return;
+  }
 
   const result = await busy(button, () => post('/api/licenses', {
-    product: form.product,
+    products: form.products,
     machineId: check.value,
     customerId: form.customerId || null,
     customerName: form.customerId ? null : form.customerName.trim() || null,
@@ -324,7 +344,7 @@ async function issue(button, main) {
   }));
   if (!result) return;
 
-  // The next code starts from a clean form - product and kind stay
+  // The next code starts from a clean form - products and kind stay
   Object.assign(form, {
     result, customerId: '', customerName: '', email: '', machineId: '', price: '', paid: false, note: '',
     language: shared.defaultLanguage, end: daysFromNow(trialDays()),
@@ -336,8 +356,8 @@ async function issue(button, main) {
 
 const daysFromNow = (n) => isoDate(new Date(Date.now() + n * 86_400_000));
 
-/** The trial length of the plug-in chosen in the form. */
-const trialDays = () => productSettings(shared, form.product).trialDays;
+/** The trial length for the products chosen in the form. */
+const trialDays = () => productSettings(shared, trialProject(form.products)).trialDays;
 
 // ── Recent codes ───────────────────────────────────────────────────────────
 
@@ -346,14 +366,13 @@ function recentTable(o) {
   if (!recent.length) return '<div class="empty">Noch keine Codes ausgestellt.</div>';
 
   const nameOf = (id) => register.customers.find((c) => c.id === id)?.name;
-  const productOf = (id) => o.projects.find((p) => p.id === id)?.name ?? id;
   return `
     <div class="table-wrap"><table class="table">
       <thead><tr><th>Kunde</th><th>Produkt</th><th>Geräte-ID</th><th>Ausgestellt</th><th>Stand</th><th class="shrink"></th></tr></thead>
-      <tbody>${recent.map(({ license: l, status }) => `
+      <tbody>${recent.map(({ license: l, status, name }) => `
         <tr>
           <td>${l.customerId ? `<a href="#/kunden/${esc(l.customerId)}">${esc(nameOf(l.customerId) ?? '–')}</a>` : '<span class="muted">ohne Kunde</span>'}</td>
-          <td class="nowrap">${esc(productOf(l.product))}${l.trial ? ' <span class="badge">Test</span>' : ''}</td>
+          <td class="nowrap">${esc(name ?? l.product)}${l.trial ? ' <span class="badge">Test</span>' : ''}</td>
           <td class="mono">${esc(l.machineId)}</td>
           <td class="nowrap">${esc(fmtWhen(l.issued))}</td>
           <td class="nowrap">${statusBadge(status)}</td>

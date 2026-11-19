@@ -4043,13 +4043,13 @@
   {
     "id": "r449d621d",
     "title": "WICHTIG: Später alle Plugins als ein Bundle – ein Code schaltet alle frei",
-    "note": "Dein Plan (14.11.2026): Alle Plugins kommen später in ein Bundle – Laser Create, SW to Laser, AutoDim, ArchLibrary, SectionKit und was noch dazukommt. Dafür braucht es Codes, die alle Plugins im Bundle auf einmal aktivieren.\n\nWas das schon jetzt heißt: Plugins ohne Aktivierung (AutoDim, SectionKit) bleiben so gebaut, dass die Aktivierung aus RhinoKit später ohne Umbau nachrüstbar ist (eigene Plugin-GUID, Version.props, Platz für Activation.cs wie bei Laser Create).\n\nBaut auf der Karte „Ein Download für Laser Create und SW to Laser“ auf – dort ist „ein Code für beide“ schon entschieden.\n\nHinweis von Claude zur Technik: Heute signiert jedes Plugin seine Codes mit einem eigenen Schlüssel. Für das Bundle gibt es zwei Wege – ein gemeinsamer Bundle-Schlüssel, den alle Plugins annehmen, oder eine Liste der freigeschalteten Plugins im signierten Code.\n\nVor dem Bau per Auswahl-Dialog klären: welcher dieser Wege, ob Plugins weiter einzeln verkauft werden, was mit bestehenden Codes passiert, und der Preis.\n\nDeine Wahl am 17.11.2026 (Auswahl-Dialog):\n- Verkauf: jedes Produkt einzeln (Laser Create mit SW to Laser, AutoDim, ArchLibrary) plus die Suite, günstiger als die Summe.\n- SectionKit kommt in die Suite, sobald es fertig ist.\n- Download: ein Paket je Produkt im Package Manager; die Suite ist nur ein Code.\n- Testphase: Laser Create und AutoDim ja, ArchLibrary nein (sonst hätte der Kunde schon alle Objekte).\n\nDeine Wahl am 17.11.2026, zweite Runde (Auswahl-Dialog):\n- Schlüssel: der bisherige Laser-Create-Schlüssel unterschreibt die Suite-Codes; der Code nennt die Produkte (z. B. „laser,autodim“ oder „suite“) und gilt, einmal eingegeben, für alle Plugins am PC.\n- Alte Codes schalten weiter genau das frei, was sie bisher freigeschaltet haben.\n- Ein Testcode für Laser Create und AutoDim zusammen.\n- ArchLibrary ohne Code als Vorschau: Katalog sehen ja, Einsetzen nein.\n- Preise später, vor dem Shop-Start.",
+    "note": "Dein Plan (14.11.2026): Alle Plugins kommen später in ein Bundle – Laser Create, SW to Laser, AutoDim, ArchLibrary, SectionKit und was noch dazukommt. Dafür braucht es Codes, die alle Plugins im Bundle auf einmal aktivieren.\n\nWas das schon jetzt heißt: Plugins ohne Aktivierung (AutoDim, SectionKit) bleiben so gebaut, dass die Aktivierung aus RhinoKit später ohne Umbau nachrüstbar ist (eigene Plugin-GUID, Version.props, Platz für Activation.cs wie bei Laser Create).\n\nBaut auf der Karte „Ein Download für Laser Create und SW to Laser“ auf – dort ist „ein Code für beide“ schon entschieden.\n\nHinweis von Claude zur Technik: Heute signiert jedes Plugin seine Codes mit einem eigenen Schlüssel. Für das Bundle gibt es zwei Wege – ein gemeinsamer Bundle-Schlüssel, den alle Plugins annehmen, oder eine Liste der freigeschalteten Plugins im signierten Code.\n\nVor dem Bau per Auswahl-Dialog klären: welcher dieser Wege, ob Plugins weiter einzeln verkauft werden, was mit bestehenden Codes passiert, und der Preis.\n\nDeine Wahl am 17.11.2026 (Auswahl-Dialog):\n- Verkauf: jedes Produkt einzeln (Laser Create mit SW to Laser, AutoDim, ArchLibrary) plus die Suite, günstiger als die Summe.\n- SectionKit kommt in die Suite, sobald es fertig ist.\n- Download: ein Paket je Produkt im Package Manager; die Suite ist nur ein Code.\n- Testphase: Laser Create und AutoDim ja, ArchLibrary nein (sonst hätte der Kunde schon alle Objekte).\n\nDeine Wahl am 17.11.2026, zweite Runde (Auswahl-Dialog):\n- Schlüssel: der bisherige Laser-Create-Schlüssel unterschreibt die Suite-Codes; der Code nennt die Produkte (z. B. „laser,autodim“ oder „suite“) und gilt, einmal eingegeben, für alle Plugins am PC.\n- Alte Codes schalten weiter genau das frei, was sie bisher freigeschaltet haben.\n- Ein Testcode für Laser Create und AutoDim zusammen.\n- ArchLibrary ohne Code als Vorschau: Katalog sehen ja, Einsetzen nein.\n- Preise später, vor dem Shop-Start.\n\nTeil 1 gebaut am 19.11.2026 (Karten r9e77adc1 und reae6e43e): Codes mit Produkten in Hub und RhinoKit, Laser Create und SW to Laser angeschlossen. Noch offen: AutoDim und ArchLibrary prüfen Codes (ArchLibrary mit Vorschau), das eine Paket für Laser Create, Website mit Kaufseite.",
     "stage": "entschieden",
     "kind": "funktion",
     "tests": [],
     "source": "Deine Nachricht vom 14.11.2026 (Chat zum Schnitt-Plugin)",
     "created": "2026-11-14T19:57:59.0698883+01:00",
-    "changed": "2026-11-17T18:57:51.6488877+01:00",
+    "changed": "2026-11-19T00:56:41.0346622+01:00",
     "stageAt": "2026-11-14T19:57:59.0699225+01:00"
   },
   {
@@ -4499,5 +4499,83 @@
     "created": "2026-11-17T16:25:53.8383084+01:00",
     "changed": "2026-11-17T16:25:53.8383084+01:00",
     "stageAt": "2026-11-17T16:25:53.8386834+01:00"
+  },
+  {
+    "id": "r9e77adc1",
+    "project": "hub",
+    "title": "Suite Teil 1 – der Hub stellt Codes mit Produkten aus",
+    "note": "Ein Code nennt jetzt Produkte statt eines Plugins: Laser Create (mit SW to Laser), AutoDim, ArchLibrary oder die AutoCreate Suite (alles, auch was später dazukommt). Der Laser-Create-Schlüssel unterschreibt alle neuen Codes. Ein Testcode ist Laser Create und AutoDim zusammen; ArchLibrary und die Suite haben keine Testphase. Beim Verlängern kann man Produkte dazunehmen (Aufstieg). Register, Kunden, Mails und Statistik zeigen, was ein Code freischaltet.\n\nWirkt erst, wenn der Hub neu gebaut ist (der laufende Hub macht noch Codes im alten Format).\n\nVon Claude festgelegt, noch nicht bestätigt: der Name „AutoCreate Suite“ (Platzhalter), und dass die Testdauer der Suite aus den Einstellungen von Laser Create kommt.\n\nGeprüft in einem Test-Hub mit eigenen Schlüsseln: 7 + 35 Prüfungen, dazu im Browser Formular, Testphase, Aufstieg zur Suite und Statistik-Filter.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Hub, 19.11.2026",
+    "tests": [
+      {
+        "text": "Links auf „Verkauf und Export“: Unter „Produkte“ stehen Laser Create, AutoDim, ArchLibrary und AutoCreate Suite, Laser Create ist angehakt.",
+        "done": false
+      },
+      {
+        "text": "Dort „Testphase“ wählen: Laser Create und AutoDim sind angehakt, ArchLibrary und AutoCreate Suite sind grau.",
+        "done": false
+      },
+      {
+        "text": "„Dieser PC“ und „Testcode erzeugen“: Der Code beginnt mit „3.“ und enthält „autodim,laser“. Daneben steht „passt zu den Plugins“ und „AutoDim prüft Codes noch nicht“.",
+        "done": false
+      },
+      {
+        "text": "„Kauf – unbegrenzt“ wählen und „AutoCreate Suite“ anklicken: Die anderen Häkchen gehen aus, darunter steht „Die Suite schaltet alles frei …“.",
+        "done": false
+      },
+      {
+        "text": "Links auf „Kunden“, einen Testkunden öffnen, bei einem Code auf „Verlängern“: Die bisherigen Produkte sind angehakt. Eines dazunehmen und „Neuen Code erzeugen“ – der neue Code zeigt beide Namen, der alte steht auf „verlängert“.",
+        "done": false
+      },
+      {
+        "text": "Links auf „Statistik“: Die Filter heißen „Alle Produkte“, Laser Create, AutoDim, ArchLibrary und AutoCreate Suite.",
+        "done": false
+      }
+    ],
+    "source": "Suite-Bau im Chat, 17.–19.11.2026 (Karte „WICHTIG: Später alle Plugins als ein Bundle“)",
+    "created": "2026-11-19T00:56:40.9469113+01:00",
+    "changed": "2026-11-19T00:56:40.9469113+01:00",
+    "stageAt": "2026-11-19T00:56:40.9516653+01:00"
+  },
+  {
+    "id": "reae6e43e",
+    "project": "laser",
+    "title": "Suite Teil 1 – ein Code gilt für alle Plugins am PC",
+    "note": "Laser Create und SW to Laser lesen Codes mit Produkten. Ein Code, einmal in einem Plugin eingegeben, liegt in %APPDATA%\\AutoCreate\\Activation und gilt für alle Plugins am PC. Alte Codes schalten weiter genau das frei, was sie bisher freigeschaltet haben – mit deinen echten Codes geprüft: Laser Create und SW to Laser bleiben auf diesem PC aktiviert. Das Aktivierungsfenster sagt, was ein Code noch freischaltet, und behält einen Code für ein anderes Produkt.\n\nZum Testen brauchst du Codes aus dem neu gebauten Hub (Karte „Suite Teil 1 – der Hub stellt Codes mit Produkten aus“). Labor: 61 von 61 Prüfungen.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Suite Teil 1, 19.11.2026",
+    "tests": [
+      {
+        "text": "Rhino starten: Laser Create und SW to Laser laufen ohne neuen Code weiter.",
+        "done": false
+      },
+      {
+        "text": "Befehl LaserActivation: oben steht wie bisher „✓ Activated – thank you!“.",
+        "done": false
+      },
+      {
+        "text": "Im Hub einen Testcode „Laser Create + AutoDim“ für „Dieser PC“ erzeugen. In LaserActivation auf „Enter another code …“, einfügen, „Activate“: Die Meldung endet mit „The same code also activates AutoDim.“",
+        "done": false
+      },
+      {
+        "text": "Im Hub einen Kauf-Code nur für ArchLibrary für „Dieser PC“ erzeugen und in LaserActivation einfügen: Rot steht „This code activates ArchLibrary on this computer. It does not include Laser Create.“ Laser Create bleibt aktiviert.",
+        "done": false
+      },
+      {
+        "text": "Befehl SiteActivation: SW to Laser ist aktiviert wie bisher.",
+        "done": false
+      },
+      {
+        "text": "Rhino neu starten: Beide Plugins sind weiter aktiviert.",
+        "done": false
+      }
+    ],
+    "source": "Suite-Bau im Chat, 17.–19.11.2026 (Karte „WICHTIG: Später alle Plugins als ein Bundle“)",
+    "created": "2026-11-19T00:56:40.9985458+01:00",
+    "changed": "2026-11-19T00:56:40.9985458+01:00",
+    "stageAt": "2026-11-19T00:56:40.9990836+01:00"
   }
 ]

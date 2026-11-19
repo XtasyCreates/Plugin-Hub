@@ -4,7 +4,7 @@
 
 import { api, post } from '../api.js';
 import { changed, loadOverview, productSettings } from '../store.js';
-import { isoDate, mailDialog, sharedClick } from '../parts.js';
+import { defaultProducts, isoDate, mailDialog, productPicker, sharedClick, toggleProduct, trialProject } from '../parts.js';
 import { busy, confirmDialog, dialog, esc, fmtDate, fmtDateTime, fmtWhen, icon, notice, plural, toast } from '../ui.js';
 
 const KIND = { code: 'Code', followup: 'Nachfrage', extension: 'Neuer Code', test: 'Test' };
@@ -256,9 +256,14 @@ async function answerRequest(o, settings, view, kind) {
   if (!view) return;
   const r = view.request;
   const trial = kind === 'trial';
-  const plugins = o.projects.filter((p) => p.kind === 'plugin');
   const language = view.customerLanguage ?? settings.shared.defaultLanguage;
   const inDays = (n) => isoDate(new Date(Date.now() + n * 86_400_000));
+  // The request names the plug-in it came from; a trial covers Laser Create and AutoDim together,
+  // a purchase the product of that plug-in (SW to Laser belongs to Laser Create)
+  const products = await api('/api/products');
+  const asked = r.product === 'swtolaser' ? 'laser' : r.product;
+  let picked = trial ? defaultProducts(true)
+    : products.some((p) => p.id === asked) ? [asked] : defaultProducts(false);
 
   const result = await dialog({
     title: trial ? 'Testcode für diese Anfrage' : 'Kauf-Code für diese Anfrage',
@@ -266,15 +271,17 @@ async function answerRequest(o, settings, view, kind) {
     confirm: 'Code erzeugen',
     body: `
       <p>${esc(r.fromName || r.fromEmail)} ${r.fromName ? `&lt;${esc(r.fromEmail)}&gt;` : ''} · ${esc(fmtDateTime(r.received))}</p>
+      <div class="field">
+        <span>Produkte <em>was der Code freischaltet</em></span>
+        <div data-products>${productPicker(products, picked, trial)}</div>
+      </div>
       <div class="form-grid">
-        <label class="field"><span>Plugin</span>
-          <select name="product">${plugins.map((p) => `<option value="${esc(p.id)}" ${p.id === r.product ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>
         <label class="field"><span>Geräte-ID</span><input type="text" name="machineId" class="mono" value="${esc(r.machineId)}"></label>
         <label class="field"><span>Kunde ${view.customerId ? '<em>aus dem Register</em>' : '<em>wird angelegt</em>'}</span>
           <input type="text" name="customerName" value="${esc(view.customerName ?? r.fromName)}" ${view.customerId ? 'readonly' : ''}></label>
         <label class="field"><span>E-Mail</span><input type="email" name="email" value="${esc(r.fromEmail)}" ${view.customerId ? 'readonly' : ''}></label>
         ${trial
-          ? `<label class="field"><span>Gültig bis <em>einschließlich</em></span><input type="date" name="end" value="${inDays(productSettings(settings.shared, r.product).trialDays)}" min="${isoDate(new Date())}"></label>`
+          ? `<label class="field"><span>Gültig bis <em>einschließlich</em></span><input type="date" name="end" value="${inDays(productSettings(settings.shared, trialProject(picked)).trialDays)}" min="${isoDate(new Date())}"></label>`
           : '<label class="field"><span>Preis <em>optional</em></span><input type="text" name="price" inputmode="decimal" placeholder="49,00 €"></label>'}
         <label class="field"><span>Sprache der Antwort</span>
           <select name="language"><option value="de" ${language === 'de' ? 'selected' : ''}>Deutsch</option><option value="en" ${language === 'en' ? 'selected' : ''}>English</option></select></label>
@@ -286,7 +293,7 @@ async function answerRequest(o, settings, view, kind) {
         throw new Error('Trag einen Namen oder eine E-Mail-Adresse für den Kunden ein.');
       }
       return post('/api/licenses', {
-        product: v.product,
+        products: picked,
         machineId: v.machineId,
         customerId: view.customerId,
         customerName: view.customerId ? null : (v.customerName.trim() || v.email.trim()),
@@ -297,6 +304,14 @@ async function answerRequest(o, settings, view, kind) {
         price: trial ? null : v.price || null,
         paid: !trial && Boolean(v.paid),
         note: `Aus der Anfrage vom ${fmtDate(r.received)}`,
+      });
+    },
+    onOpen: (form) => {
+      form.addEventListener('click', (e) => {
+        const product = e.target.closest('[data-product]');
+        if (!product || product.disabled) return;
+        picked = toggleProduct(products, picked, product.dataset.product, trial);
+        form.querySelector('[data-products]').innerHTML = productPicker(products, picked, trial);
       });
     },
   });

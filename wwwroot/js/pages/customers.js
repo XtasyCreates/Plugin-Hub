@@ -98,10 +98,14 @@ const searchText = (c, views) =>
 
 function summary(views, productName) {
   if (!views.length) return '<span class="muted">–</span>';
+  // Counted by what the codes unlock, as the hub names it ("Laser Create + AutoDim")
   const counts = {};
-  views.forEach((v) => { counts[v.license.product] = (counts[v.license.product] ?? 0) + 1; });
+  views.forEach((v) => {
+    const name = v.name ?? productName(v.license.product);
+    counts[name] = (counts[name] ?? 0) + 1;
+  });
   return Object.entries(counts)
-    .map(([product, n]) => `<span class="tag">${esc(productName(product))}${n > 1 ? ` × ${n}` : ''}</span>`)
+    .map(([name, n]) => `<span class="tag">${esc(name)}${n > 1 ? ` × ${n}` : ''}</span>`)
     .join(' ');
 }
 

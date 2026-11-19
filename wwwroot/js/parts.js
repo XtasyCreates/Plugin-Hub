@@ -213,22 +213,63 @@ export async function mailDialog(kind, licenseId, language = null, { inReplyTo =
   return sent === 'sent';
 }
 
+// ── Products ───────────────────────────────────────────────────────────────
+// What a code unlocks since the suite (17.11.2026): products from /api/products - the list the
+// plug-ins check. "suite" is everything, also what joins later, and stands alone.
+
+/** What a code names first: a trial Laser Create and AutoDim together (decided 17.11.2026), a purchase Laser Create. */
+export const defaultProducts = (trial) => (trial ? ['laser', 'autodim'] : ['laser']);
+
+/** The products a code covers - one from before the suite covers its plug-in's; SW to Laser belongs to Laser Create. */
+export const productsOf = (license) => license.products ?? [license.product === 'swtolaser' ? 'laser' : license.product];
+
+/** Whose trial length and settings link a code follows: Laser Create's - the suite's trials live there. */
+export const trialProject = () => 'laser';
+
+/** The products as toggles; in a trial those without one (ArchLibrary, the suite) cannot be picked. */
+export function productPicker(products, selected, trial) {
+  return `
+    <div class="seg" role="group" aria-label="Produkte" data-picker>
+      ${products.map((p) => {
+        const on = selected.includes(p.id);
+        const off = trial && !p.trial;
+        return `<button type="button" role="checkbox" aria-checked="${on}" class="${on ? 'on' : ''}" data-product="${esc(p.id)}"
+          ${off ? `disabled title="${esc(p.name)} hat keine Testphase"` : ''}>${on ? icon('check') : ''}${esc(p.name)}</button>`;
+      }).join('')}
+    </div>
+    ${selected.includes('suite') ? '<div class="hint">Die Suite schaltet alles frei – auch Plugins, die später dazukommen.</div>' : ''}`;
+}
+
+/** The products after a click on one: the suite alone or nothing of it, the rest ticked on and off - never none. */
+export function toggleProduct(products, selected, id, trial) {
+  if (id === 'suite') return selected.includes('suite') ? defaultProducts(trial) : ['suite'];
+  const rest = selected.filter((p) => p !== 'suite');
+  const next = rest.includes(id) ? rest.filter((p) => p !== id) : [...rest, id];
+  if (!next.length) return selected;
+  return products.map((p) => p.id).filter((p) => next.includes(p));
+}
+
 // ── Extend ─────────────────────────────────────────────────────────────────
 
 /**
- * A new code for the same product and device: a longer trial, or the bought licence.
- * Resolves with the issue result, or null.
+ * A new code for the same device: a longer trial, the bought licence, or more products - an
+ * upgrade, the suite. Resolves with the issue result, or null.
  */
 export async function extendDialog(view, trialDays) {
   const l = view.license;
   const base = new Date(Math.max(Date.now(), l.end ? new Date(l.end).getTime() : 0));
   const inDays = (n) => isoDate(new Date(base.getTime() + n * 86_400_000));
+  const products = await api('/api/products');
+  const had = productsOf(l).filter((id) => products.some((p) => p.id === id));
+  let picked = had.length ? had : defaultProducts(false);
+  let trial = false;
 
   const result = await dialog({
     title: 'Code verlängern',
     confirm: 'Neuen Code erzeugen',
     body: `
-      <p>Gleiches Produkt, gleiche Geräte-ID <span class="mono">${esc(l.machineId)}</span>. Der alte Code bleibt bis zu seinem Ende gültig.</p>
+      <p>Gleiche Geräte-ID <span class="mono">${esc(l.machineId)}</span>. Der alte Code bleibt bis zu seinem Ende gültig.
+        Bisher: <strong>${esc(view.name ?? l.product)}</strong>.</p>
       <div class="field">
         <span>Art</span>
         <div class="seg" data-kind-seg>
@@ -236,6 +277,10 @@ export async function extendDialog(view, trialDays) {
           <button type="button" data-kind="trial">Test verlängern</button>
         </div>
         <input type="hidden" name="kind" value="full">
+      </div>
+      <div class="field">
+        <span>Produkte <em>mehr anhaken für einen Aufstieg</em></span>
+        <div data-products>${productPicker(products, picked, false)}</div>
       </div>
       <div class="field" data-trial-only hidden>
         <span>Gültig bis</span>
@@ -256,14 +301,28 @@ export async function extendDialog(view, trialDays) {
       price: v.price || null,
       paid: v.paid,
       note: v.note || null,
+      products: picked,
     }),
     onOpen: (form) => {
+      const drawProducts = () => { form.querySelector('[data-products]').innerHTML = productPicker(products, picked, trial); };
       form.addEventListener('click', (e) => {
+        const product = e.target.closest('[data-product]');
+        if (product && !product.disabled) {
+          picked = toggleProduct(products, picked, product.dataset.product, trial);
+          drawProducts();
+        }
         const kind = e.target.closest('[data-kind]');
         if (kind) {
           form.querySelectorAll('[data-kind]').forEach((b) => b.classList.toggle('on', b === kind));
           form.elements.kind.value = kind.dataset.kind;
           form.querySelector('[data-trial-only]').hidden = kind.dataset.kind !== 'trial';
+          // A trial keeps only products that have one
+          trial = kind.dataset.kind === 'trial';
+          if (trial) {
+            const kept = picked.filter((id) => products.find((p) => p.id === id)?.trial);
+            picked = kept.length ? kept : defaultProducts(true);
+          }
+          drawProducts();
         }
         const days = e.target.closest('[data-days]');
         if (days) form.elements.end.value = inDays(Number(days.dataset.days));

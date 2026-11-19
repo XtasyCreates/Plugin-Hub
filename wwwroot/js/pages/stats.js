@@ -35,7 +35,13 @@ export async function render(main) {
 function draw(main, data) {
   const months = period(data);
   const inPeriod = (row) => months.includes(row.month);
-  const ofProduct = (row) => !view.product || row.product === view.product;
+  // A row counts for a product when it names it - a suite code counts for every product, and
+  // under "Suite" only the suite codes count
+  const ofProduct = (row) => {
+    if (!view.product) return true;
+    const names = row.products?.length ? row.products : [row.product];
+    return names.includes(view.product) || (view.product !== 'suite' && names.includes('suite'));
+  };
 
   const sales = data.sales.filter((r) => ofProduct(r) && inPeriod(r));
   const trials = data.trials.filter((r) => ofProduct(r) && inPeriod(r));
@@ -59,8 +65,8 @@ function draw(main, data) {
           ${segButton('range', '12', '12 Monate')}
           ${segButton('range', 'all', 'Alles')}
         </div>
-        <div class="seg" role="radiogroup" aria-label="Plugin">
-          ${segButton('product', '', 'Alle Plugins')}
+        <div class="seg" role="radiogroup" aria-label="Produkt">
+          ${segButton('product', '', 'Alle Produkte')}
           ${data.products.map((p) => segButton('product', p.id, p.name)).join('')}
         </div>
       </div>
@@ -194,7 +200,7 @@ function requestsCard(requests, open, months, filtered) {
         <a class="btn ghost small" href="#/mails?feld=anfragen">Zu den Anfragen ${icon('chevron')}</a>
       </div>
       <div class="figures">
-        ${figure('Anfragen', requests.length, filtered ? 'Anfragen ohne Plugin-Namen zählen nur bei „Alle Plugins“' : 'aus dem Postfach')}
+        ${figure('Anfragen', requests.length, filtered ? 'Anfragen ohne Plugin-Namen zählen nur bei „Alle Produkte“' : 'aus dem Postfach')}
         ${figure('Offen jetzt', open, 'unabhängig vom Zeitraum')}
         ${figure('Testcode gewünscht', trial, requests.length ? `${Math.round((trial / requests.length) * 100)} %` : '–')}
         ${figure('Kauf gewünscht', full, requests.length ? `${Math.round((full / requests.length) * 100)} %` : '–')}

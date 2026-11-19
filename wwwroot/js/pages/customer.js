@@ -52,9 +52,9 @@ export async function render(main, { args }) {
         ${views.length ? `
           <div class="table-wrap"><table class="table">
             <thead><tr><th>Produkt</th><th>Stand</th><th>Geräte-ID</th><th>Ausgestellt</th><th class="num">Preis</th><th>Bezahlt</th><th class="shrink"></th></tr></thead>
-            <tbody>${views.map(({ license: l, status }) => `
+            <tbody>${views.map(({ license: l, status, name }) => `
               <tr>
-                <td>${esc(productName(l.product))}${l.trial ? ' <span class="badge">Test</span>' : ''}</td>
+                <td>${esc(name ?? productName(l.product))}${l.trial ? ' <span class="badge">Test</span>' : ''}</td>
                 <td class="nowrap">${statusBadge(status)}</td>
                 <td class="mono">${esc(l.machineId)}</td>
                 <td class="nowrap" title="${esc(fmtDateTime(l.issued))}${l.note ? ` · ${esc(l.note)}` : ''}">${esc(fmtDate(l.issued))}</td>
@@ -119,7 +119,8 @@ export async function render(main, { args }) {
     const extend = t.closest('[data-extend]');
     if (extend) {
       const view = byId(extend.dataset.extend);
-      return extendDialog(view, productSettings(settings.shared, view.license.product).trialDays);
+      // The suite's trials follow Laser Create's settings
+      return extendDialog(view, productSettings(settings.shared, view.license.products ? 'laser' : view.license.product).trialDays);
     }
 
     const mail = t.closest('[data-mail]');

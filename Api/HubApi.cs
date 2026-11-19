@@ -144,6 +144,8 @@ public static class HubApi
 
         // ── Keys ──────────────────────────────────────────────────────────────
         app.MapGet("/api/this-machine", () => new { machineId = MachineId.ForUser() });
+        // What a code can unlock - the same list the plug-ins check (RhinoKit's Products.cs)
+        app.MapGet("/api/products", () => RhinoKit.Licensing.Products.All);
         app.MapPost("/api/keys/{product}/generate",
             (string product, GenerateKeyRequest request, Config config, KeyStore keys, HubPaths paths, Status status) =>
         {
