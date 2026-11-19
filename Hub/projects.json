@@ -36,7 +36,7 @@
     },
     {
       "id": "swtolaser",
-      "name": "SW to Laser",
+      "name": "Site Create",
       "kind": "plugin",
       "icon": "map",
       "folder": "Plugins Rhino/SwToLaserPlugin",
@@ -48,7 +48,7 @@
       "startCommand": "SiteLaser",
       "activationCommand": "SiteActivation",
       "versionFile": "Plugins Rhino/SwToLaserPlugin/Version.props",
-      "packageName": "SWtoLaser",
+      "packageName": "SiteCreate",
       "packageDescription": "Reads figure-ground plans (Schwarzplan) from DXF, DWG, PDF and SVG, turns them into closed building outlines at model scale and hands them to Laser Create.",
       "packageKeywords": ["schwarzplan", "figure-ground", "site", "urban", "laser", "model"],
       "package": [
@@ -62,7 +62,7 @@
         { "id": "swl-folder",   "label": "Quellordner",    "kind": "folder", "path": "Plugins Rhino/SwToLaserPlugin" },
         { "id": "swl-rhp",      "label": "Release-Ordner", "kind": "select", "path": "Plugins Rhino/SwToLaserPlugin/bin/Release/SwToLaserPlugin.rhp" },
         { "id": "swl-code",     "label": "In VS Code",     "kind": "vscode", "path": "Plugins Rhino/SwToLaserPlugin" },
-        { "id": "swl-releases", "label": "Kundenpakete",   "kind": "folder", "path": "Plugins Rhino/Releases/SW to Laser" },
+        { "id": "swl-releases", "label": "Kundenpakete",   "kind": "folder", "path": "Plugins Rhino/Releases/Site Create" },
         { "id": "swl-concept",  "label": "Konzept",        "kind": "file",   "path": "Plugins Rhino/Schwarzplan Plugin Konzept 22_09_26.md" },
         { "id": "swl-icons",    "label": "Icons",          "kind": "folder", "path": "Plugins Rhino/SwToLaserPlugin/icons" }
       ]
@@ -145,7 +145,7 @@
       "kind": "website",
       "icon": "globe",
       "folder": "Website",
-      "note": "Die Website „AutoCreate“ für Kunden – noch Vorschau, nicht im Netz. Seit dem 10.10.2026 in ihrem eigenen Ordner „Website“ neben „Plugins Rhino“, mit eigenem Git-Repository. „Website ansehen“ öffnet sie aus dem Hub, am Handy über den Handy-Zugang. Der Plan bis zum Live-Gang steht im Dokument „Website Plan“ und als Karten unter Planung.",
+      "note": "Die Website „Ochre“ für Kunden (bis 19.11.2026 „AutoCreate“, künftig ochre.tools) – noch Vorschau, nicht im Netz. Seit dem 10.10.2026 in ihrem eigenen Ordner „Website“ neben „Plugins Rhino“, mit eigenem Git-Repository. „Website ansehen“ öffnet sie aus dem Hub, am Handy über den Handy-Zugang. Der Plan bis zum Live-Gang steht im Dokument „Website Plan“ und als Karten unter Planung.",
       "sources": ["Website"],
       "formerFolders": ["Plugins Rhino/Website"],
       "historySince": "9c1205d6ca626ef42fc0434a4d7fcea6c0b228cf",

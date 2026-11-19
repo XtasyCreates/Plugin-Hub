@@ -851,7 +851,7 @@ def load_config(path):
     if len(topic) < 12 or not re.fullmatch(r"[A-Za-z0-9_-]+", topic):
         raise SystemExit("ntfy.topic: mindestens 12 Zeichen aus Buchstaben, Ziffern, - und _")
     if not cfg["products"]:
-        raise SystemExit("products fehlt – die Namen der Plugins, z. B. [\"Laser Create\", \"SW to Laser\"]")
+        raise SystemExit("products fehlt – die Namen der Plugins, z. B. [\"Laser Create\", \"Site Create\"]")
     return cfg
 
 

@@ -4577,5 +4577,154 @@
     "created": "2026-11-19T00:56:40.9985458+01:00",
     "changed": "2026-11-19T00:56:40.9985458+01:00",
     "stageAt": "2026-11-19T00:56:40.9990836+01:00"
+  },
+  {
+    "id": "r5872b4f4",
+    "project": "swtolaser",
+    "title": "Marke Ochre in den Plugins: Site Create, Arch-Befehle, Ochre Suite",
+    "note": "Aus „AutoCreate“ wird „Ochre“, aus „SW to Laser“ wird „Site Create“. Ochre steht in keinem Befehl. Die ArchLibrary-Befehle heißen kürzer: ArchInsert, ArchMove, ArchType, ArchProperties, ArchSaveBlock, ArchApplyRailing, ArchWallUpdate, ArchWallReset (der Panel-Befehl bleibt ArchLibrary). Die Suite heißt „Ochre Suite“. Die Codes liegen jetzt in %APPDATA%\\Ochre\\Activation; die aus dem alten Ordner AutoCreate zählen weiter, niemand muss neu aktivieren. Ältere Dateien mit Plänen unter der Ebene „SW to Laser“ werden beim nächsten Bauen umbenannt (gleiche Ebene, gleiche Ids – der Laser-Panel findet sie weiter), ihre Gruppen auch. Intern bleibt alles (Ordner SwToLaserPlugin, GUIDs, Projekt-Id swtolaser), die Support-Adresse bleibt bis ochre.tools. Geprüft: alle fünf Plugins bauen, in Rhino 9 Befehle, Ebenen- und Gruppen-Übernahme, Suite-Name und Codes-Ordner; Übernahme der Codes im Labor (10 von 10).",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Ochre, 19.11.2026",
+    "tests": [
+      {
+        "text": "Rhino starten: Laser Create, Site Create, AutoDim, SectionKit und ArchLibrary laufen ohne neuen Code weiter.",
+        "done": false
+      },
+      {
+        "text": "Rechte Seitenleiste: das Panel heißt „Site Create“ (nicht mehr „SW to Laser“).",
+        "done": false
+      },
+      {
+        "text": "Werkzeugleiste von Site Create: Gruppe und Tooltip sagen „Site Create“. Steht dort noch „SW to Laser“, hält Rhino seine alte Kopie der Leiste – dann hier als Problem notieren.",
+        "done": false
+      },
+      {
+        "text": "Eine ältere Datei mit einem Plan öffnen (Ebene „SW to Laser“) und den Plan im Panel neu bauen: die Ebene heißt danach „Site Create › Plan › Buildings“, es gibt keinen zweiten Baum.",
+        "done": false
+      },
+      {
+        "text": "Befehlszeile: „Arch“ tippen – vorgeschlagen werden ArchInsert, ArchMove, ArchType …, kein ArchLibraryInsert mehr.",
+        "done": false
+      },
+      {
+        "text": "ArchLibrary-Panel: „Einfügen“ und „Auf Treppe anwenden“ starten weiter ihre Befehle.",
+        "done": false
+      },
+      {
+        "text": "Mit einem Suite-Code: das Aktivierungsfenster sagt „… every Ochre plug-in“.",
+        "done": false
+      }
+    ],
+    "source": "Markenname im Chat, 19.11.2026 (Auswahl-Dialoge)",
+    "created": "2026-11-19T02:02:31.6382702+01:00",
+    "changed": "2026-11-19T02:02:31.6382702+01:00",
+    "stageAt": "2026-11-19T02:02:31.6446633+01:00"
+  },
+  {
+    "id": "r97b7fb09",
+    "project": "website",
+    "title": "Website heißt Ochre, Seite Site Create",
+    "note": "Ochre ist die Hauptmarke der Seite: Kopf, Fuß, Tab-Titel, Einleitung, Impressum- und Lizenz-Entwürfe. Die Seite „SW to Laser“ heißt jetzt site-create.html (per git mv, mit Geschichte), ihr Panel-Bild site-create-panel.png. Im Package Manager sucht man nach „SiteCreate“ (neuer Paketname). Die Mail-Adresse bleibt support.autocreate@gmail.com, bis ochre.tools eine eigene hat. Farben und Logo kommen erst mit dem Farbkonzept. Nicht committet.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Website, 19.11.2026",
+    "tests": [
+      {
+        "text": "Website im Hub öffnen (Projekt Website › „Website ansehen“): oben links und im Fuß steht „Ochre“, der Tab heißt „Ochre – Rhino plug-ins for laser-cut models“.",
+        "done": false,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51730/website/index.html",
+          "label": "Website öffnen"
+        }
+      },
+      {
+        "text": "Startseite: die Einleitung beginnt mit „Ochre makes plug-ins for Rhino …“, die zweite Karte heißt „Site Create“.",
+        "done": false,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51730/website/index.html",
+          "label": "Startseite öffnen"
+        }
+      },
+      {
+        "text": "Menü oben „Site Create“: die Seite öffnet sich mit dem Panel-Bild, kein toter Link.",
+        "done": false,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51730/website/site-create.html",
+          "label": "Site Create öffnen"
+        }
+      },
+      {
+        "text": "Seiten Support und Free trial: „search for LaserCreate or SiteCreate“.",
+        "done": false,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51730/website/support.html",
+          "label": "Support öffnen"
+        }
+      },
+      {
+        "text": "Impressum, Datenschutz, Lizenz: überall „Ochre“ statt „AutoCreate“, die Mail-Adresse ist noch die alte.",
+        "done": false,
+        "goto": {
+          "kind": "url",
+          "target": "http://127.0.0.1:51730/website/imprint.html",
+          "label": "Impressum öffnen"
+        }
+      }
+    ],
+    "source": "Markenname im Chat, 19.11.2026 (Auswahl-Dialoge)",
+    "created": "2026-11-19T02:02:31.6984375+01:00",
+    "changed": "2026-11-19T02:02:31.6984375+01:00",
+    "stageAt": "2026-11-19T02:02:31.6987943+01:00"
+  },
+  {
+    "id": "r37ac541f",
+    "project": "hub",
+    "title": "Hub: Site Create und Ochre Suite",
+    "note": "Das Projekt „SW to Laser“ heißt im Hub „Site Create“ (Id swtolaser bleibt, also auch alle Codes, Anfragen und Releases), Paketname SiteCreate, Kundenpakete künftig unter Releases\\Site Create. Testanfragen erkennt der Hub am neuen Namen. Der Hub ist neu gebaut, weil er die Produktnamen aus RhinoKit mit übersetzt: Code-Mails und Verkauf sagen „Ochre Suite“. Der Melder auf dem Pi kennt noch „SW to Laser“ – bis seine Einstellung erneuert ist, meldet er Site-Create-Anfragen ohne Produktnamen.",
+    "stage": "gebaut",
+    "kind": "funktion",
+    "built": "Hub, 19.11.2026",
+    "tests": [
+      {
+        "text": "Übersicht: das Projekt heißt „Site Create“, alle anderen wie bisher.",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/",
+          "label": "Zur Übersicht"
+        }
+      },
+      {
+        "text": "Verkauf › Code ausstellen: in der Produktliste steht „Ochre Suite“ statt „AutoCreate Suite“.",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/verkauf?feld=code-card",
+          "label": "Code erzeugen"
+        }
+      },
+      {
+        "text": "Projekt Site Create: Bauen läuft wie bisher, der Link „Kundenpakete“ zeigt auf Releases\\Site Create.",
+        "done": false,
+        "goto": {
+          "kind": "route",
+          "target": "#/projekt/swtolaser",
+          "label": "Zu Site Create"
+        }
+      },
+      {
+        "text": "Pi-Melder: in /etc/melder/melder.json bei products „Site Create“ ergänzen und install.sh laufen lassen (sudo, dein Terminal) – danach nennt die Push-Nachricht das Produkt wieder.",
+        "done": false
+      }
+    ],
+    "source": "Markenname im Chat, 19.11.2026 (Auswahl-Dialoge)",
+    "created": "2026-11-19T02:02:31.7299085+01:00",
+    "changed": "2026-11-19T02:02:31.7299085+01:00",
+    "stageAt": "2026-11-19T02:02:31.7302184+01:00"
   }
 ]

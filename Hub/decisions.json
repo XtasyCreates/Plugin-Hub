@@ -1699,5 +1699,63 @@
     "date": "2026-11-17",
     "source": "Auswahl-Dialog im Chat zur Suite, 17.11.2026 (zweite Runde)",
     "created": "2026-11-17T18:57:51.8121309+01:00"
+  },
+  {
+    "id": "d2220e8b2",
+    "question": "Wie heißt die Marke für Plugins und Social Media?",
+    "decision": "Ochre – ersetzt den Arbeitsnamen AutoCreate. Och- wie Ochmann, Ocker als Material (Pigment, Putz, Lehm), die Markenfarbe ist schon fast Ocker. Domain ochre.tools, Handles @ochre.tools / YouTube @ochretools (am 19.11. frei).",
+    "date": "2026-11-19",
+    "source": "Auswahl-Dialog im Chat zur Marke, 19.11.2026",
+    "created": "2026-11-19T02:02:31.7604179+01:00"
+  },
+  {
+    "id": "d27d40fbd",
+    "question": "Wie heißen die Plugins unter Ochre?",
+    "decision": "Eigene, beschreibende Namen. Ochre steht in keinem Befehl; beim Kauf und auf der Website nur leise, laut in der Werbung.",
+    "date": "2026-11-19",
+    "source": "Auswahl-Dialog im Chat zur Marke, 19.11.2026",
+    "created": "2026-11-19T02:02:31.785221+01:00"
+  },
+  {
+    "id": "d7174c8f6",
+    "project": "swtolaser",
+    "question": "Wie heißt SW to Laser künftig?",
+    "decision": "Site Create – der Bruder von Laser Create. Die Befehle Site… bleiben.",
+    "date": "2026-11-19",
+    "source": "Auswahl-Dialog im Chat zur Marke, 19.11.2026",
+    "created": "2026-11-19T02:02:31.8029043+01:00"
+  },
+  {
+    "id": "d79138f69",
+    "question": "Werden die ArchLibrary-Befehle gekürzt?",
+    "decision": "Ja, vor dem Release auf Arch… (ArchInsert, ArchMove, ArchApplyRailing …). Der Panel-Befehl bleibt ArchLibrary.",
+    "date": "2026-11-19",
+    "source": "Auswahl-Dialog im Chat zur Marke, 19.11.2026",
+    "created": "2026-11-19T02:02:31.8338438+01:00"
+  },
+  {
+    "id": "d0649bd6d",
+    "question": "Wie heißt das Paket mit allen Plugins?",
+    "decision": "Ochre Suite (statt AutoCreate Suite).",
+    "date": "2026-11-19",
+    "source": "Auswahl-Dialog im Chat zur Marke, 19.11.2026",
+    "created": "2026-11-19T02:02:31.8531948+01:00"
+  },
+  {
+    "id": "d60219c43",
+    "project": "website",
+    "question": "Wie stark erscheint Ochre auf der Website?",
+    "decision": "Als Hauptmarke, gern auch in den Tools sichtbar. Ocker-Töne und Farbkonzept werden erst vorgestellt, nicht umgesetzt.",
+    "date": "2026-11-19",
+    "source": "Auswahl-Dialog im Chat zur Marke, 19.11.2026",
+    "created": "2026-11-19T02:02:31.8648036+01:00"
+  },
+  {
+    "id": "d4beec7c4",
+    "question": "Welche Support-Adresse gilt nach dem Namenswechsel?",
+    "decision": "support.autocreate@gmail.com bleibt, bis ochre.tools eine eigene Adresse hat – dann alles auf einmal umstellen (Plugins, Website, Hub, Pi).",
+    "date": "2026-11-19",
+    "source": "Auswahl-Dialog im Chat zur Marke, 19.11.2026",
+    "created": "2026-11-19T02:02:31.8955111+01:00"
   }
 ]

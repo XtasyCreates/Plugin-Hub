@@ -220,7 +220,7 @@ export async function mailDialog(kind, licenseId, language = null, { inReplyTo =
 /** What a code names first: a trial Laser Create and AutoDim together (decided 17.11.2026), a purchase Laser Create. */
 export const defaultProducts = (trial) => (trial ? ['laser', 'autodim'] : ['laser']);
 
-/** The products a code covers - one from before the suite covers its plug-in's; SW to Laser belongs to Laser Create. */
+/** The products a code covers - one from before the suite covers its plug-in's; Site Create belongs to Laser Create. */
 export const productsOf = (license) => license.products ?? [license.product === 'swtolaser' ? 'laser' : license.product];
 
 /** Whose trial length and settings link a code follows: Laser Create's - the suite's trials live there. */

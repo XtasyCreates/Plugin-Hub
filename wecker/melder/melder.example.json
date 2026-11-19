@@ -5,7 +5,7 @@
     "topic": "<der Push-Name aus den Einstellungen des TISS Bots>",
     "click": "https://wecker.tail03edd2.ts.net/#/mails?feld=anfragen"
   },
-  "products": ["Laser Create", "SW to Laser"],
+  "products": ["Laser Create", "Site Create"],
   "intervalSeconds": 120,
   "remindHours": 12,
   "giveUpDays": 7,

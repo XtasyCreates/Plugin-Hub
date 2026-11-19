@@ -75,7 +75,7 @@ public sealed class Stats
                 r.Product == null ? new List<string>() : new List<string> { Suite.ProductOf(r.Product) }))
             .ToList();
 
-        // The products for sale, the suite last - an older SW to Laser code counts as Laser Create
+        // The products for sale, the suite last - an older Site Create code counts as Laser Create
         var plugins = RhinoKit.Licensing.Products.All.Select(p => new StatsProduct(p.Id, p.Name)).ToList();
         return new StatsView(shared.SalesChannel, shared.SiteStats, Month(DateTimeOffset.Now), plugins,
             saleRows, trialRows, requestRows);

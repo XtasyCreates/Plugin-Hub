@@ -259,7 +259,7 @@ async function answerRequest(o, settings, view, kind) {
   const language = view.customerLanguage ?? settings.shared.defaultLanguage;
   const inDays = (n) => isoDate(new Date(Date.now() + n * 86_400_000));
   // The request names the plug-in it came from; a trial covers Laser Create and AutoDim together,
-  // a purchase the product of that plug-in (SW to Laser belongs to Laser Create)
+  // a purchase the product of that plug-in (Site Create belongs to Laser Create)
   const products = await api('/api/products');
   const asked = r.product === 'swtolaser' ? 'laser' : r.product;
   let picked = trial ? defaultProducts(true)

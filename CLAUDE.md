@@ -9,7 +9,7 @@ ist, steht in `README.md` – zuerst lesen. Hier steht nur, was in keinem Quellt
     Desktop\Claude\
       Plugins Rhino\   Laser Create, SW to Laser, RhinoKit – eigenes Git-Repository
       Plugin Hub\      dieser Ordner – eigenes Git-Repository; Daten in Hub\ (Planung, Einstellungen)
-      Website\         Website „AutoCreate“ – eigenes Git-Repository
+      Website\         Website „Ochre“ – eigenes Git-Repository
       TISS Bot\        eigenes Projekt, ohne Git
 
 Der Hub braucht „Plugins Rhino“ daneben: Er kompiliert zwei Dateien aus `RhinoKit\Licensing` mit,

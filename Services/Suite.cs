@@ -22,13 +22,13 @@ public static class Suite
     public static string KeyOf(License l) => l.Products != null ? KeyProduct : l.Product;
 
     /// <summary>
-    /// The products a code covers. An older SW to Laser code counts as Laser Create: the two are
-    /// one product now (it still unlocks only SW to Laser, as it always did).
+    /// The products a code covers. An older Site Create code counts as Laser Create: the two are
+    /// one product now (it still unlocks only Site Create, as it always did).
     /// </summary>
     public static IReadOnlyList<string> ProductsOf(License l) =>
         (IReadOnlyList<string>?)l.Products ?? new[] { ProductOf(l.Product) };
 
-    /// <summary>The product a plug-in project belongs to: SW to Laser comes with Laser Create.</summary>
+    /// <summary>The product a plug-in project belongs to: Site Create comes with Laser Create.</summary>
     public static string ProductOf(string projectId) => projectId == "swtolaser" ? Kit.Products.LaserCreate : projectId;
 
     /// <summary>"Laser Create + AutoDim" for a suite code, the plug-in's name for an older one.</summary>

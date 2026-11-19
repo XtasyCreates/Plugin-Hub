@@ -46,7 +46,7 @@ export async function render(main, { params }) {
   }
 
   // A test step brings the form half filled: ?produkt=laser&tage=2&geraet=dieser-pc (or art=kauf),
-  // several products as ?produkt=laser,autodim - an older SW to Laser link means Laser Create
+  // several products as ?produkt=laser,autodim - an older Site Create link means Laser Create
   if (params.produkt || params.tage || params.art || params.geraet) {
     const days = Number(params.tage);
     if (days >= 1 && days <= 365) Object.assign(form, { kind: 'trial', end: daysFromNow(days) });
